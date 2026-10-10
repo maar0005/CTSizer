@@ -1,0 +1,401 @@
+{
+  "calculation_step": [
+    {
+      "input": [
+        "Sekund\u00e6r str\u00f8m",
+        "Is = Sn / Us",
+        "I_s = \\frac{S_n}{U_s}",
+        "Is = 10 / 100",
+        "I_s = \\frac{10}{100}",
+        "Is = 100.00 mA",
+        "I_s = 100.00\\,\\text{mA}"
+      ],
+      "expected": {
+        "name": "Sekund\u00e6r str\u00f8m",
+        "formula": "Is = Sn / Us",
+        "latex_formula": "I_s = \\frac{S_n}{U_s}",
+        "substitution": "Is = 10 / 100",
+        "latex_substitution": "I_s = \\frac{10}{100}",
+        "result": "Is = 100.00 mA",
+        "latex_result": "I_s = 100.00\\,\\text{mA}"
+      }
+    },
+    {
+      "input": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "expected": {
+        "name": "",
+        "formula": "",
+        "latex_formula": "",
+        "substitution": "",
+        "latex_substitution": "",
+        "result": "",
+        "latex_result": ""
+      }
+    }
+  ],
+  "result_dict": [
+    {
+      "input": [],
+      "expected": {
+        "status": "OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": []
+      }
+    }
+  ],
+  "vt_results": [
+    {
+      "input": [
+        {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        [
+          "Lav byrde: 10.0% < 25%."
+        ]
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        "warnings": [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "intermediate_steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        {},
+        [],
+        [],
+        "IKKE OK"
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": []
+      }
+    },
+    {
+      "input": [
+        {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        null
+      ],
+      "expected": {
+        "status": null,
+        "calculations": {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        "warnings": [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "intermediate_steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "OK",
+        "Kerne 1",
+        "T1",
+        1
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        "warnings": [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "intermediate_steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        "core_name": "Kerne 1",
+        "transformer_id": "T1",
+        "core_number": 1
+      }
+    },
+    {
+      "input": [
+        {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "OK",
+        "",
+        "",
+        0
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        "warnings": [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "intermediate_steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        "core_number": 0
+      }
+    },
+    {
+      "input": [
+        {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "OK",
+        null,
+        null,
+        null
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        "warnings": [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "intermediate_steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "IKKE OK",
+        "Kerne 2",
+        null,
+        2
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "burden_utilization": {
+            "value": 42.5,
+            "unit": "%"
+          }
+        },
+        "warnings": [
+          "Lav byrde: 10.0% < 25%."
+        ],
+        "intermediate_steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          }
+        ],
+        "core_name": "Kerne 2",
+        "core_number": 2
+      }
+    },
+    {
+      "input": [
+        {},
+        [],
+        [],
+        "OK",
+        0,
+        "VT-A",
+        null
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": [],
+        "transformer_id": "VT-A"
+      }
+    }
+  ],
+  "common_calculations": [
+    {
+      "input": [
+        0.5
+      ],
+      "expected": {
+        "cable_resistance": {
+          "value": 0.5,
+          "unit": "\u03a9",
+          "description": "Total kabelresistans (tur/retur)",
+          "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+        }
+      }
+    },
+    {
+      "input": [
+        1
+      ],
+      "expected": {
+        "cable_resistance": {
+          "value": 1,
+          "unit": "\u03a9",
+          "description": "Total kabelresistans (tur/retur)",
+          "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+        }
+      }
+    },
+    {
+      "input": [
+        0
+      ],
+      "expected": {
+        "cable_resistance": {
+          "value": 0,
+          "unit": "\u03a9",
+          "description": "Total kabelresistans (tur/retur)",
+          "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+        }
+      }
+    },
+    {
+      "input": [
+        0.123456789
+      ],
+      "expected": {
+        "cable_resistance": {
+          "value": 0.123456789,
+          "unit": "\u03a9",
+          "description": "Total kabelresistans (tur/retur)",
+          "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+        }
+      }
+    },
+    {
+      "input": [
+        12.75
+      ],
+      "expected": {
+        "cable_resistance": {
+          "value": 12.75,
+          "unit": "\u03a9",
+          "description": "Total kabelresistans (tur/retur)",
+          "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+        }
+      }
+    }
+  ]
+}

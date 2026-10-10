@@ -1,0 +1,174 @@
+{
+  "calculate_total_resistance_3ph": [
+    {
+      "input": {
+        "rct": 4,
+        "cable_resistance": 1.5,
+        "r_relay": 0.5
+      },
+      "expected": 6.0
+    },
+    {
+      "input": {
+        "rct": 50,
+        "cable_resistance": 40,
+        "r_relay": 20
+      },
+      "expected": 99
+    }
+  ],
+  "calculate_total_resistance_1ph": [
+    {
+      "input": {
+        "rct": 4,
+        "cable_resistance": 1.5,
+        "r_relay": 0.5
+      },
+      "expected": 6.0
+    },
+    {
+      "input": {
+        "rct": 50,
+        "cable_resistance": 40,
+        "r_relay": 20
+      },
+      "expected": 99
+    }
+  ],
+  "calculate_emf_3phase_internal": [
+    {
+      "input": {
+        "current": 5000,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "total_resistance": 5.5
+      },
+      "expected": 13.75
+    },
+    {
+      "input": {
+        "current": 63000,
+        "secondary_current": 5,
+        "primary_current": 1000,
+        "total_resistance": 2.0
+      },
+      "expected": 630.0
+    }
+  ],
+  "calculate_emf_1phase_internal": [
+    {
+      "input": {
+        "current": 5000,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "total_resistance": 5.5
+      },
+      "expected": 13.75
+    },
+    {
+      "input": {
+        "current": 63000,
+        "secondary_current": 5,
+        "primary_current": 1000,
+        "total_resistance": 2.0
+      },
+      "expected": 630.0
+    }
+  ],
+  "calculate_emf_3phase_external": [
+    {
+      "input": {
+        "current": 5000,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "total_resistance": 5.5
+      },
+      "expected": 27.5
+    },
+    {
+      "input": {
+        "current": 63000,
+        "secondary_current": 5,
+        "primary_current": 1000,
+        "total_resistance": 2.0
+      },
+      "expected": 1260.0
+    }
+  ],
+  "calculate_emf_1phase_external": [
+    {
+      "input": {
+        "current": 5000,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "total_resistance": 5.5
+      },
+      "expected": 27.5
+    },
+    {
+      "input": {
+        "current": 63000,
+        "secondary_current": 5,
+        "primary_current": 1000,
+        "total_resistance": 2.0
+      },
+      "expected": 1260.0
+    }
+  ],
+  "calculate_all_emf_scenarios": [
+    {
+      "input": {
+        "fault_currents": {
+          "ik_max_3ph": 63000,
+          "ik_max_1ph": 50000,
+          "it_max_3ph": 40000,
+          "it_max_1ph": 30000
+        },
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "rct": 4,
+        "cable_resistance": 1.5,
+        "r_relay": 0.5
+      },
+      "expected": {
+        "e_3p_in": 189.0,
+        "e_1p_in": 150.0,
+        "e_3p_ex": 240.0,
+        "e_1p_ex": 180.0,
+        "total_resistance_3p": 6.0,
+        "total_resistance_1p": 6.0,
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "fault_currents": {
+          "ik_max_3ph": 90000,
+          "ik_max_1ph": 90000,
+          "it_max_3ph": 90000,
+          "it_max_1ph": 90000
+        },
+        "secondary_current": 5,
+        "primary_current": 50,
+        "rct": 50,
+        "cable_resistance": 40,
+        "r_relay": 20
+      },
+      "expected": {
+        "e_3p_in": 891000.0,
+        "e_1p_in": 891000.0,
+        "e_3p_ex": 1782000.0,
+        "e_1p_ex": 1782000.0,
+        "total_resistance_3p": 99,
+        "total_resistance_1p": 99,
+        "warnings": [
+          [
+            "warning_total_resistance_capped",
+            110,
+            99
+          ]
+        ]
+      }
+    }
+  ]
+}

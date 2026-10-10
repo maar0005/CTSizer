@@ -1,0 +1,69 @@
+{
+  "temperature_coefficients": {
+    "Kobber (Cu)": 0.00393,
+    "Aluminium (Al)": 0.00403
+  },
+  "default_values": [
+    {
+      "input": [],
+      "expected": {
+        "cable_length": 150,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.1,
+        "trafo_rated_power": 160,
+        "z_percent": 14,
+        "inrush_factor": 8,
+        "voltage_level": 150,
+        "trafo_it_max": 10000,
+        "trafo_ik_max": null,
+        "linked_winding": "HV"
+      }
+    }
+  ],
+  "iec_constants": [
+    {
+      "input": [],
+      "expected": {
+        "k_wire": 2,
+        "min_alf": 12.5,
+        "min_fadap": 0.05,
+        "max_fadap": 20,
+        "ext_fault_factor": 1.5,
+        "int_fault_factor": 0.4
+      }
+    }
+  ],
+  "ziegler_constants": [
+    {
+      "input": [],
+      "expected": {
+        "min_alf": 12.5,
+        "int_fault_factor": 0.4,
+        "ext_fault_factor": 1.5
+      }
+    }
+  ],
+  "emf_constants": [
+    {
+      "input": [],
+      "expected": {
+        "through_fault_factor": 2
+      }
+    }
+  ],
+  "z_percent_range": [
+    {
+      "input": [],
+      "expected": {
+        "min": 4,
+        "max": 20
+      }
+    }
+  ]
+}

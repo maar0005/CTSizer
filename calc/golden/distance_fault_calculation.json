@@ -1,0 +1,219 @@
+{
+  "calculate_source_impedance": [
+    {
+      "input": {
+        "voltage_level": 420,
+        "iscc_max": 40000,
+        "frequency": 50,
+        "tp": 100,
+        "klim": 0.85,
+        "line_length": 6.4,
+        "r_line": 0.0423,
+        "x_line": 0.203
+      },
+      "expected": {
+        "zs": 6.668395609140179,
+        "rs": 0.2121541733884319,
+        "xs": 6.665019925455129,
+        "omega_tp": 31.41592653589793
+      }
+    },
+    {
+      "input": {
+        "voltage_level": 132,
+        "iscc_max": 15000,
+        "frequency": 60,
+        "tp": 200,
+        "klim": 0.8,
+        "line_length": 25,
+        "r_line": 0.12,
+        "x_line": 0.35
+      },
+      "expected": {
+        "zs": 5.588750605755579,
+        "rs": 0.07411658860473615,
+        "xs": 5.588259126474626,
+        "omega_tp": 75.39822368615503
+      }
+    }
+  ],
+  "calculate_zone1_impedance": [
+    {
+      "input": {
+        "voltage_level": 420,
+        "iscc_max": 40000,
+        "frequency": 50,
+        "tp": 100,
+        "klim": 0.85,
+        "line_length": 6.4,
+        "r_line": 0.0423,
+        "x_line": 0.203
+      },
+      "expected": {
+        "rl": 0.230112,
+        "xl": 1.1043200000000002
+      }
+    },
+    {
+      "input": {
+        "voltage_level": 132,
+        "iscc_max": 15000,
+        "frequency": 60,
+        "tp": 200,
+        "klim": 0.8,
+        "line_length": 25,
+        "r_line": 0.12,
+        "x_line": 0.35
+      },
+      "expected": {
+        "rl": 2.4,
+        "xl": 7.0
+      }
+    }
+  ],
+  "calculate_zone1_fault_current": [
+    {
+      "input": {
+        "rs": 0.2121541733884319,
+        "xs": 6.665019925455129,
+        "rl": 0.230112,
+        "xl": 1.1043200000000002,
+        "voltage_level": 420
+      },
+      "expected": {
+        "rsc": 0.4422661733884319,
+        "xsc": 7.769339925455129,
+        "zsc": 7.78191764576025,
+        "isc_lim": 34276.361753960526
+      }
+    },
+    {
+      "input": {
+        "rs": 0.07411658860473615,
+        "xs": 5.588259126474626,
+        "rl": 2.4,
+        "xl": 7.0,
+        "voltage_level": 132
+      },
+      "expected": {
+        "rsc": 2.474116588604736,
+        "xsc": 12.588259126474625,
+        "zsc": 12.829088850315163,
+        "isc_lim": 6534.467105532149
+      }
+    }
+  ],
+  "calculate_source_impedance_with_validation": [
+    {
+      "input": {
+        "un": 420,
+        "ik_max": 40000,
+        "tp": 100,
+        "frequency": 50,
+        "fault_type": "3-phase",
+        "ik_alternative": null
+      },
+      "expected": {
+        "zs": 6.668395609140179,
+        "rs": 0.2121541733884319,
+        "xs": 6.665019925455129,
+        "omega_tp": 31.41592653589793,
+        "ik_design": 40000,
+        "fault_type_used": "3-phase",
+        "warnings": [],
+        "iec_reference": "IEC 60909"
+      }
+    },
+    {
+      "input": {
+        "un": 420,
+        "ik_max": 40000,
+        "tp": 100,
+        "frequency": 50,
+        "fault_type": "3-phase",
+        "ik_alternative": 63000
+      },
+      "expected": {
+        "zs": 4.2339019740572565,
+        "rs": 0.13470106246884567,
+        "xs": 4.231758682828653,
+        "omega_tp": 31.41592653589793,
+        "ik_design": 63000,
+        "fault_type_used": "1-phase",
+        "warnings": [
+          {
+            "type": "fault_current_comparison",
+            "ik1": 63000,
+            "ik3": 40000,
+            "message_key": "warning_ik1_higher_than_ik3"
+          }
+        ],
+        "iec_reference": "IEC 60909"
+      }
+    },
+    {
+      "input": {
+        "un": 420,
+        "ik_max": 63000,
+        "tp": 100,
+        "frequency": 50,
+        "fault_type": "1-phase",
+        "ik_alternative": 40000
+      },
+      "expected": {
+        "zs": 4.2339019740572565,
+        "rs": 0.13470106246884567,
+        "xs": 4.231758682828653,
+        "omega_tp": 31.41592653589793,
+        "ik_design": 63000,
+        "fault_type_used": "1-phase",
+        "warnings": [
+          {
+            "type": "fault_current_comparison",
+            "ik1": 63000,
+            "ik3": 40000,
+            "message_key": "info_ik1_higher_design"
+          }
+        ],
+        "iec_reference": "IEC 60909"
+      }
+    },
+    {
+      "input": {
+        "un": 420,
+        "ik_max": 63000,
+        "tp": 100,
+        "frequency": 50,
+        "fault_type": "3-phase",
+        "ik_alternative": 40000
+      },
+      "expected": {
+        "zs": 4.2339019740572565,
+        "rs": 0.13470106246884567,
+        "xs": 4.231758682828653,
+        "omega_tp": 31.41592653589793,
+        "ik_design": 63000,
+        "fault_type_used": "3-phase",
+        "warnings": [],
+        "iec_reference": "IEC 60909"
+      }
+    },
+    {
+      "input": {
+        "un": 132,
+        "ik_max": 15000,
+        "tp": 80
+      },
+      "expected": {
+        "zs": 5.588750605755579,
+        "rs": 0.22219350860623494,
+        "xs": 5.584331954501506,
+        "omega_tp": 25.13274122871835,
+        "ik_design": 15000,
+        "fault_type_used": "3-phase",
+        "warnings": [],
+        "iec_reference": "IEC 60909"
+      }
+    }
+  ]
+}

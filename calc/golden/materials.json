@@ -1,0 +1,498 @@
+{
+  "is_copper_material": [
+    {
+      "input": [
+        null
+      ],
+      "expected": null
+    },
+    {
+      "input": [
+        ""
+      ],
+      "expected": null
+    },
+    {
+      "input": [
+        "Kobber (Cu)"
+      ],
+      "expected": true
+    },
+    {
+      "input": [
+        "kobber (cu)"
+      ],
+      "expected": false
+    },
+    {
+      "input": [
+        "Copper (Cu)"
+      ],
+      "expected": true
+    },
+    {
+      "input": [
+        "Aluminium (Al)"
+      ],
+      "expected": false
+    },
+    {
+      "input": [
+        "aluminium (al)"
+      ],
+      "expected": false
+    },
+    {
+      "input": [
+        "Aluminum (Al)"
+      ],
+      "expected": false
+    },
+    {
+      "input": [
+        "ukendt"
+      ],
+      "expected": false
+    }
+  ],
+  "is_aluminum_material": [
+    {
+      "input": [
+        null
+      ],
+      "expected": null
+    },
+    {
+      "input": [
+        ""
+      ],
+      "expected": null
+    },
+    {
+      "input": [
+        "Kobber (Cu)"
+      ],
+      "expected": false
+    },
+    {
+      "input": [
+        "kobber (cu)"
+      ],
+      "expected": false
+    },
+    {
+      "input": [
+        "Copper (Cu)"
+      ],
+      "expected": false
+    },
+    {
+      "input": [
+        "Aluminium (Al)"
+      ],
+      "expected": true
+    },
+    {
+      "input": [
+        "aluminium (al)"
+      ],
+      "expected": false
+    },
+    {
+      "input": [
+        "Aluminum (Al)"
+      ],
+      "expected": true
+    },
+    {
+      "input": [
+        "ukendt"
+      ],
+      "expected": false
+    }
+  ],
+  "get_material_properties": [
+    {
+      "input": null,
+      "expected": {
+        "rho20": 0.017241,
+        "alpha": 0.00393,
+        "name": "Kobber"
+      }
+    },
+    {
+      "input": "",
+      "expected": {
+        "rho20": 0.017241,
+        "alpha": 0.00393,
+        "name": "Kobber"
+      }
+    },
+    {
+      "input": "Kobber (Cu)",
+      "expected": {
+        "rho20": 0.017241,
+        "alpha": 0.00393,
+        "name": "Kobber"
+      }
+    },
+    {
+      "input": "kobber (cu)",
+      "expected": {
+        "rho20": 0.017241,
+        "alpha": 0.00393,
+        "name": "Kobber"
+      }
+    },
+    {
+      "input": "Copper (Cu)",
+      "expected": {
+        "rho20": 0.017241,
+        "alpha": 0.00393,
+        "name": "Kobber"
+      }
+    },
+    {
+      "input": "Aluminium (Al)",
+      "expected": {
+        "rho20": 0.02826,
+        "alpha": 0.00403,
+        "name": "Aluminium"
+      }
+    },
+    {
+      "input": "aluminium (al)",
+      "expected": {
+        "rho20": 0.02826,
+        "alpha": 0.00403,
+        "name": "Aluminium"
+      }
+    },
+    {
+      "input": "Aluminum (Al)",
+      "expected": {
+        "rho20": 0.02826,
+        "alpha": 0.00403,
+        "name": "Aluminium"
+      }
+    },
+    {
+      "input": "ukendt",
+      "expected": {
+        "rho20": 0.017241,
+        "alpha": 0.00393,
+        "name": "Kobber"
+      }
+    }
+  ],
+  "get_dc_resistance_per_km": [
+    {
+      "input": [
+        "Kobber (Cu)",
+        4
+      ],
+      "expected": 4.61
+    },
+    {
+      "input": [
+        "Aluminium (Al)",
+        4
+      ],
+      "expected": 7.41
+    },
+    {
+      "input": [
+        "Kobber (Cu)",
+        5
+      ],
+      "expected": 3.4482
+    },
+    {
+      "input": [
+        "Aluminium (Al)",
+        0.5
+      ],
+      "expected": 56.52
+    },
+    {
+      "input": [
+        null,
+        50
+      ],
+      "expected": 0.387
+    },
+    {
+      "input": [
+        "Aluminium (Al)",
+        50
+      ],
+      "expected": 0.641
+    }
+  ],
+  "get_wiring_factor": [
+    {
+      "input": [],
+      "expected": 2
+    }
+  ],
+  "calculate_resistivity_at_temp": [
+    {
+      "input": [
+        "Kobber (Cu)",
+        20
+      ],
+      "expected": {
+        "rho_temp": 0.017241,
+        "alpha": 0.00393
+      }
+    },
+    {
+      "input": [
+        "Kobber (Cu)",
+        75
+      ],
+      "expected": {
+        "rho_temp": 0.02096764215,
+        "alpha": 0.00393
+      }
+    },
+    {
+      "input": [
+        "Aluminium (Al)",
+        75
+      ],
+      "expected": {
+        "rho_temp": 0.034523829,
+        "alpha": 0.00403
+      }
+    },
+    {
+      "input": [
+        null,
+        40
+      ],
+      "expected": {
+        "rho_temp": 0.0185961426,
+        "alpha": 0.00393
+      }
+    }
+  ],
+  "calculate_resistance_at_temp": [
+    {
+      "input": [
+        0.387,
+        75,
+        "Kobber (Cu)"
+      ],
+      "expected": {
+        "r_temp": 0.47065005000000004,
+        "alpha": 0.00393
+      }
+    },
+    {
+      "input": [
+        0.641,
+        75,
+        "Aluminium (Al)"
+      ],
+      "expected": {
+        "r_temp": 0.78307765,
+        "alpha": 0.00403
+      }
+    },
+    {
+      "input": [
+        1.0,
+        20,
+        "Kobber (Cu)"
+      ],
+      "expected": {
+        "r_temp": 1.0,
+        "alpha": 0.00393
+      }
+    }
+  ],
+  "calculate_single_conductor_resistance": [
+    {
+      "input": [
+        "Kobber (Cu)",
+        75,
+        100,
+        4
+      ],
+      "expected": {
+        "r_one": 0.52419105375,
+        "rho_temp": 0.02096764215,
+        "alpha": 0.00393,
+        "material_name": "Kobber"
+      }
+    },
+    {
+      "input": [
+        "Aluminium (Al)",
+        75,
+        100,
+        4
+      ],
+      "expected": {
+        "r_one": 0.863095725,
+        "rho_temp": 0.034523829,
+        "alpha": 0.00403,
+        "material_name": "Aluminium"
+      }
+    },
+    {
+      "input": [
+        "Kobber (Cu)",
+        20,
+        50,
+        2.5
+      ],
+      "expected": {
+        "r_one": 0.34482,
+        "rho_temp": 0.017241,
+        "alpha": 0.00393,
+        "material_name": "Kobber"
+      }
+    }
+  ],
+  "calculate_wire_resistance": [
+    {
+      "input": [
+        "Kobber (Cu)",
+        75,
+        100,
+        4
+      ],
+      "expected": {
+        "r_wire": 1.0483821075,
+        "rho_temp": 0.02096764215,
+        "alpha": 0.00393,
+        "material_name": "Kobber"
+      }
+    },
+    {
+      "input": [
+        "Aluminium (Al)",
+        75,
+        100,
+        4
+      ],
+      "expected": {
+        "r_wire": 1.72619145,
+        "rho_temp": 0.034523829,
+        "alpha": 0.00403,
+        "material_name": "Aluminium"
+      }
+    },
+    {
+      "input": [
+        "Kobber (Cu)",
+        20,
+        50,
+        2.5
+      ],
+      "expected": {
+        "r_wire": 0.68964,
+        "rho_temp": 0.017241,
+        "alpha": 0.00393,
+        "material_name": "Kobber"
+      }
+    }
+  ],
+  "calculate_cable_burden": [
+    {
+      "input": [
+        "Kobber (Cu)",
+        75,
+        100,
+        4,
+        1.0
+      ],
+      "expected": {
+        "burden": 1.0483821075,
+        "rho_temp": 0.02096764215
+      }
+    },
+    {
+      "input": [
+        "Aluminium (Al)",
+        75,
+        100,
+        4,
+        5.0
+      ],
+      "expected": {
+        "burden": 43.15478625,
+        "rho_temp": 0.034523829
+      }
+    }
+  ],
+  "validate_cable_resistivity": [
+    {
+      "input": [
+        0.387,
+        50,
+        "Kobber (Cu)"
+      ],
+      "expected": {
+        "is_valid": true,
+        "expected": 0.387,
+        "deviation_pct": 0.0,
+        "warning": null
+      }
+    },
+    {
+      "input": [
+        1.0,
+        50,
+        "Kobber (Cu)"
+      ],
+      "expected": {
+        "is_valid": false,
+        "expected": 0.387,
+        "deviation_pct": 158.39793281653746,
+        "warning": "ADVARSEL: Kabelmodstand ved 20\u00b0C (1.0000 \u03a9/km) afviger 158.4% fra standard Kobber v\u00e6rdi (0.3870 \u03a9/km). Verificer input eller kabelspecifikation."
+      }
+    },
+    {
+      "input": [
+        0.42,
+        50,
+        "Kobber (Cu)"
+      ],
+      "expected": {
+        "is_valid": true,
+        "expected": 0.387,
+        "deviation_pct": 8.52713178294573,
+        "warning": null
+      }
+    },
+    {
+      "input": [
+        0.387,
+        -1,
+        "Kobber (Cu)"
+      ],
+      "expected": {
+        "is_valid": false,
+        "expected": 0,
+        "deviation_pct": 100,
+        "warning": "Invalid cross-section: must be > 0"
+      }
+    },
+    {
+      "input": [
+        0.641,
+        50,
+        "Aluminium (Al)"
+      ],
+      "expected": {
+        "is_valid": true,
+        "expected": 0.641,
+        "deviation_pct": 0.0,
+        "warning": null
+      }
+    }
+  ]
+}

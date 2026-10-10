@@ -1,0 +1,124 @@
+{
+  "calculate_kssc": [
+    {
+      "input": {
+        "trafo_it_max": 5000,
+        "trafo_ik_max": 12000,
+        "primary_current": 600
+      },
+      "expected": [
+        20.0,
+        8.333333333333334
+      ]
+    },
+    {
+      "input": {
+        "trafo_it_max": 15000,
+        "trafo_ik_max": 25000,
+        "primary_current": 2000
+      },
+      "expected": [
+        12.5,
+        7.5
+      ]
+    },
+    {
+      "input": {
+        "trafo_it_max": 3000,
+        "trafo_ik_max": 8000,
+        "primary_current": 400
+      },
+      "expected": [
+        20.0,
+        7.5
+      ]
+    },
+    {
+      "input": {
+        "trafo_it_max": 1200,
+        "trafo_ik_max": 90000,
+        "primary_current": 1500
+      },
+      "expected": [
+        60.0,
+        0.8
+      ]
+    }
+  ],
+  "calculate_alf_requirements": [
+    {
+      "input": {
+        "kssc_int": 20.0,
+        "kssc_ext": 8.3333
+      },
+      "expected": [
+        8.0,
+        12.499949999999998,
+        12.5
+      ]
+    },
+    {
+      "input": {
+        "kssc_int": 60.0,
+        "kssc_ext": 5.0
+      },
+      "expected": [
+        24.0,
+        7.5,
+        24.0
+      ]
+    },
+    {
+      "input": {
+        "kssc_int": 12.5,
+        "kssc_ext": 4.0
+      },
+      "expected": [
+        5.0,
+        6.0,
+        12.5
+      ]
+    },
+    {
+      "input": {
+        "kssc_int": 16.0,
+        "kssc_ext": 10.0
+      },
+      "expected": [
+        6.4,
+        15.0,
+        15.0
+      ]
+    }
+  ],
+  "verify_ziegler_method": [
+    {
+      "input": {
+        "alf_o": 20,
+        "siemens_alf_required": 12.5
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "alf_o": 10,
+        "siemens_alf_required": 12.5
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "alf_o": 12.5,
+        "siemens_alf_required": 12.5
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "alf_o": null,
+        "siemens_alf_required": 30.0
+      },
+      "expected": true
+    }
+  ]
+}

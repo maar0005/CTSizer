@@ -1,0 +1,256 @@
+{
+  "extract_vt_core_data": [
+    {
+      "input": {
+        "core": {}
+      },
+      "expected": {
+        "burden": 0,
+        "thermal_burden": 50,
+        "secondary_voltage": 100,
+        "attached_resistor": 0,
+        "device_resistance": 100,
+        "vt_class": "0.2",
+        "ratio": 4000,
+        "cable_resistance": 0,
+        "transformer_id": "VT",
+        "core_number": 1
+      }
+    },
+    {
+      "input": {
+        "core": {
+          "burden": 25,
+          "thermal_burden": 100,
+          "secondary_voltage": 63.50852961085884,
+          "attached_resistor": 12.5,
+          "device_resistance": 250,
+          "vt_class": "0.5",
+          "ratio": 1500,
+          "cable_resistance": 0.42,
+          "transformer_id": "T1-VT",
+          "core_number": 2
+        }
+      },
+      "expected": {
+        "burden": 25,
+        "thermal_burden": 100,
+        "secondary_voltage": 63.50852961085884,
+        "attached_resistor": 12.5,
+        "device_resistance": 250,
+        "vt_class": "0.5",
+        "ratio": 1500,
+        "cable_resistance": 0.42,
+        "transformer_id": "T1-VT",
+        "core_number": 2
+      }
+    },
+    {
+      "input": {
+        "core": {
+          "burden": 10,
+          "vt_class": "3P",
+          "cable_resistance": 1.1
+        }
+      },
+      "expected": {
+        "burden": 10,
+        "thermal_burden": 50,
+        "secondary_voltage": 100,
+        "attached_resistor": 0,
+        "device_resistance": 100,
+        "vt_class": "3P",
+        "ratio": 4000,
+        "cable_resistance": 1.1,
+        "transformer_id": "VT",
+        "core_number": 1
+      }
+    }
+  ],
+  "extract_common_data": [
+    {
+      "input": {
+        "common_data": {}
+      },
+      "expected": {
+        "cable_resistance": 0
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "cable_resistance": 0.75,
+          "station": "ABC"
+        }
+      },
+      "expected": {
+        "cable_resistance": 0.75
+      }
+    }
+  ],
+  "validate_vt_inputs": [
+    {
+      "input": {
+        "core_data": {}
+      },
+      "expected": [
+        true,
+        []
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": 30,
+          "thermal_burden": 100,
+          "secondary_voltage": 100,
+          "device_resistance": 50,
+          "cable_resistance": 0.3
+        }
+      },
+      "expected": [
+        true,
+        []
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": 50
+        }
+      },
+      "expected": [
+        true,
+        []
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": -5
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Byrde (burden) kan ikke v\u00e6re negativ"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "thermal_burden": -1
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Termisk byrde kan ikke v\u00e6re negativ",
+          "Termisk byrde (-1 VA) skal v\u00e6re >= n\u00f8jagtighedsbyrde (0 VA)"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": 60
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Termisk byrde (50 VA) skal v\u00e6re >= n\u00f8jagtighedsbyrde (60 VA)"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": 12.5,
+          "thermal_burden": 7.5
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Termisk byrde (7.5 VA) skal v\u00e6re >= n\u00f8jagtighedsbyrde (12.5 VA)"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "secondary_voltage": 0
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Sekund\u00e6r sp\u00e6nding skal v\u00e6re > 0"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "secondary_voltage": -100
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Sekund\u00e6r sp\u00e6nding skal v\u00e6re > 0"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "device_resistance": -1
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Enheds modstand kan ikke v\u00e6re negativ"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "cable_resistance": -0.1
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Kabel modstand kan ikke v\u00e6re negativ"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": -5,
+          "thermal_burden": -10,
+          "secondary_voltage": -1,
+          "device_resistance": -2,
+          "cable_resistance": -3
+        }
+      },
+      "expected": [
+        false,
+        [
+          "Byrde (burden) kan ikke v\u00e6re negativ",
+          "Termisk byrde kan ikke v\u00e6re negativ",
+          "Termisk byrde (-10 VA) skal v\u00e6re >= n\u00f8jagtighedsbyrde (-5 VA)",
+          "Sekund\u00e6r sp\u00e6nding skal v\u00e6re > 0",
+          "Enheds modstand kan ikke v\u00e6re negativ",
+          "Kabel modstand kan ikke v\u00e6re negativ"
+        ]
+      ]
+    }
+  ]
+}

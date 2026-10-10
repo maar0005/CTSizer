@@ -1,0 +1,313 @@
+{
+  "rated_secondary_current": [
+    {
+      "input": [
+        25,
+        100
+      ],
+      "expected": {
+        "current": 0.25,
+        "step": {
+          "key": "rated_secondary_current",
+          "result": "250.00 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        0,
+        100
+      ],
+      "expected": {
+        "current": 0.0,
+        "step": {
+          "key": "rated_secondary_current",
+          "result": "0.00 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        50,
+        63.50852961085884
+      ],
+      "expected": {
+        "current": 0.7872958216222169,
+        "step": {
+          "key": "rated_secondary_current",
+          "result": "787.30 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        12.5,
+        110
+      ],
+      "expected": {
+        "current": 0.11363636363636363,
+        "step": {
+          "key": "rated_secondary_current",
+          "result": "113.64 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        30,
+        0
+      ],
+      "expected": {
+        "current": 0,
+        "step": {
+          "key": "rated_secondary_current",
+          "result": "0.00 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        30,
+        -100
+      ],
+      "expected": {
+        "current": 0,
+        "step": {
+          "key": "rated_secondary_current",
+          "result": "0.00 mA"
+        }
+      }
+    }
+  ],
+  "burden_impedance": [
+    {
+      "input": [
+        100,
+        0.25
+      ],
+      "expected": {
+        "impedance": 400.0,
+        "step": {
+          "key": "burden_impedance",
+          "result": "400.00 \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        63.50852961085884,
+        0.7872958216222169
+      ],
+      "expected": {
+        "impedance": 80.66666666666667,
+        "step": {
+          "key": "burden_impedance",
+          "result": "80.67 \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        100,
+        0
+      ],
+      "expected": {
+        "impedance": "inf",
+        "step": {
+          "key": "burden_impedance",
+          "result": "inf \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        100,
+        -0.1
+      ],
+      "expected": {
+        "impedance": "inf",
+        "step": {
+          "key": "burden_impedance",
+          "result": "inf \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        110,
+        0.003
+      ],
+      "expected": {
+        "impedance": 36666.666666666664,
+        "step": {
+          "key": "burden_impedance",
+          "result": "36666.67 \u03a9"
+        }
+      }
+    }
+  ],
+  "parallel_resistance": [
+    {
+      "input": [
+        [
+          100
+        ]
+      ],
+      "expected": 100.0
+    },
+    {
+      "input": [
+        [
+          100,
+          100
+        ]
+      ],
+      "expected": 50.0
+    },
+    {
+      "input": [
+        [
+          100,
+          50,
+          25
+        ]
+      ],
+      "expected": 14.285714285714285
+    },
+    {
+      "input": [
+        [
+          100,
+          0,
+          -5
+        ]
+      ],
+      "expected": 100.0
+    },
+    {
+      "input": [
+        [
+          250,
+          "inf"
+        ]
+      ],
+      "expected": 250.0
+    },
+    {
+      "input": [
+        []
+      ],
+      "expected": "inf"
+    },
+    {
+      "input": [
+        [
+          0,
+          -1
+        ]
+      ],
+      "expected": "inf"
+    },
+    {
+      "input": [
+        [
+          12.5,
+          400
+        ]
+      ],
+      "expected": 12.121212121212121
+    }
+  ],
+  "total_impedance": [
+    {
+      "input": [
+        0.42,
+        100,
+        0
+      ],
+      "expected": {
+        "total_impedance": 100.42,
+        "load_resistance": 100.0,
+        "step": {
+          "key": "total_load_impedance",
+          "result": "100.42 \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        0.42,
+        100,
+        25
+      ],
+      "expected": {
+        "total_impedance": 20.42,
+        "load_resistance": 20.0,
+        "step": {
+          "key": "total_load_impedance",
+          "result": "20.42 \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        0,
+        250,
+        250
+      ],
+      "expected": {
+        "total_impedance": 125.0,
+        "load_resistance": 125.0,
+        "step": {
+          "key": "total_load_impedance",
+          "result": "125.00 \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        1.1,
+        0,
+        0
+      ],
+      "expected": {
+        "total_impedance": "inf",
+        "load_resistance": "inf",
+        "step": {
+          "key": "total_load_impedance",
+          "result": "inf \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        0.3,
+        50,
+        -10
+      ],
+      "expected": {
+        "total_impedance": 50.3,
+        "load_resistance": 50.0,
+        "step": {
+          "key": "total_load_impedance",
+          "result": "50.30 \u03a9"
+        }
+      }
+    },
+    {
+      "input": [
+        2.75,
+        400,
+        12.5
+      ],
+      "expected": {
+        "total_impedance": 14.871212121212121,
+        "load_resistance": 12.121212121212121,
+        "step": {
+          "key": "total_load_impedance",
+          "result": "14.87 \u03a9"
+        }
+      }
+    }
+  ]
+}

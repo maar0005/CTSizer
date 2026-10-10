@@ -1,0 +1,160 @@
+{
+  "format_relay_resistance_step": [
+    {
+      "input": {
+        "r_relay": 0.05,
+        "relay_burden": 0.05,
+        "secondary_current": 1
+      },
+      "expected": {
+        "key": "relay_resistance",
+        "value": 0.05
+      }
+    },
+    {
+      "input": {
+        "r_relay": 0.002,
+        "relay_burden": 0.05,
+        "secondary_current": 5
+      },
+      "expected": {
+        "key": "relay_resistance",
+        "value": 0.002
+      }
+    }
+  ],
+  "format_emf_3phase_internal_step": [
+    {
+      "input": {
+        "e_3p_in": 680.0,
+        "ik_max": 8000,
+        "isr": 1,
+        "ipr": 2000,
+        "rct": 4,
+        "rlead": 1.2345,
+        "rrelay": 0.05
+      },
+      "expected": {
+        "key": "emf_3phase_internal_fault",
+        "value": 680.0
+      }
+    }
+  ],
+  "format_emf_1phase_internal_step": [
+    {
+      "input": {
+        "e_1p_in": 700.0,
+        "ik_max": 8000,
+        "isr": 1,
+        "ipr": 2000,
+        "rct": 4,
+        "rlead": 1.2345,
+        "rrelay": 0.05
+      },
+      "expected": {
+        "key": "emf_1phase_internal_fault",
+        "value": 700.0
+      }
+    }
+  ],
+  "format_emf_3phase_external_step": [
+    {
+      "input": {
+        "e_3p_ex": 500.0,
+        "it_max": 6000,
+        "isr": 1,
+        "ipr": 2000,
+        "rct": 4,
+        "rlead": 1.2345,
+        "rrelay": 0.05
+      },
+      "expected": {
+        "key": "emf_3phase_through_fault",
+        "value": 500.0
+      }
+    }
+  ],
+  "format_emf_1phase_external_step": [
+    {
+      "input": {
+        "e_1p_ex": 520.0,
+        "it_max": 6000,
+        "isr": 1,
+        "ipr": 2000,
+        "rct": 4,
+        "rlead": 1.2345,
+        "rrelay": 0.05
+      },
+      "expected": {
+        "key": "emf_1phase_through_fault",
+        "value": 520.0
+      }
+    }
+  ],
+  "format_required_vk_step": [
+    {
+      "input": {
+        "vk_required": 700.0,
+        "e_3p_in": 680.0,
+        "e_1p_in": 700.0,
+        "e_3p_ex": 500.0,
+        "e_1p_ex": 520.0
+      },
+      "expected": {
+        "key": "required_knee_point_voltage",
+        "value": 700.0
+      }
+    }
+  ],
+  "format_proposed_vk_px_step": [
+    {
+      "input": {
+        "vk": 150.0
+      },
+      "expected": {
+        "key": "specified_knee_point_voltage_px",
+        "value": 150.0
+      }
+    },
+    {
+      "input": {
+        "vk": 0.0
+      },
+      "expected": {
+        "key": "specified_knee_point_voltage_px",
+        "value": 0.0
+      }
+    }
+  ],
+  "format_proposed_vk_alf_step": [
+    {
+      "input": {
+        "ealf": 680.0,
+        "alf": 20,
+        "isr": 1,
+        "rct": 4,
+        "burden_resistance": 30.0
+      },
+      "expected": {
+        "key": "offered_knee_point_voltage_alf",
+        "value": 680.0
+      }
+    }
+  ],
+  "format_ar_eal_step": [
+    {
+      "input": {
+        "eal_ar": 680.0,
+        "kssc_ar": 4.0,
+        "ktd_ar": 1.5,
+        "rct": 4,
+        "burden_resistance": 30.0,
+        "isr": 1
+      },
+      "expected": {
+        "key": "auto_reclosure_transient_dimensioning",
+        "value": 680.0
+      }
+    }
+  ]
+}

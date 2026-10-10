@@ -1,0 +1,514 @@
+{
+  "format_transformer_data_step": [
+    {
+      "input": {
+        "linked_winding": "HV",
+        "trafo_rated_power": 40,
+        "z_percent": 12,
+        "trafo_primary_voltage": 132,
+        "i_rated": 0.17496,
+        "trafo_it_max": 1458.0,
+        "trafo_ik_max": 25000.0
+      },
+      "expected": {
+        "key": "transformer_data",
+        "result": "It,max = 1.46 kA, Ik,max = 25.00 kA",
+        "linked_winding": "HV",
+        "trafo_rated_power": 40,
+        "z_percent": 12
+      }
+    },
+    {
+      "input": {
+        "linked_winding": "LV",
+        "trafo_rated_power": 25.5,
+        "z_percent": 8.5,
+        "trafo_primary_voltage": 10.5,
+        "i_rated": 1.40217,
+        "trafo_it_max": 16496.1,
+        "trafo_ik_max": 31234.0
+      },
+      "expected": {
+        "key": "transformer_data",
+        "result": "It,max = 16.50 kA, Ik,max = 31.23 kA",
+        "linked_winding": "LV",
+        "trafo_rated_power": 25.5,
+        "z_percent": 8.5
+      }
+    }
+  ],
+  "format_cable_burden_step": [
+    {
+      "input": {
+        "k_wire": 2,
+        "rho_t": 0.021347,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "secondary_current": 1,
+        "s_wire": 0.69378
+      },
+      "expected": {
+        "key": "cable_burden",
+        "value": 0.69378
+      }
+    },
+    {
+      "input": {
+        "k_wire": 2,
+        "rho_t": 0.034561,
+        "cable_length": 120,
+        "cable_cross_section": 6,
+        "secondary_current": 5,
+        "s_wire": 34.561
+      },
+      "expected": {
+        "key": "cable_burden",
+        "value": 34.561
+      }
+    }
+  ],
+  "format_total_burden_step": [
+    {
+      "input": {
+        "relay_burden": 0.1,
+        "s_wire": 0.69378,
+        "s_total": 0.79378
+      },
+      "expected": {
+        "key": "total_burden",
+        "value": 0.79378
+      }
+    }
+  ],
+  "format_ct_burden_step": [
+    {
+      "input": {
+        "rct": 4.2,
+        "secondary_current": 1,
+        "s_ct": 4.2
+      },
+      "expected": {
+        "key": "internal_burden",
+        "value": 4.2
+      }
+    },
+    {
+      "input": {
+        "rct": 0.35,
+        "secondary_current": 5,
+        "s_ct": 8.75
+      },
+      "expected": {
+        "key": "internal_burden",
+        "value": 8.75
+      }
+    }
+  ],
+  "format_operating_alf_step": [
+    {
+      "input": {
+        "alf": 20,
+        "burden_va": 15,
+        "s_ct": 4.2,
+        "s_total": 0.79378,
+        "alf_o": 76.3437
+      },
+      "expected": {
+        "key": "operational_alf",
+        "value": 76.3437
+      }
+    }
+  ],
+  "format_specified_vk_step": [
+    {
+      "input": {
+        "vk_specified": 400,
+        "ealf": 400.0
+      },
+      "expected": {
+        "key": "specified_knee_point_voltage_px",
+        "value": 400.0
+      }
+    }
+  ],
+  "format_offered_vk_step": [
+    {
+      "input": {
+        "alf": 20,
+        "secondary_current": 1,
+        "rct": 4.2,
+        "burden_resistance": 15.0,
+        "ealf": 384.0
+      },
+      "expected": {
+        "key": "offered_knee_point_voltage_alf",
+        "value": 384.0
+      }
+    }
+  ],
+  "format_iec_requirement_steps": [
+    {
+      "input": {
+        "alf_ext_required": 3.645,
+        "alf_int_required": 16.6667,
+        "trafo_it_max": 1458.0,
+        "trafo_ik_max": 25000.0,
+        "primary_current": 600,
+        "i_ref": 0.17496,
+        "trafo_rated_power": 40,
+        "trafo_primary_voltage": 132,
+        "f_adap": 3.4294
+      },
+      "expected": [
+        {
+          "key": "requirement_1_alf_external_fault",
+          "value": 3.645
+        },
+        {
+          "key": "requirement_2_alf_internal_fault",
+          "value": 16.6667
+        },
+        {
+          "key": "reference_current",
+          "value": 0.17496
+        },
+        {
+          "key": "adaptation_factor",
+          "value": 3.4294
+        }
+      ]
+    }
+  ],
+  "format_ziegler_steps": [
+    {
+      "input": {
+        "kssc_int": 41.6667,
+        "kssc_ext": 2.43,
+        "trafo_ik_max": 25000.0,
+        "trafo_it_max": 1458.0,
+        "primary_current": 600,
+        "siemens_alf_int_req": 16.6667,
+        "siemens_alf_ext_req": 3.645,
+        "siemens_alf_required": 16.6667
+      },
+      "expected": [
+        {
+          "key": "symmetrical_short_circuit_factor_internal",
+          "value": 41.6667
+        },
+        {
+          "key": "symmetrical_short_circuit_factor_external",
+          "value": 2.43
+        },
+        {
+          "key": "required_alf_external_fault_ziegler",
+          "value": 3.645
+        },
+        {
+          "key": "required_alf_siemens_combined",
+          "value": 16.6667
+        }
+      ]
+    }
+  ],
+  "format_emf_steps": [
+    {
+      "input": {
+        "r_relay": 0.1,
+        "relay_burden": 0.1,
+        "secondary_current": 1,
+        "e_internal": 182.4583,
+        "e_through": 21.2803,
+        "e_inrush": 4.3786,
+        "trafo_ik_max": 25000.0,
+        "trafo_it_max": 1458.0,
+        "inrush_factor": 1,
+        "primary_current": 600,
+        "rct": 4.2,
+        "cable_resistance": 0.04892,
+        "vk_required": 182.4583
+      },
+      "expected": [
+        {
+          "key": "relay_resistance",
+          "value": 0.1
+        },
+        {
+          "key": "emf_internal_fault",
+          "value": 182.4583
+        },
+        {
+          "key": "emf_through_fault",
+          "value": 21.2803
+        },
+        {
+          "key": "emf_inrush_current",
+          "value": 4.3786
+        },
+        {
+          "key": "required_knee_point_voltage",
+          "value": 182.4583
+        }
+      ]
+    }
+  ],
+  "format_iec_verification_steps": [
+    {
+      "input": {
+        "iec_results": [
+          "Krav 1: ALFo (25.0) >= 3.6 \u2192 OK",
+          "Krav 2: ALFo (25.0) >= 16.7 \u2192 OK",
+          "Krav 3: ALFo (25.0) >= 5.0 \u2192 OK",
+          "Krav 4: 0.05 <= Fadap (3.429) <= 20 \u2192 OK"
+        ]
+      },
+      "expected": [
+        {
+          "key": "iec_requirement_1",
+          "text": "Krav 1: ALFo (25.0) >= 3.6 \u2192 OK"
+        },
+        {
+          "key": "iec_requirement_2",
+          "text": "Krav 2: ALFo (25.0) >= 16.7 \u2192 OK"
+        },
+        {
+          "key": "iec_requirement_3",
+          "text": "Krav 3: ALFo (25.0) >= 5.0 \u2192 OK"
+        },
+        {
+          "key": "iec_requirement_4",
+          "text": "Krav 4: 0.05 <= Fadap (3.429) <= 20 \u2192 OK"
+        }
+      ]
+    },
+    {
+      "input": {
+        "iec_results": [
+          "Krav 1: ALFo (10.0) >= 3.6 \u2192 OK",
+          "Krav 2: ALFo (10.0) < 16.7 \u2192 IKKE OK",
+          "Krav 3: ALFo (10.0) >= 5.0 \u2192 OK",
+          "Krav 4: 0.05 <= Fadap (0.200) <= 20 \u2192 OK"
+        ]
+      },
+      "expected": [
+        {
+          "key": "iec_requirement_1",
+          "text": "Krav 1: ALFo (10.0) >= 3.6 \u2192 OK"
+        },
+        {
+          "key": "iec_requirement_2",
+          "text": "Krav 2: ALFo (10.0) < 16.7 \u2192 IKKE OK"
+        },
+        {
+          "key": "iec_requirement_3",
+          "text": "Krav 3: ALFo (10.0) >= 5.0 \u2192 OK"
+        },
+        {
+          "key": "iec_requirement_4",
+          "text": "Krav 4: 0.05 <= Fadap (0.200) <= 20 \u2192 OK"
+        }
+      ]
+    },
+    {
+      "input": {
+        "iec_results": []
+      },
+      "expected": []
+    }
+  ],
+  "format_ziegler_verification_step": [
+    {
+      "input": {
+        "alf_o": 25.0,
+        "siemens_alf_required": 20.8333,
+        "siemens_ok": true
+      },
+      "expected": {
+        "key": "ziegler_requirement_check",
+        "status": "passed",
+        "comparison": "25.00 >= 20.83"
+      }
+    },
+    {
+      "input": {
+        "alf_o": 10.0,
+        "siemens_alf_required": 20.8333,
+        "siemens_ok": false
+      },
+      "expected": {
+        "key": "ziegler_requirement_check",
+        "status": "failed",
+        "comparison": "10.00 < 20.83"
+      }
+    },
+    {
+      "input": {
+        "alf_o": 20.8333,
+        "siemens_alf_required": 20.8333,
+        "siemens_ok": true
+      },
+      "expected": {
+        "key": "ziegler_requirement_check",
+        "status": "passed",
+        "comparison": "20.83 >= 20.83"
+      }
+    }
+  ],
+  "format_ziegler_px_step": [
+    {
+      "input": {},
+      "expected": {
+        "key": "ziegler_requirement_check",
+        "status": "not_applicable_px"
+      }
+    }
+  ],
+  "format_iec_check_step": [
+    {
+      "input": {
+        "iec_ok": true,
+        "iec_results": [
+          "Krav 1: x"
+        ]
+      },
+      "expected": {
+        "key": "iec_requirement_check",
+        "status": "passed",
+        "substitution": ""
+      }
+    },
+    {
+      "input": {
+        "iec_ok": false,
+        "iec_results": [
+          "Krav 1: y"
+        ]
+      },
+      "expected": {
+        "key": "iec_requirement_check",
+        "status": "failed",
+        "substitution": ""
+      }
+    },
+    {
+      "input": {
+        "iec_ok": false,
+        "iec_results": []
+      },
+      "expected": {
+        "key": "iec_requirement_check",
+        "status": "failed",
+        "substitution": "alf_not_available_px"
+      }
+    }
+  ],
+  "format_final_verdict": [
+    {
+      "input": {
+        "emf_ok": true,
+        "iec_ok": true,
+        "siemens_ok": true
+      },
+      "expected": [
+        "OK",
+        []
+      ]
+    },
+    {
+      "input": {
+        "emf_ok": true,
+        "iec_ok": true,
+        "siemens_ok": false
+      },
+      "expected": [
+        "NOT_OK",
+        [
+          "ziegler"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "emf_ok": true,
+        "iec_ok": false,
+        "siemens_ok": true
+      },
+      "expected": [
+        "NOT_OK",
+        [
+          "iec_61869"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "emf_ok": true,
+        "iec_ok": false,
+        "siemens_ok": false
+      },
+      "expected": [
+        "NOT_OK",
+        [
+          "iec_61869",
+          "ziegler"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "emf_ok": false,
+        "iec_ok": true,
+        "siemens_ok": true
+      },
+      "expected": [
+        "NOT_OK",
+        [
+          "emf"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "emf_ok": false,
+        "iec_ok": true,
+        "siemens_ok": false
+      },
+      "expected": [
+        "NOT_OK",
+        [
+          "emf",
+          "ziegler"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "emf_ok": false,
+        "iec_ok": false,
+        "siemens_ok": true
+      },
+      "expected": [
+        "NOT_OK",
+        [
+          "emf",
+          "iec_61869"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "emf_ok": false,
+        "iec_ok": false,
+        "siemens_ok": false
+      },
+      "expected": [
+        "NOT_OK",
+        [
+          "emf",
+          "iec_61869",
+          "ziegler"
+        ]
+      ]
+    }
+  ]
+}

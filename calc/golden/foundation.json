@@ -1,0 +1,986 @@
+{
+  "get_alf_or_vk": [
+    {
+      "input": {
+        "alf": 20
+      },
+      "expected": {
+        "alf": 20,
+        "vk": null,
+        "is_px": false
+      }
+    },
+    {
+      "input": {},
+      "expected": {
+        "alf": 30,
+        "vk": null,
+        "is_px": false
+      }
+    },
+    {
+      "input": {
+        "is_px": true,
+        "vk": 300
+      },
+      "expected": {
+        "alf": null,
+        "vk": 300,
+        "is_px": true
+      }
+    },
+    {
+      "input": {
+        "is_px": true
+      },
+      "expected": {
+        "alf": 30,
+        "vk": null,
+        "is_px": false
+      }
+    }
+  ],
+  "calculate_relay_resistance": [
+    {
+      "input": [
+        0.05,
+        1
+      ],
+      "expected": 0.05
+    },
+    {
+      "input": [
+        2.5,
+        5
+      ],
+      "expected": 0.1
+    },
+    {
+      "input": [
+        0.1,
+        1
+      ],
+      "expected": 0.1
+    }
+  ],
+  "calculate_ealf": [
+    {
+      "input": [
+        20,
+        1,
+        4,
+        30
+      ],
+      "expected": 680.0
+    },
+    {
+      "input": [
+        30,
+        5,
+        2,
+        15
+      ],
+      "expected": 390.0
+    }
+  ],
+  "calculate_operating_alf": [
+    {
+      "input": [
+        20,
+        4,
+        30,
+        6
+      ],
+      "expected": 68.0
+    },
+    {
+      "input": [
+        10,
+        2,
+        15,
+        3
+      ],
+      "expected": 34.0
+    }
+  ],
+  "calculate_proposed_vk": [
+    {
+      "input": [
+        20,
+        1,
+        4,
+        30,
+        null,
+        false
+      ],
+      "expected": {
+        "vk": 680.0,
+        "is_px": false
+      }
+    },
+    {
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        300,
+        true
+      ],
+      "expected": {
+        "vk": 300,
+        "is_px": true
+      }
+    }
+  ],
+  "verify_vk_adequacy": [
+    {
+      "input": [
+        300,
+        200,
+        false
+      ],
+      "expected": {
+        "status": "OK"
+      }
+    },
+    {
+      "input": [
+        100,
+        200,
+        false
+      ],
+      "expected": {
+        "status": "NOT_OK"
+      }
+    },
+    {
+      "input": [
+        300,
+        300,
+        true
+      ],
+      "expected": {
+        "status": "OK"
+      }
+    }
+  ],
+  "get_remanence_factor": [
+    {
+      "input": [
+        "5P"
+      ],
+      "expected": 0.8
+    },
+    {
+      "input": [
+        "5PR"
+      ],
+      "expected": 0.1
+    },
+    {
+      "input": [
+        "PX"
+      ],
+      "expected": 0.8
+    },
+    {
+      "input": [
+        "TPX"
+      ],
+      "expected": 0.8
+    },
+    {
+      "input": [
+        "TPY"
+      ],
+      "expected": 0.1
+    },
+    {
+      "input": [
+        "TPZ"
+      ],
+      "expected": 0.1
+    },
+    {
+      "input": [
+        "10P"
+      ],
+      "expected": 0.8
+    },
+    {
+      "input": [
+        null
+      ],
+      "expected": 0.8
+    },
+    {
+      "input": [
+        ""
+      ],
+      "expected": 0.8
+    }
+  ],
+  "get_typical_ts": [
+    {
+      "input": [
+        "5P"
+      ],
+      "expected": 5.0
+    },
+    {
+      "input": [
+        "5PR"
+      ],
+      "expected": 1.0
+    },
+    {
+      "input": [
+        "PX"
+      ],
+      "expected": 5.0
+    },
+    {
+      "input": [
+        "TPX"
+      ],
+      "expected": 10.0
+    },
+    {
+      "input": [
+        "TPY"
+      ],
+      "expected": 1.5
+    },
+    {
+      "input": [
+        "TPZ"
+      ],
+      "expected": 0.06
+    },
+    {
+      "input": [
+        "10P"
+      ],
+      "expected": 5.0
+    },
+    {
+      "input": [
+        null
+      ],
+      "expected": 2.0
+    },
+    {
+      "input": [
+        ""
+      ],
+      "expected": 2.0
+    }
+  ],
+  "map_class_to_time_constant": [
+    {
+      "input": [
+        "5P"
+      ],
+      "expected": "low"
+    },
+    {
+      "input": [
+        "5PR"
+      ],
+      "expected": "low"
+    },
+    {
+      "input": [
+        "PX"
+      ],
+      "expected": "low"
+    },
+    {
+      "input": [
+        "TPX"
+      ],
+      "expected": "high"
+    },
+    {
+      "input": [
+        "TPY"
+      ],
+      "expected": "low"
+    },
+    {
+      "input": [
+        "TPZ"
+      ],
+      "expected": "low"
+    },
+    {
+      "input": [
+        "10P"
+      ],
+      "expected": "low"
+    },
+    {
+      "input": [
+        null
+      ],
+      "expected": "low"
+    },
+    {
+      "input": [
+        ""
+      ],
+      "expected": "low"
+    }
+  ],
+  "extract_alf_from_class": [
+    {
+      "input": [
+        "5P30"
+      ],
+      "expected": 30
+    },
+    {
+      "input": [
+        "5PR20"
+      ],
+      "expected": 20
+    },
+    {
+      "input": [
+        "PX"
+      ],
+      "expected": 30
+    },
+    {
+      "input": [
+        "5P 30VA"
+      ],
+      "expected": 30
+    },
+    {
+      "input": [
+        "10P15"
+      ],
+      "expected": 15
+    }
+  ],
+  "estimate_alf_from_voltage": [
+    {
+      "input": [
+        750,
+        "5PR 30VA ALF30"
+      ],
+      "expected": 22.058823529411764
+    },
+    {
+      "input": [
+        680,
+        "5P30"
+      ],
+      "expected": 20.0
+    },
+    {
+      "input": [
+        300,
+        "PX"
+      ],
+      "expected": 8.823529411764707
+    }
+  ],
+  "ct_class_descriptions": {
+    "5P": {
+      "name": "Class 5P",
+      "name_key": "ct_class_5p_name",
+      "description_key": "ct_class_5p_description",
+      "typical_applications_key": "ct_class_5p_applications",
+      "remanence_key": "ct_class_5p_remanence",
+      "best_for_tp_range_key": "ct_class_5p_tp_range",
+      "iec_reference": "IEC 61869-2 Clause 5.6.202.2"
+    },
+    "5PR": {
+      "name": "Class 5PR",
+      "name_key": "ct_class_5pr_name",
+      "description_key": "ct_class_5pr_description",
+      "typical_applications_key": "ct_class_5pr_applications",
+      "remanence_key": "ct_class_5pr_remanence",
+      "best_for_tp_range_key": "ct_class_5pr_tp_range",
+      "iec_reference": "IEC 61869-2 Clause 5.6.202.3"
+    },
+    "PX": {
+      "name": "Class PX",
+      "name_key": "ct_class_px_name",
+      "description_key": "ct_class_px_description",
+      "typical_applications_key": "ct_class_px_applications",
+      "remanence_key": "ct_class_px_remanence",
+      "best_for_tp_range_key": "ct_class_px_tp_range",
+      "iec_reference": "IEC 61869-2 Clause 5.6.202.4"
+    },
+    "TPX": {
+      "name": "Class TPX",
+      "name_key": "ct_class_tpx_name",
+      "description_key": "ct_class_tpx_description",
+      "typical_applications_key": "ct_class_tpx_applications",
+      "remanence_key": "ct_class_tpx_remanence",
+      "best_for_tp_range_key": "ct_class_tpx_tp_range",
+      "iec_reference": "IEC 61869-2 Clause 5.6.202.6.1"
+    },
+    "TPY": {
+      "name": "Class TPY",
+      "name_key": "ct_class_tpy_name",
+      "description_key": "ct_class_tpy_description",
+      "typical_applications_key": "ct_class_tpy_applications",
+      "remanence_key": "ct_class_tpy_remanence",
+      "best_for_tp_range_key": "ct_class_tpy_tp_range",
+      "iec_reference": "IEC 61869-2 Clause 5.6.202.6.2"
+    },
+    "TPZ": {
+      "name": "Class TPZ",
+      "name_key": "ct_class_tpz_name",
+      "description_key": "ct_class_tpz_description",
+      "typical_applications_key": "ct_class_tpz_applications",
+      "remanence_key": "ct_class_tpz_remanence",
+      "best_for_tp_range_key": "ct_class_tpz_tp_range",
+      "iec_reference": "IEC 61869-2 Clause 5.6.202.6.3"
+    }
+  },
+  "check_core_adequacy": [
+    {
+      "input": [
+        500,
+        650,
+        "5P30",
+        "overcurrent",
+        null,
+        null
+      ],
+      "expected": {
+        "adequate": true,
+        "margin_v": 150,
+        "margin_pct": 30.0,
+        "recommendations": [],
+        "alternative_cores": []
+      }
+    },
+    {
+      "input": [
+        500,
+        560,
+        "5P30",
+        "overcurrent",
+        null,
+        null
+      ],
+      "expected": {
+        "adequate": true,
+        "margin_v": 60,
+        "margin_pct": 12.0,
+        "recommendations": [
+          {
+            "key": "core_margin_low",
+            "params": {
+              "margin_pct": 12.0
+            }
+          }
+        ],
+        "alternative_cores": []
+      }
+    },
+    {
+      "input": [
+        680,
+        500,
+        "5P30",
+        "distance protection",
+        90,
+        60
+      ],
+      "expected": {
+        "adequate": false,
+        "margin_v": -180,
+        "margin_pct": -26.47058823529412,
+        "recommendations": [
+          {
+            "key": "core_inadequate",
+            "params": {
+              "required": 680,
+              "offered": 500,
+              "deficit": 180,
+              "deficit_pct": 26.47058823529412
+            }
+          },
+          {
+            "key": "core_inadequate_high_tp",
+            "params": {
+              "tp": 90
+            }
+          }
+        ],
+        "alternative_cores": [
+          {
+            "class": "5P30",
+            "alf": 23,
+            "burden_va": 30,
+            "reason_key": "core_recommendation_increase_alf",
+            "reason_params": {
+              "current_alf": 14,
+              "suggested_alf": 23
+            }
+          },
+          {
+            "class": "TPY",
+            "specification": "TPY, t_al=60ms",
+            "reason_key": "core_recommendation_switch_tpy"
+          },
+          {
+            "class": "5P30",
+            "alf": 14,
+            "burden_va": 60,
+            "reason_key": "core_recommendation_increase_burden"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        680,
+        500,
+        "5P30",
+        "distance protection",
+        90,
+        null
+      ],
+      "expected": {
+        "adequate": false,
+        "margin_v": -180,
+        "margin_pct": -26.47058823529412,
+        "recommendations": [
+          {
+            "key": "core_inadequate",
+            "params": {
+              "required": 680,
+              "offered": 500,
+              "deficit": 180,
+              "deficit_pct": 26.47058823529412
+            }
+          },
+          {
+            "key": "core_inadequate_high_tp",
+            "params": {
+              "tp": 90
+            }
+          }
+        ],
+        "alternative_cores": [
+          {
+            "class": "5P30",
+            "alf": 23,
+            "burden_va": 30,
+            "reason_key": "core_recommendation_increase_alf",
+            "reason_params": {
+              "current_alf": 14,
+              "suggested_alf": 23
+            }
+          },
+          {
+            "class": "TPY",
+            "specification": "TPY",
+            "reason_key": "core_recommendation_switch_tpy"
+          },
+          {
+            "class": "5P30",
+            "alf": 14,
+            "burden_va": 60,
+            "reason_key": "core_recommendation_increase_burden"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        680,
+        500,
+        "5P30",
+        "distance protection",
+        50,
+        null
+      ],
+      "expected": {
+        "adequate": false,
+        "margin_v": -180,
+        "margin_pct": -26.47058823529412,
+        "recommendations": [
+          {
+            "key": "core_inadequate",
+            "params": {
+              "required": 680,
+              "offered": 500,
+              "deficit": 180,
+              "deficit_pct": 26.47058823529412
+            }
+          }
+        ],
+        "alternative_cores": []
+      }
+    },
+    {
+      "input": [
+        300,
+        200,
+        "PX",
+        "differential protection",
+        null,
+        null
+      ],
+      "expected": {
+        "adequate": false,
+        "margin_v": -100,
+        "margin_pct": -33.33333333333333,
+        "recommendations": [
+          {
+            "key": "core_inadequate",
+            "params": {
+              "required": 300,
+              "offered": 200,
+              "deficit": 100,
+              "deficit_pct": 33.33333333333333
+            }
+          },
+          {
+            "key": "core_inadequate_differential"
+          }
+        ],
+        "alternative_cores": [
+          {
+            "class": "PX",
+            "vk": 345,
+            "reason_key": "core_recommendation_px_class"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        0,
+        100,
+        "5P30",
+        "overcurrent",
+        null,
+        null
+      ],
+      "expected": {
+        "adequate": true,
+        "margin_v": 100,
+        "margin_pct": 100.0,
+        "recommendations": [],
+        "alternative_cores": []
+      }
+    },
+    {
+      "input": [
+        0,
+        0,
+        "5P30",
+        "overcurrent",
+        null,
+        null
+      ],
+      "expected": {
+        "adequate": false,
+        "margin_v": 0,
+        "margin_pct": 0.0,
+        "recommendations": [
+          {
+            "key": "core_inadequate",
+            "params": {
+              "required": 0,
+              "offered": 0,
+              "deficit": 0,
+              "deficit_pct": 0.0
+            }
+          }
+        ],
+        "alternative_cores": []
+      }
+    }
+  ],
+  "calculate_remanence_benefit": [
+    {
+      "input": [
+        3.5,
+        "C-O-C-O",
+        "5PR"
+      ],
+      "expected": {
+        "k_td_base": 3.5,
+        "k_td_with_remanence": 17.500000000000004,
+        "k_td_low_remanence": 3.8888888888888893,
+        "alf_reduction_pct": 77.77777777777779,
+        "k_remanence_standard": 0.8,
+        "k_remanence_low": 0.1,
+        "duty_cycle": "C-O-C-O",
+        "is_low_remanence": true,
+        "explanation_key": "remanence_benefit_coco"
+      }
+    },
+    {
+      "input": [
+        3.5,
+        "C-O",
+        "5PR"
+      ],
+      "expected": {
+        "k_td_base": 3.5,
+        "k_td_with_remanence": 3.5,
+        "k_td_low_remanence": 3.5,
+        "alf_reduction_pct": 0.0,
+        "k_remanence_standard": 0.8,
+        "k_remanence_low": 0.1,
+        "duty_cycle": "C-O",
+        "is_low_remanence": true,
+        "explanation_key": "remanence_benefit_co"
+      }
+    },
+    {
+      "input": [
+        2.0,
+        "C-O-C-O",
+        "5P"
+      ],
+      "expected": {
+        "k_td_base": 2.0,
+        "k_td_with_remanence": 10.000000000000002,
+        "k_td_low_remanence": 2.2222222222222223,
+        "alf_reduction_pct": 77.77777777777779,
+        "k_remanence_standard": 0.8,
+        "k_remanence_low": 0.1,
+        "duty_cycle": "C-O-C-O",
+        "is_low_remanence": false,
+        "explanation_key": "remanence_benefit_coco"
+      }
+    },
+    {
+      "input": [
+        4.0,
+        "C-O-C-O",
+        "TPZ"
+      ],
+      "expected": {
+        "k_td_base": 4.0,
+        "k_td_with_remanence": 20.000000000000004,
+        "k_td_low_remanence": 4.444444444444445,
+        "alf_reduction_pct": 77.77777777777779,
+        "k_remanence_standard": 0.8,
+        "k_remanence_low": 0.1,
+        "duty_cycle": "C-O-C-O",
+        "is_low_remanence": true,
+        "explanation_key": "remanence_benefit_coco"
+      }
+    }
+  ],
+  "recommend_ct_class": [
+    {
+      "input": [
+        "distance",
+        30,
+        132,
+        "C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "5P",
+        "all_recommendations": [
+          {
+            "class": "5P",
+            "reason_key": "recommend_5p_low_tp",
+            "rank": 1
+          }
+        ],
+        "tp": 30,
+        "application": "distance",
+        "voltage_level": 132,
+        "duty_cycle": "C-O"
+      }
+    },
+    {
+      "input": [
+        "distance",
+        60,
+        132,
+        "C-O-C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "5PR",
+        "all_recommendations": [
+          {
+            "class": "5PR",
+            "reason_key": "recommend_5pr_medium_tp_ar",
+            "rank": 1
+          }
+        ],
+        "tp": 60,
+        "application": "distance",
+        "voltage_level": 132,
+        "duty_cycle": "C-O-C-O"
+      }
+    },
+    {
+      "input": [
+        "distance",
+        60,
+        132,
+        "C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "5P",
+        "all_recommendations": [
+          {
+            "class": "5P",
+            "reason_key": "recommend_5p_medium_tp_no_ar",
+            "rank": 1
+          }
+        ],
+        "tp": 60,
+        "application": "distance",
+        "voltage_level": 132,
+        "duty_cycle": "C-O"
+      }
+    },
+    {
+      "input": [
+        "distance",
+        100,
+        400,
+        "C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "TPY",
+        "all_recommendations": [
+          {
+            "class": "TPY",
+            "reason_key": "recommend_tpy_high_tp_ehv",
+            "rank": 1
+          },
+          {
+            "class": "5PR",
+            "reason_key": "recommend_5pr_alternative_high_tp",
+            "rank": 2
+          }
+        ],
+        "tp": 100,
+        "application": "distance",
+        "voltage_level": 400,
+        "duty_cycle": "C-O"
+      }
+    },
+    {
+      "input": [
+        "distance",
+        100,
+        110,
+        "C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "5PR",
+        "all_recommendations": [
+          {
+            "class": "5PR",
+            "reason_key": "recommend_5pr_high_tp",
+            "rank": 1
+          }
+        ],
+        "tp": 100,
+        "application": "distance",
+        "voltage_level": 110,
+        "duty_cycle": "C-O"
+      }
+    },
+    {
+      "input": [
+        "differential",
+        50,
+        132,
+        "C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "PX",
+        "all_recommendations": [
+          {
+            "class": "PX",
+            "reason_key": "recommend_px_differential",
+            "rank": 1
+          }
+        ],
+        "tp": 50,
+        "application": "differential",
+        "voltage_level": 132,
+        "duty_cycle": "C-O"
+      }
+    },
+    {
+      "input": [
+        "overcurrent",
+        50,
+        132,
+        "C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "5P",
+        "all_recommendations": [
+          {
+            "class": "5P",
+            "reason_key": "recommend_5p_overcurrent",
+            "rank": 1
+          }
+        ],
+        "tp": 50,
+        "application": "overcurrent",
+        "voltage_level": 132,
+        "duty_cycle": "C-O"
+      }
+    },
+    {
+      "input": [
+        "busbar",
+        50,
+        132,
+        "C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "5P",
+        "all_recommendations": [
+          {
+            "class": "5P",
+            "reason_key": "recommend_5p_general",
+            "rank": 1
+          }
+        ],
+        "tp": 50,
+        "application": "busbar",
+        "voltage_level": 132,
+        "duty_cycle": "C-O"
+      }
+    },
+    {
+      "input": [
+        "Distance",
+        30,
+        132,
+        "C-O"
+      ],
+      "expected": {
+        "primary_recommendation": "5P",
+        "all_recommendations": [
+          {
+            "class": "5P",
+            "reason_key": "recommend_5p_low_tp",
+            "rank": 1
+          }
+        ],
+        "tp": 30,
+        "application": "Distance",
+        "voltage_level": 132,
+        "duty_cycle": "C-O"
+      }
+    }
+  ]
+}

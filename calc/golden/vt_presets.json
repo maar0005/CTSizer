@@ -1,0 +1,61 @@
+{
+  "voltage_drop_limits": [
+    {
+      "input": [],
+      "expected": {
+        "0.1": 0.1,
+        "0.2": 0.2,
+        "0.5": 0.5,
+        "1.0": 1.0,
+        "3P": 3.0
+      }
+    }
+  ],
+  "thermal_burden_defaults": [
+    {
+      "input": [],
+      "expected": {
+        "small": 25,
+        "medium": 50,
+        "large": 100
+      }
+    }
+  ],
+  "class_definitions": [
+    {
+      "input": [],
+      "expected": {
+        "0.1": {
+          "description": "Klasse 0.1 - H\u00f8jeste n\u00f8jagtighed",
+          "max_voltage_error": 0.1,
+          "max_phase_error": 5,
+          "typical_applications": "Pr\u00e6cisionsm\u00e5linger, kalibrering"
+        },
+        "0.2": {
+          "description": "Klasse 0.2 - H\u00f8j n\u00f8jagtighed",
+          "max_voltage_error": 0.2,
+          "max_phase_error": 10,
+          "typical_applications": "Energim\u00e5ling, beskyttelse"
+        },
+        "0.5": {
+          "description": "Klasse 0.5 - Standard n\u00f8jagtighed",
+          "max_voltage_error": 0.5,
+          "max_phase_error": 20,
+          "typical_applications": "Almindelig m\u00e5ling og beskyttelse"
+        },
+        "1.0": {
+          "description": "Klasse 1.0 - Basis n\u00f8jagtighed",
+          "max_voltage_error": 1.0,
+          "max_phase_error": 40,
+          "typical_applications": "Indikering, simpel beskyttelse"
+        },
+        "3P": {
+          "description": "Klasse 3P - Beskyttelse",
+          "max_voltage_error": 3.0,
+          "max_phase_error": 120,
+          "typical_applications": "Beskyttelsessystemer"
+        }
+      }
+    }
+  ]
+}

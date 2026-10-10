@@ -1,0 +1,34 @@
+{
+  "calculate_relay_parameters": [
+    {
+      "input": {
+        "secondary_current": 1,
+        "relay_burden": 0.05
+      },
+      "expected": {
+        "rated_current": 1,
+        "relay_resistance": 0.05
+      }
+    },
+    {
+      "input": {
+        "secondary_current": 5,
+        "relay_burden": 2.5
+      },
+      "expected": {
+        "rated_current": 5,
+        "relay_resistance": 0.1
+      }
+    },
+    {
+      "input": {
+        "secondary_current": 0,
+        "relay_burden": 0.1
+      },
+      "expected": {
+        "rated_current": 0,
+        "relay_resistance": 0
+      }
+    }
+  ]
+}

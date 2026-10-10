@@ -1,0 +1,534 @@
+{
+  "calculate_line_differential": [
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 63
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.02,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 20
+        }
+      },
+      "expected": {
+        "cable_resistance": 0.681448369875,
+        "r_relay": 0.02,
+        "e_3p_in": 148.09562365106248,
+        "e_1p_in": 148.09562365106248,
+        "e_3p_ex": 296.19124730212496,
+        "e_1p_ex": 296.19124730212496,
+        "vk_required": 296.19124730212496,
+        "proposed_vk": 680.0,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 0
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 63
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.02,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "is_px_class": true,
+          "vk_voltage": 50
+        }
+      },
+      "expected": {
+        "cable_resistance": 0.681448369875,
+        "r_relay": 0.02,
+        "e_3p_in": 148.09562365106248,
+        "e_1p_in": 148.09562365106248,
+        "e_3p_ex": 296.19124730212496,
+        "e_1p_ex": 296.19124730212496,
+        "vk_required": 296.19124730212496,
+        "proposed_vk": 50,
+        "is_px": true,
+        "status": "NOT_OK",
+        "warnings_len": 1
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 63
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.02,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 40,
+          "auto_reclose_enabled": true
+        }
+      },
+      "expected": {
+        "cable_resistance": 0.681448369875,
+        "r_relay": 0.02,
+        "e_3p_in": 148.09562365106248,
+        "e_1p_in": 148.09562365106248,
+        "e_3p_ex": 296.19124730212496,
+        "e_1p_ex": 296.19124730212496,
+        "vk_required": 296.19124730212496,
+        "proposed_vk": 1360.0,
+        "is_px": false,
+        "status": "NOT_OK",
+        "warnings_len": 1,
+        "eal_ar": 2034.8999999999999,
+        "ktd_ar": 1.9,
+        "kssc_ar": 31.5
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 63
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.02,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 5,
+          "auto_reclose_enabled": true
+        }
+      },
+      "expected": {
+        "cable_resistance": 0.681448369875,
+        "r_relay": 0.02,
+        "e_3p_in": 148.09562365106248,
+        "e_1p_in": 148.09562365106248,
+        "e_3p_ex": 296.19124730212496,
+        "e_1p_ex": 296.19124730212496,
+        "vk_required": 296.19124730212496,
+        "proposed_vk": 170.0,
+        "is_px": false,
+        "status": "NOT_OK",
+        "warnings_len": 2,
+        "eal_ar": 2034.8999999999999,
+        "ktd_ar": 1.9,
+        "kssc_ar": 31.5
+      }
+    }
+  ],
+  "by_method": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.02,
+          "alf": 28,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 63,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.57257316125
+      },
+      "expected": {
+        "cable_resistance": 1.57257316125,
+        "r_relay": 0.02,
+        "e_3p_in": 81.66605457937501,
+        "e_1p_in": 81.66605457937501,
+        "e_3p_ex": 163.33210915875003,
+        "e_1p_ex": 163.33210915875003,
+        "vk_required": 163.33210915875003,
+        "proposed_vk": 168.0,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 0,
+        "report_rho_temp": 5.2419,
+        "report_r_lead": 1.5726,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 2,
+          "r_loop": 1.57257316125
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.02,
+          "alf": 28,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 63,
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.68193545
+      },
+      "expected": {
+        "cable_resistance": 1.68193545,
+        "r_relay": 0.02,
+        "e_3p_in": 85.110966675,
+        "e_1p_in": 85.110966675,
+        "e_3p_ex": 170.22193335,
+        "e_1p_ex": 170.22193335,
+        "vk_required": 170.22193335,
+        "proposed_vk": 168.0,
+        "is_px": false,
+        "status": "NOT_OK",
+        "warnings_len": 1,
+        "report_rho_temp": 5.6065,
+        "report_r_lead": 1.6819,
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.840967725,
+          "factor": 2,
+          "r_loop": 1.68193545,
+          "in_table": true
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 0.5,
+          "burden": 15,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "relay_burden": 0.02,
+          "is_px_class": true,
+          "vk_voltage": 630,
+          "it_max_3ph": 40000,
+          "it_max_1ph": 80000,
+          "cable_material": "Aluminium (Al)",
+          "cable_cross_section": 6,
+          "cable_length": 300,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 63,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 300,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 3.4523829
+      },
+      "expected": {
+        "cable_resistance": 3.4523829,
+        "r_relay": 0.02,
+        "e_3p_in": 250.26012269999998,
+        "e_1p_in": 250.26012269999998,
+        "e_3p_ex": 317.790632,
+        "e_1p_ex": 635.581264,
+        "vk_required": 635.581264,
+        "proposed_vk": 630,
+        "is_px": true,
+        "status": "NOT_OK",
+        "warnings_len": 1,
+        "report_rho_temp": 5.754,
+        "report_r_lead": 3.4524,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.71,
+          "r_conductor": 1.72619145,
+          "factor": 2,
+          "r_loop": 3.4523829
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 0.5,
+          "burden": 15,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "relay_burden": 0.02,
+          "is_px_class": true,
+          "vk_voltage": 630,
+          "it_max_3ph": 40000,
+          "it_max_1ph": 80000,
+          "cable_material": "Aluminium (Al)",
+          "cable_cross_section": 6,
+          "cable_length": 300,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 63,
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 300,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 3.3790838999999995
+      },
+      "expected": {
+        "cable_resistance": 3.3790838999999995,
+        "r_relay": 0.02,
+        "e_3p_in": 245.64228569999997,
+        "e_1p_in": 245.64228569999997,
+        "e_3p_ex": 311.92671199999995,
+        "e_1p_ex": 623.8534239999999,
+        "vk_required": 623.8534239999999,
+        "proposed_vk": 630,
+        "is_px": true,
+        "status": "OK",
+        "warnings_len": 0,
+        "report_rho_temp": 5.6318,
+        "report_r_lead": 3.3791,
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 1.6895419499999997,
+          "factor": 2,
+          "r_loop": 3.3790838999999995,
+          "in_table": true
+        }
+      }
+    }
+  ],
+  "by_topology": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.02,
+          "alf": 28,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 63,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.57257316125
+      },
+      "expected": {
+        "cable_resistance": 1.57257316125,
+        "r_relay": 0.02,
+        "e_3p_in": 56.898027289687505,
+        "e_1p_in": 81.66605457937501,
+        "e_3p_ex": 113.79605457937501,
+        "e_1p_ex": 163.33210915875003,
+        "vk_required": 163.33210915875003,
+        "proposed_vk": 168.0,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 0,
+        "report_rho_temp": 5.2419,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 2,
+          "r_loop": 1.57257316125
+        },
+        "cable_res_3ph": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 1,
+          "r_loop": 0.786286580625
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.02,
+          "alf": 28,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 63,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.57257316125,
+        "cable_topology": "six_wire"
+      },
+      "expected": {
+        "cable_resistance": 1.57257316125,
+        "r_relay": 0.02,
+        "e_3p_in": 81.66605457937501,
+        "e_1p_in": 81.66605457937501,
+        "e_3p_ex": 163.33210915875003,
+        "e_1p_ex": 163.33210915875003,
+        "vk_required": 163.33210915875003,
+        "proposed_vk": 168.0,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 0,
+        "report_rho_temp": 5.2419,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 2,
+          "r_loop": 1.57257316125
+        },
+        "cable_res_3ph": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 2,
+          "r_loop": 1.57257316125
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 0.5,
+          "burden": 15,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "relay_burden": 0.02,
+          "is_px_class": true,
+          "vk_voltage": 630,
+          "it_max_3ph": 40000,
+          "it_max_1ph": 80000,
+          "cable_material": "Aluminium (Al)",
+          "cable_cross_section": 6,
+          "cable_length": 300,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 63,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 300,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 3.4523829
+      },
+      "expected": {
+        "cable_resistance": 3.4523829,
+        "r_relay": 0.02,
+        "e_3p_in": 141.51006135,
+        "e_1p_in": 250.26012269999998,
+        "e_3p_ex": 179.695316,
+        "e_1p_ex": 635.581264,
+        "vk_required": 635.581264,
+        "proposed_vk": 630,
+        "is_px": true,
+        "status": "NOT_OK",
+        "warnings_len": 1,
+        "report_rho_temp": 5.754,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 4.71,
+          "r_conductor": 1.72619145,
+          "factor": 2,
+          "r_loop": 3.4523829
+        },
+        "cable_res_3ph": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 4.71,
+          "r_conductor": 1.72619145,
+          "factor": 1,
+          "r_loop": 1.72619145
+        }
+      }
+    }
+  ]
+}

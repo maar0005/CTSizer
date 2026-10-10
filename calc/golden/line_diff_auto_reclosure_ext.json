@@ -1,0 +1,132 @@
+{
+  "calculate_ar_ktd": [
+    {
+      "input": {
+        "ar_params": {
+          "t_al": 0.2,
+          "t_prime": 0.1,
+          "tfr": 0.4,
+          "t_double_al": 0.1,
+          "ts": 0.05,
+          "time_constant_class": "low"
+        },
+        "preset_name": null
+      },
+      "expected": 1.9
+    },
+    {
+      "input": {
+        "ar_params": {
+          "t_al": 0.025,
+          "t_prime": 0.1,
+          "tfr": 0.3,
+          "t_double_al": 0.1,
+          "ts": 1.0,
+          "time_constant_class": "high"
+        },
+        "preset_name": "iec_2b4_precise"
+      },
+      "expected": 2.785
+    }
+  ],
+  "calculate_ar_kssc": [
+    {
+      "input": {
+        "fault_currents": {
+          "it_max_3ph": 8000,
+          "it_max_1ph": 6000
+        },
+        "primary_current": 2000
+      },
+      "expected": 4.0
+    },
+    {
+      "input": {
+        "fault_currents": {
+          "it_max_3ph": 1000,
+          "it_max_1ph": 4000
+        },
+        "primary_current": 2000
+      },
+      "expected": 2.0
+    },
+    {
+      "input": {
+        "fault_currents": {
+          "it_max_3ph": 1000,
+          "it_max_1ph": 4000
+        },
+        "primary_current": 0
+      },
+      "expected": 0
+    }
+  ],
+  "calculate_ar_eal": [
+    {
+      "input": {
+        "kssc": 4.0,
+        "ktd": 1.5,
+        "rct": 4.0,
+        "burden_resistance": 10.0,
+        "secondary_current": 1.0
+      },
+      "expected": 84.0
+    },
+    {
+      "input": {
+        "kssc": 2.5,
+        "ktd": 1.2,
+        "rct": 2.0,
+        "burden_resistance": 5.0,
+        "secondary_current": 5.0
+      },
+      "expected": 105.0
+    }
+  ],
+  "compute_auto_reclosure_analysis": [
+    {
+      "input": {
+        "ar_params": {
+          "t_al": 0.2,
+          "t_prime": 0.1,
+          "tfr": 0.4,
+          "t_double_al": 0.1,
+          "ts": 0.05,
+          "time_constant_class": "low",
+          "preset_name": null
+        },
+        "fault_currents": {
+          "it_max_3ph": 8000,
+          "it_max_1ph": 6000
+        },
+        "ct_inputs": {
+          "primary_current": 2000,
+          "secondary_current": 1.0,
+          "rct": 4.0
+        },
+        "burden_resistance": 10.0
+      },
+      "expected": {
+        "eal_ar": 106.39999999999999,
+        "ktd_ar": 1.9,
+        "kssc_ar": 4.0
+      }
+    },
+    {
+      "input": {
+        "ar_params": null,
+        "fault_currents": {
+          "it_max_3ph": 8000,
+          "it_max_1ph": 6000
+        },
+        "ct_inputs": {
+          "primary_current": 2000,
+          "secondary_current": 1.0,
+          "rct": 4.0
+        },
+        "burden_resistance": 10.0
+      },
+      "expected": null
+    }
+  ]
+}

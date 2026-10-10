@@ -1,0 +1,209 @@
+{
+  "extract_ct_inputs": [
+    {
+      "input": {
+        "core_data": {}
+      },
+      "expected": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.02
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 5,
+          "burden": 20,
+          "secondary_current": 5,
+          "primary_current": 1000,
+          "relay_burden": 0.1
+        }
+      },
+      "expected": {
+        "rct": 5,
+        "burden_va": 20,
+        "secondary_current": 5,
+        "primary_current": 1000,
+        "relay_burden": 0.1
+      }
+    }
+  ],
+  "extract_cable_data": [
+    {
+      "input": {
+        "core_data": {}
+      },
+      "expected": {
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "dc_resistance_20": 4.61
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "cable_length": 40,
+          "cable_cross_section": 6,
+          "cable_temp": 60,
+          "cable_material": "Aluminium (Al)"
+        }
+      },
+      "expected": {
+        "cable_length": 40,
+        "cable_cross_section": 6,
+        "cable_temp": 60,
+        "cable_material": "Aluminium (Al)",
+        "dc_resistance_20": 4.61
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "cable_cross_section": 5
+        }
+      },
+      "expected": {
+        "cable_length": 65,
+        "cable_cross_section": 5,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "dc_resistance_20": 3.4482
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "dc_resistance_20": 9.99,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4
+        }
+      },
+      "expected": {
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "dc_resistance_20": 9.99
+      }
+    }
+  ],
+  "extract_fault_currents": [
+    {
+      "input": {
+        "common_data": {},
+        "core_data": {}
+      },
+      "expected": {
+        "ik_max_3ph": 63000,
+        "ik_max_1ph": 63000,
+        "it_max_3ph": 63000,
+        "it_max_1ph": 63000
+      }
+    },
+    {
+      "input": {
+        "common_data": {},
+        "core_data": {
+          "primary_current": 2000,
+          "ik_max_3ph": 5000,
+          "ik_max_1ph": 4000,
+          "it_max_3ph": 3000,
+          "it_max_1ph": 2500
+        }
+      },
+      "expected": {
+        "ik_max_3ph": 5000,
+        "ik_max_1ph": 4000,
+        "it_max_3ph": 3000,
+        "it_max_1ph": 2500
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 80
+        },
+        "core_data": {
+          "primary_current": 50,
+          "ik_max_3ph": 90000,
+          "it_max_1ph": 120000
+        }
+      },
+      "expected": {
+        "ik_max_3ph": 50000,
+        "ik_max_1ph": 50000,
+        "it_max_3ph": 50000,
+        "it_max_1ph": 50000
+      }
+    }
+  ],
+  "extract_auto_reclosure_params": [
+    {
+      "input": {
+        "core_data": {}
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "core_data": {
+          "auto_reclose_enabled": true
+        }
+      },
+      "expected": {
+        "t_prime": 0.1,
+        "t_al": 0.2,
+        "tfr": 0.4,
+        "t_double_al": 0.1,
+        "ts": 0.05,
+        "time_constant_class": "low",
+        "preset_name": null
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "auto_reclose_enabled": true,
+          "ar_t_prime": 0.15
+        }
+      },
+      "expected": {
+        "t_prime": 0.15,
+        "t_al": 0.2,
+        "tfr": 0.4,
+        "t_double_al": 0.15,
+        "ts": 0.05,
+        "time_constant_class": "low",
+        "preset_name": null
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "auto_reclose_enabled": true,
+          "ar_t_prime": 0.12,
+          "ar_t_al": 0.25,
+          "ar_tfr": 0.5,
+          "ar_t_double_al": 0.3,
+          "ar_ts": 0.08,
+          "ar_time_constant_class": "high",
+          "ar_ktf_preset": "iec_default"
+        }
+      },
+      "expected": {
+        "t_prime": 0.12,
+        "t_al": 0.25,
+        "tfr": 0.5,
+        "t_double_al": 0.3,
+        "ts": 0.08,
+        "time_constant_class": "high",
+        "preset_name": "iec_default"
+      }
+    }
+  ]
+}

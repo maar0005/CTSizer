@@ -1,0 +1,222 @@
+{
+  "utilization": [
+    {
+      "input": [
+        25,
+        50
+      ],
+      "expected": {
+        "utilization": 50.0,
+        "step": {
+          "key": "thermal_utilization",
+          "result": "50.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        12.3456,
+        100
+      ],
+      "expected": {
+        "utilization": 12.3456,
+        "step": {
+          "key": "thermal_utilization",
+          "result": "12.3 %"
+        }
+      }
+    },
+    {
+      "input": [
+        50,
+        50
+      ],
+      "expected": {
+        "utilization": 100.0,
+        "step": {
+          "key": "thermal_utilization",
+          "result": "100.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        75.5,
+        50
+      ],
+      "expected": {
+        "utilization": 151.0,
+        "step": {
+          "key": "thermal_utilization",
+          "result": "151.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        0,
+        50
+      ],
+      "expected": {
+        "utilization": 0.0,
+        "step": {
+          "key": "thermal_utilization",
+          "result": "0.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        10,
+        0
+      ],
+      "expected": {
+        "utilization": 0,
+        "step": {
+          "key": "thermal_utilization",
+          "result": "0.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        10,
+        -50
+      ],
+      "expected": {
+        "utilization": 0,
+        "step": {
+          "key": "thermal_utilization",
+          "result": "0.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        0.4321,
+        30
+      ],
+      "expected": {
+        "utilization": 1.4403333333333332,
+        "step": {
+          "key": "thermal_utilization",
+          "result": "1.4 %"
+        }
+      }
+    }
+  ],
+  "check_limits": [
+    {
+      "input": [
+        0
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        42.42
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        100
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        100.04
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 100.0% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        100.06
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 100.1% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        151
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 151.0% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        100.25
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 100.2% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        100.75
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 100.8% > 100%"
+        ]
+      }
+    }
+  ],
+  "margin": [
+    {
+      "input": [
+        25,
+        50
+      ],
+      "expected": 25
+    },
+    {
+      "input": [
+        50,
+        50
+      ],
+      "expected": 0
+    },
+    {
+      "input": [
+        75.5,
+        50
+      ],
+      "expected": -25.5
+    },
+    {
+      "input": [
+        12.3456,
+        100
+      ],
+      "expected": 87.6544
+    }
+  ]
+}

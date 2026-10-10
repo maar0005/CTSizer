@@ -1,0 +1,283 @@
+{
+  "calculate_iec_requirements": [
+    {
+      "input": {
+        "trafo_it_max": 5000,
+        "trafo_ik_max": 12000,
+        "primary_current": 600,
+        "trafo_rated_power": 40,
+        "trafo_primary_voltage": 132,
+        "ext_fault_factor": null,
+        "int_fault_factor": null
+      },
+      "expected": [
+        12.5,
+        8.0,
+        12.5,
+        0.17495462702715933,
+        3.4294605989863767
+      ]
+    },
+    {
+      "input": {
+        "trafo_it_max": 15000,
+        "trafo_ik_max": 25000,
+        "primary_current": 2000,
+        "trafo_rated_power": 100,
+        "trafo_primary_voltage": 50,
+        "ext_fault_factor": null,
+        "int_fault_factor": null
+      },
+      "expected": [
+        11.25,
+        5.0,
+        12.5,
+        1.1547005383792515,
+        1.7320508075688774
+      ]
+    },
+    {
+      "input": {
+        "trafo_it_max": 3000,
+        "trafo_ik_max": 8000,
+        "primary_current": 400,
+        "trafo_rated_power": 16,
+        "trafo_primary_voltage": 10.5,
+        "ext_fault_factor": 2.0,
+        "int_fault_factor": 0.5
+      },
+      "expected": [
+        15.0,
+        10.0,
+        12.5,
+        0.879771838765144,
+        0.4546633369868303
+      ]
+    }
+  ],
+  "verify_alf_external_fault": [
+    {
+      "input": {
+        "alf_o": 20,
+        "required": 12.5
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "alf_o": 10,
+        "required": 12.5
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "alf_o": 12.5,
+        "required": 12.5
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "alf_o": null,
+        "required": 12.5
+      },
+      "expected": null
+    }
+  ],
+  "verify_alf_internal_fault": [
+    {
+      "input": {
+        "alf_o": 20,
+        "required": 12.5
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "alf_o": 10,
+        "required": 12.5
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "alf_o": 12.5,
+        "required": 12.5
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "alf_o": null,
+        "required": 12.5
+      },
+      "expected": null
+    }
+  ],
+  "verify_alf_minimum": [
+    {
+      "input": {
+        "alf_o": 20,
+        "required": 12.5
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "alf_o": 10,
+        "required": 12.5
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "alf_o": 12.5,
+        "required": 12.5
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "alf_o": null,
+        "required": 12.5
+      },
+      "expected": null
+    }
+  ],
+  "verify_adaptation_factor": [
+    {
+      "input": {
+        "f_adap": 1.0,
+        "min_fadap": null,
+        "max_fadap": null
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "f_adap": 0.05,
+        "min_fadap": null,
+        "max_fadap": null
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "f_adap": 20,
+        "min_fadap": null,
+        "max_fadap": null
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "f_adap": 0.01,
+        "min_fadap": null,
+        "max_fadap": null
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "f_adap": 25.0,
+        "min_fadap": null,
+        "max_fadap": null
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "f_adap": 3.0,
+        "min_fadap": 0.5,
+        "max_fadap": 2.0
+      },
+      "expected": false
+    }
+  ],
+  "check_all_iec_requirements": [
+    {
+      "input": {
+        "alf_o": 20,
+        "alf_ext_required": 12.5,
+        "alf_int_required": 8.0,
+        "alf_min_required": 12.5,
+        "f_adap": 3.43
+      },
+      "expected": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        [
+          "Krav 1: ALFo (20.0) >= 12.5 \u2192 OK",
+          "Krav 2: ALFo (20.0) >= 8.0 \u2192 OK",
+          "Krav 3: ALFo (20.0) >= 12.5 \u2192 OK",
+          "Krav 4: 0.05 <= Fadap (3.430) <= 20 \u2192 OK"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "alf_o": 10,
+        "alf_ext_required": 12.5,
+        "alf_int_required": 8.0,
+        "alf_min_required": 12.5,
+        "f_adap": 3.43
+      },
+      "expected": [
+        false,
+        false,
+        true,
+        false,
+        true,
+        [
+          "Krav 1: ALFo (10.0) < 12.5 \u2192 IKKE OK",
+          "Krav 2: ALFo (10.0) >= 8.0 \u2192 OK",
+          "Krav 3: ALFo (10.0) < 12.5 \u2192 IKKE OK",
+          "Krav 4: 0.05 <= Fadap (3.430) <= 20 \u2192 OK"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "alf_o": 30,
+        "alf_ext_required": 12.5,
+        "alf_int_required": 8.0,
+        "alf_min_required": 12.5,
+        "f_adap": 0.02
+      },
+      "expected": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        [
+          "Krav 1: ALFo (30.0) >= 12.5 \u2192 OK",
+          "Krav 2: ALFo (30.0) >= 8.0 \u2192 OK",
+          "Krav 3: ALFo (30.0) >= 12.5 \u2192 OK",
+          "Krav 4: 0.05 <= Fadap (0.020) <= 20 \u2192 IKKE OK"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "alf_o": null,
+        "alf_ext_required": 12.5,
+        "alf_int_required": 8.0,
+        "alf_min_required": 12.5,
+        "f_adap": 3.43
+      },
+      "expected": [
+        false,
+        null,
+        null,
+        null,
+        null,
+        []
+      ]
+    }
+  ]
+}

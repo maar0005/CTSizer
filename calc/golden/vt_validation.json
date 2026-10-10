@@ -1,0 +1,323 @@
+{
+  "burden_limits": [
+    {
+      "input": [
+        0
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": [
+          "Lav byrde: 0.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ]
+      }
+    },
+    {
+      "input": [
+        10
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": [
+          "Lav byrde: 10.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ]
+      }
+    },
+    {
+      "input": [
+        24.25
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": [
+          "Lav byrde: 24.2% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ]
+      }
+    },
+    {
+      "input": [
+        24.75
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": [
+          "Lav byrde: 24.8% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ]
+      }
+    },
+    {
+      "input": [
+        24.99
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": [
+          "Lav byrde: 25.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ]
+      }
+    },
+    {
+      "input": [
+        25
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        60.5
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        100
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        100.04
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Byrde overskridelse: 100.0% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        100.06
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Byrde overskridelse: 100.1% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        100.25
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Byrde overskridelse: 100.2% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        151
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Byrde overskridelse: 151.0% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        -5
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": [
+          "Lav byrde: -5.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ]
+      }
+    }
+  ],
+  "thermal_limits": [
+    {
+      "input": [
+        0
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        42.42
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        100
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        100.05
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 100.0% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        100.25
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 100.2% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        100.75
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 100.8% > 100%"
+        ]
+      }
+    },
+    {
+      "input": [
+        151
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Termisk overbelastning: 151.0% > 100%"
+        ]
+      }
+    }
+  ],
+  "range_compliance": [
+    {
+      "input": [
+        0
+      ],
+      "expected": {
+        "range": "I",
+        "description": "Udvidet omr\u00e5de (0-100%) - Kr\u00e6ver s\u00e6rlig specifikation",
+        "compliant": false,
+        "warning": "VT skal v\u00e6re specificeret til Range I"
+      }
+    },
+    {
+      "input": [
+        12.5
+      ],
+      "expected": {
+        "range": "I",
+        "description": "Udvidet omr\u00e5de (0-100%) - Kr\u00e6ver s\u00e6rlig specifikation",
+        "compliant": false,
+        "warning": "VT skal v\u00e6re specificeret til Range I"
+      }
+    },
+    {
+      "input": [
+        24.999
+      ],
+      "expected": {
+        "range": "I",
+        "description": "Udvidet omr\u00e5de (0-100%) - Kr\u00e6ver s\u00e6rlig specifikation",
+        "compliant": false,
+        "warning": "VT skal v\u00e6re specificeret til Range I"
+      }
+    },
+    {
+      "input": [
+        25
+      ],
+      "expected": {
+        "range": "II",
+        "description": "Standard omr\u00e5de (25-100%)",
+        "compliant": true
+      }
+    },
+    {
+      "input": [
+        60
+      ],
+      "expected": {
+        "range": "II",
+        "description": "Standard omr\u00e5de (25-100%)",
+        "compliant": true
+      }
+    },
+    {
+      "input": [
+        100
+      ],
+      "expected": {
+        "range": "II",
+        "description": "Standard omr\u00e5de (25-100%)",
+        "compliant": true
+      }
+    },
+    {
+      "input": [
+        100.0001
+      ],
+      "expected": {
+        "range": "None",
+        "description": "Udenfor gyldige omr\u00e5der",
+        "compliant": false,
+        "warning": "Byrde overskridelse"
+      }
+    },
+    {
+      "input": [
+        150
+      ],
+      "expected": {
+        "range": "None",
+        "description": "Udenfor gyldige omr\u00e5der",
+        "compliant": false,
+        "warning": "Byrde overskridelse"
+      }
+    },
+    {
+      "input": [
+        -0.001
+      ],
+      "expected": {
+        "range": "None",
+        "description": "Udenfor gyldige omr\u00e5der",
+        "compliant": false,
+        "warning": "Byrde overskridelse"
+      }
+    },
+    {
+      "input": [
+        -10
+      ],
+      "expected": {
+        "range": "None",
+        "description": "Udenfor gyldige omr\u00e5der",
+        "compliant": false,
+        "warning": "Byrde overskridelse"
+      }
+    }
+  ]
+}

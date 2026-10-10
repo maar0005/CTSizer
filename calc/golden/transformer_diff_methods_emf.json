@@ -1,0 +1,257 @@
+{
+  "calculate_relay_resistance": [
+    {
+      "input": {
+        "relay_burden": 0.1,
+        "secondary_current": 1
+      },
+      "expected": 0.1
+    },
+    {
+      "input": {
+        "relay_burden": 0.5,
+        "secondary_current": 5
+      },
+      "expected": 0.02
+    },
+    {
+      "input": {
+        "relay_burden": 0.1,
+        "secondary_current": 0
+      },
+      "expected": 0
+    }
+  ],
+  "calculate_emf_internal_fault": [
+    {
+      "input": {
+        "trafo_i_max": 12000,
+        "secondary_current": 1,
+        "primary_current": 600,
+        "rct": 4,
+        "cable_resistance": 1.2,
+        "r_relay": 0.1
+      },
+      "expected": 106.0
+    },
+    {
+      "input": {
+        "trafo_i_max": 25000,
+        "secondary_current": 5,
+        "primary_current": 2000,
+        "rct": 0.8,
+        "cable_resistance": 0.35,
+        "r_relay": 0.02
+      },
+      "expected": 73.125
+    }
+  ],
+  "calculate_emf_through_fault": [
+    {
+      "input": {
+        "trafo_i_max": 12000,
+        "secondary_current": 1,
+        "primary_current": 600,
+        "rct": 4,
+        "cable_resistance": 1.2,
+        "r_relay": 0.1
+      },
+      "expected": 212.0
+    },
+    {
+      "input": {
+        "trafo_i_max": 25000,
+        "secondary_current": 5,
+        "primary_current": 2000,
+        "rct": 0.8,
+        "cable_resistance": 0.35,
+        "r_relay": 0.02
+      },
+      "expected": 146.25
+    }
+  ],
+  "calculate_emf_inrush": [
+    {
+      "input": {
+        "inrush_factor": 12,
+        "primary_current": 600,
+        "secondary_current": 1,
+        "rct": 4,
+        "cable_resistance": 1.2,
+        "r_relay": 0.1
+      },
+      "expected": 63.599999999999994
+    },
+    {
+      "input": {
+        "inrush_factor": 8,
+        "primary_current": 2000,
+        "secondary_current": 5,
+        "rct": 0.8,
+        "cable_resistance": 0.35,
+        "r_relay": 0.02
+      },
+      "expected": 46.8
+    }
+  ],
+  "calculate_emf_scenarios": [
+    {
+      "input": {
+        "trafo_ik_max": 12000,
+        "trafo_it_max": 5000,
+        "inrush_factor": 12,
+        "primary_current": 600,
+        "secondary_current": 1,
+        "rct": 4,
+        "cable_resistance": 1.2,
+        "r_relay": 0.1
+      },
+      "expected": [
+        106.0,
+        88.33333333333334,
+        63.599999999999994
+      ]
+    },
+    {
+      "input": {
+        "trafo_ik_max": 25000,
+        "trafo_it_max": 15000,
+        "inrush_factor": 8,
+        "primary_current": 2000,
+        "secondary_current": 5,
+        "rct": 0.8,
+        "cable_resistance": 0.35,
+        "r_relay": 0.02
+      },
+      "expected": [
+        73.125,
+        87.75,
+        46.8
+      ]
+    },
+    {
+      "input": {
+        "trafo_ik_max": 3000,
+        "trafo_it_max": 1000,
+        "inrush_factor": 15,
+        "primary_current": 400,
+        "secondary_current": 1,
+        "rct": 2.5,
+        "cable_resistance": 0.6,
+        "r_relay": 0.05
+      },
+      "expected": [
+        23.625,
+        15.75,
+        47.25
+      ]
+    }
+  ],
+  "calculate_required_vk": [
+    {
+      "input": {
+        "e_internal": 106.0,
+        "e_through": 88.3,
+        "e_inrush": 63.6
+      },
+      "expected": 106.0
+    },
+    {
+      "input": {
+        "e_internal": 40.0,
+        "e_through": 96.0,
+        "e_inrush": 12.5
+      },
+      "expected": 96.0
+    },
+    {
+      "input": {
+        "e_internal": 30.0,
+        "e_through": 20.0,
+        "e_inrush": 47.5
+      },
+      "expected": 47.5
+    }
+  ],
+  "calculate_offered_vk": [
+    {
+      "input": {
+        "alf": 20,
+        "secondary_current": 1,
+        "rct": 4,
+        "burden_va": 30,
+        "is_px": false,
+        "vk_specified": null
+      },
+      "expected": [
+        680.0,
+        "EALF"
+      ]
+    },
+    {
+      "input": {
+        "alf": 10,
+        "secondary_current": 5,
+        "rct": 0.8,
+        "burden_va": 15,
+        "is_px": false,
+        "vk_specified": null
+      },
+      "expected": [
+        70.0,
+        "EALF"
+      ]
+    },
+    {
+      "input": {
+        "alf": null,
+        "secondary_current": 1,
+        "rct": 4,
+        "burden_va": 30,
+        "is_px": true,
+        "vk_specified": 450
+      },
+      "expected": [
+        450,
+        "Vk"
+      ]
+    },
+    {
+      "input": {
+        "alf": 20,
+        "secondary_current": 1,
+        "rct": 4,
+        "burden_va": 30,
+        "is_px": true,
+        "vk_specified": null
+      },
+      "expected": [
+        680.0,
+        "EALF"
+      ]
+    }
+  ],
+  "verify_emf_method": [
+    {
+      "input": {
+        "ealf": 680,
+        "vk_required": 106.2
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "ealf": 90,
+        "vk_required": 106.2
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "ealf": 106.2,
+        "vk_required": 106.2
+      },
+      "expected": true
+    }
+  ]
+}

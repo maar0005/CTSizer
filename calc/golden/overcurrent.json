@@ -1,0 +1,508 @@
+{
+  "calculate_overcurrent": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.05,
+          "max_fault_current": 63000
+        },
+        "cable_resistance": 0.86205,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 100,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "4.9120 \u03a9",
+          "required_alf": "31.50",
+          "burden_resistance": "30.0000 \u03a9",
+          "actual_alf": "138.44",
+          "secondary_saturation_voltage": "680.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 138.44 >= ALF_req 31.50"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 200,
+          "relay_burden": 0.05,
+          "max_fault_current": 10000
+        },
+        "cable_resistance": 0.431025,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 50,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "4.4810 \u03a9",
+          "required_alf": "5.00",
+          "burden_resistance": "30.0000 \u03a9",
+          "specified_knee_point_voltage_vk": "200.00 V",
+          "equivalent_alf_from_vk": "44.63",
+          "secondary_saturation_voltage": "200.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 44.63 >= ALF_req 5.00"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 500,
+          "alf": 5,
+          "relay_burden": 0.05,
+          "max_fault_current": 63000
+        },
+        "cable_resistance": 0.86205,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 100,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "4.9120 \u03a9",
+          "required_alf": "126.00",
+          "burden_resistance": "30.0000 \u03a9",
+          "actual_alf": "34.61",
+          "secondary_saturation_voltage": "170.00 V",
+          "conclusion": "ct_insufficient",
+          "alf_comparison": "ALF 34.61 < ALF_req 126.00"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_alf_insufficient",
+            34.608768233222385,
+            126.0
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 15,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "relay_burden": 0.1,
+          "max_fault_current": 20000
+        },
+        "cable_resistance": 1.1251062816,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 25,
+          "length_m": 80,
+          "cross_mm2": 2.5
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.1000 \u03a9",
+          "total_secondary_resistance": "3.2251 \u03a9",
+          "required_alf": "20.00",
+          "burden_resistance": "15.0000 \u03a9",
+          "actual_alf": "158.13",
+          "secondary_saturation_voltage": "510.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 158.13 >= ALF_req 20.00"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 20,
+          "secondary_current": 1,
+          "primary_current": 1500,
+          "is_px_class": true,
+          "relay_burden": 0.05,
+          "max_fault_current": 50000
+        },
+        "cable_resistance": 0.6034349999999999,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 70,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "4.6534 \u03a9",
+          "required_alf": "33.33",
+          "burden_resistance": "20.0000 \u03a9",
+          "actual_alf": "154.72",
+          "secondary_saturation_voltage": "720.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 154.72 >= ALF_req 33.33"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 10,
+          "secondary_current": 5,
+          "primary_current": 2000,
+          "alf": 15,
+          "relay_burden": 0.2,
+          "max_fault_current": 40000
+        },
+        "cable_resistance": 0.91613268,
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "temp_c": 40,
+          "length_m": 60,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0080 \u03a9",
+          "total_secondary_resistance": "1.9241 \u03a9",
+          "required_alf": "20.00",
+          "burden_resistance": "0.4000 \u03a9",
+          "actual_alf": "10.91",
+          "secondary_saturation_voltage": "105.00 V",
+          "conclusion": "ct_insufficient",
+          "alf_comparison": "ALF 10.91 < ALF_req 20.00"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_alf_insufficient",
+            10.914008279304314,
+            20.0
+          ]
+        ]
+      }
+    }
+  ],
+  "by_method": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 10,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "alf": 10,
+          "relay_burden": 0.05,
+          "max_fault_current": 24200
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "5.7274 \u03a9",
+          "required_alf": "24.20",
+          "burden_resistance": "10.0000 \u03a9",
+          "actual_alf": "24.44",
+          "secondary_saturation_voltage": "140.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 24.44 >= ALF_req 24.20"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 10,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "alf": 10,
+          "relay_burden": 0.05,
+          "max_fault_current": 24200
+        },
+        "common_data": {
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.8023343
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 7.41,
+          "r_conductor": 0.90116715,
+          "factor": 2,
+          "r_loop": 1.8023343,
+          "in_table": true
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "5.8523 \u03a9",
+          "required_alf": "24.20",
+          "burden_resistance": "10.0000 \u03a9",
+          "actual_alf": "23.92",
+          "secondary_saturation_voltage": "140.00 V",
+          "conclusion": "ct_insufficient",
+          "alf_comparison": "ALF 23.92 < ALF_req 24.20"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_alf_insufficient",
+            23.922078408952135,
+            24.2
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "is_px_class": true,
+          "vk_voltage": 80,
+          "relay_burden": 0.05,
+          "max_fault_current": 20000
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 150,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.72619145
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.71,
+          "r_conductor": 0.863095725,
+          "factor": 2,
+          "r_loop": 1.72619145
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "3.7762 \u03a9",
+          "required_alf": "20.00",
+          "burden_resistance": "30.0000 \u03a9",
+          "specified_knee_point_voltage_vk": "80.00 V",
+          "equivalent_alf_from_vk": "21.19",
+          "secondary_saturation_voltage": "80.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 21.19 >= ALF_req 20.00"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "is_px_class": true,
+          "vk_voltage": 80,
+          "relay_burden": 0.05,
+          "max_fault_current": 20000
+        },
+        "common_data": {
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 150,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.6895419499999997
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.8447709749999999,
+          "factor": 2,
+          "r_loop": 1.6895419499999997,
+          "in_table": true
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "3.7395 \u03a9",
+          "required_alf": "20.00",
+          "burden_resistance": "30.0000 \u03a9",
+          "specified_knee_point_voltage_vk": "80.00 V",
+          "equivalent_alf_from_vk": "21.39",
+          "secondary_saturation_voltage": "80.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 21.39 >= ALF_req 20.00"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    }
+  ],
+  "by_topology": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 10,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "alf": 10,
+          "relay_burden": 0.05,
+          "max_fault_current": 24200
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "5.7274 \u03a9",
+          "required_alf": "24.20",
+          "burden_resistance": "10.0000 \u03a9",
+          "actual_alf": "24.44",
+          "secondary_saturation_voltage": "140.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 24.44 >= ALF_req 24.20"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 10,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "alf": 10,
+          "relay_burden": 0.05,
+          "max_fault_current": 24200
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372,
+        "cable_topology": "six_wire"
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0500 \u03a9",
+          "total_secondary_resistance": "5.7274 \u03a9",
+          "required_alf": "24.20",
+          "burden_resistance": "10.0000 \u03a9",
+          "actual_alf": "24.44",
+          "secondary_saturation_voltage": "140.00 V",
+          "conclusion": "ct_sufficient",
+          "alf_comparison": "ALF 24.44 >= ALF_req 24.20"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    }
+  ]
+}
