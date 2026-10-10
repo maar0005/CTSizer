@@ -14,7 +14,8 @@
  * calcWireResistance, cableResistance(). Every module gets its lead
  * resistance from CTCableRes.lead() instead.
  *
- * Usage:  node tools/run-tests.mjs
+ * Usage:  node tools/run-tests.mjs              # with the golden fixtures
+ *         node tools/run-tests.mjs --no-golden  # without, as in the browser
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -34,9 +35,11 @@ if (order.length === 0) {
 }
 
 // 2. Load golden fixtures → CT_GOLDEN, keyed by filename without .json.
+//    --no-golden leaves CT_GOLDEN empty, as in the browser: the golden-backed
+//    checks skip and only the hand-derived ones run.
 const goldenDir = join(root, 'calc', 'golden');
 const golden = {};
-if (existsSync(goldenDir)) {
+if (existsSync(goldenDir) && !process.argv.includes('--no-golden')) {
   for (const f of readdirSync(goldenDir)) {
     if (f.endsWith('.json')) {
       golden[basename(f, '.json')] = JSON.parse(readFileSync(join(goldenDir, f), 'utf8'));
