@@ -107,9 +107,7 @@ const CTBusbar = (() => {
 
   // ── P class: REB500 operating ALF method ──────────────────────────────
   function calculatePClass({ core, i_fmax, tp, rct, burden, Is, Ip, alf, relay_burden, Rc, r_relay, relayStep }) {
-    // Relay-specific busbar Fa minimums (Check 3) require data/relay_database.py,
-    // a separate not-yet-ported subsystem; this mirrors Python's own fallback
-    // (returns null when no relay database entry is found).
+    // Relay-specific busbar Fa minimum (Check 3) from the core's IED
     const busbarParams = getBusbarParams(core);
 
     // S_in = Isr² × Rct (internal CT burden)
@@ -133,7 +131,7 @@ const CTBusbar = (() => {
     let check3 = true;
     let fa_min = null;
     if (busbarParams) {
-      fa_min = tp <= busbarParams.tp_threshold ? busbarParams.fa_min_low_tp : busbarParams.fa_min_high_tp;
+      fa_min = tp <= busbarParams.tp_threshold_ms ? busbarParams.fa_min_low_tp : busbarParams.fa_min_high_tp;
       check3 = f_a >= fa_min;
     }
 
@@ -202,12 +200,13 @@ const CTBusbar = (() => {
              is_px: false, is_ok, margin, warnings, conclusion, steps, status: is_ok ? 'OK' : 'NOT_OK' };
   }
 
-  // ct_busbar._get_busbar_params — relay-specific busbar Fa minimums.
-  // data/relay_database.py is not yet ported; returns null until it is,
-  // which keeps Check 3 inactive ("N/A") exactly as Python does for any
-  // relay_name not found in its database.
+  // ct_busbar._get_busbar_params — relay-specific busbar Fa minimums of the
+  // core's IED (CTRelayDB: relay_model, else relay_name). null — manual
+  // entry, an IED not in the database, or one without a manufacturer
+  // minimum — leaves Check 3 out, as Python does for a relay it cannot find.
+  // ctvt_dim reads relay_name only, which its GUI never sets (F-BB-RELAY).
   function getBusbarParams(core) {
-    return null;
+    return CTRelayDB.busbarParams(core);
   }
 
   return { calculate };

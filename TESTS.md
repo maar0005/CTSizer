@@ -1,8 +1,8 @@
 # CTSizer tests
 
-This release passed **5,809 checks in 52 test groups**
-before it was published. 5,145 of them are golden checks against the
-42 fixture files in `calc/golden/`; the other 664 are
+This release passed **5,828 checks in 53 test groups**
+before it was published. 5,150 of them are golden checks against the
+42 fixture files in `calc/golden/`; the other 678 are
 hand-derived checks.
 
 All the test code is in [`calc/tests.js`](calc/tests.js). Each test group
@@ -51,7 +51,7 @@ hand-derived.
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [Foundation](calc/tests.js#L3517) | The CT base functions every module builds on: ALF or Vk from the core data, relay burden resistance, EALF, operating ALF, the proposed knee-point voltage and its adequacy, remanence factors, typical secondary time constants, CT class parsing, core adequacy and the CT class recommendation. | 79 | 79 | [foundation.json](calc/golden/foundation.json) |
+| [Foundation](calc/tests.js#L3534) | The CT base functions every module builds on: ALF or Vk from the core data, relay burden resistance, EALF, operating ALF, the proposed knee-point voltage and its adequacy, remanence factors, typical secondary time constants, CT class parsing, core adequacy and the CT class recommendation. | 79 | 79 | [foundation.json](calc/golden/foundation.json) |
 | [Materials](calc/tests.js#L53) | Conductor materials: copper or aluminium, material properties, DC resistance per km, wiring factor, resistivity and resistance at temperature, cable burden. | 57 | 54 | [materials.json](calc/golden/materials.json) |
 
 ### Cable resistance (2,053 checks)
@@ -62,7 +62,7 @@ hand-derived.
 | [CableResTable](calc/tests.js#L358) | The `table` method: IEC 60228 conductor resistances for every cross-section, material and temperature. | 925 | 896 | [cable_resistance.json](calc/golden/cable_resistance.json) |
 | [CableResIec60287](calc/tests.js#L591) | The `iec60287` method (the default): the resistance calculated from resistivity and temperature. | 923 | 896 | [cable_resistance.json](calc/golden/cable_resistance.json) |
 | [CableResTopology](calc/tests.js#L478) | Four-wire and six-wire wiring: the loop factor for every fault current case, including √3 for a two-phase fault in four-wire, and the formula-step labels. | 65 | 0 | — |
-| [CableResConsistency](calc/tests.js#L4354) | The same cable through every protection module, as the app calls them: for every method, temperature and wiring the loop resistance is the identical number in every module (372 combinations). | 19 | 0 | — |
+| [CableResConsistency](calc/tests.js#L4371) | The same cable through every protection module, as the app calls them: for every method, temperature and wiring the loop resistance is the identical number in every module (372 combinations). | 19 | 0 | — |
 
 ### Protection and metering cores (672 checks)
 
@@ -72,9 +72,9 @@ hand-derived.
 | [Metering](calc/tests.js#L1009) | Complete metering core calculation (instrument security factor) against the reference, for each cable-resistance method and wiring topology. | 136 | 119 | [metering.json](calc/golden/metering.json) |
 | [Busbar](calc/tests.js#L1163) | Complete busbar protection core calculation (P class: operating ALF; PX class: E.M.F. and knee-point voltage for high-impedance schemes) against the reference, for each cable-resistance method and wiring topology. | 133 | 110 | [busbar.json](calc/golden/busbar.json) |
 | [Generic](calc/tests.js#L1300) | The generic protection core, for a relay type without its own module (ALF or Vk against the connected burden), against the reference, for each cable-resistance method and wiring topology. | 102 | 78 | [generic.json](calc/golden/generic.json) |
-| [CtCalculations](calc/tests.js#L4222) | The dispatcher the app uses (`CTCalc`): which module each core type is routed to, the single-core calculation and the security factor constant. | 122 | 112 | [ct_calculations.json](calc/golden/ct_calculations.json) |
-| [IedRating](calc/tests.js#L4819) | IED input rating: peak factor, thermal withstand current, the requirements, and that a failed IED check fails the core. | 33 | 33 | [ied_rating.json](calc/golden/ied_rating.json) |
-| [RelayDb](calc/tests.js#L4772) | The relay database (23 relays): manufacturers, IEDs per application, burden and t_al per rated current, filling in SR and t_al, and t_al reaching the C-O-C-O check. | 10 | 0 | — |
+| [CtCalculations](calc/tests.js#L4239) | The dispatcher the app uses (`CTCalc`): which module each core type is routed to, the single-core calculation and the security factor constant. | 122 | 112 | [ct_calculations.json](calc/golden/ct_calculations.json) |
+| [IedRating](calc/tests.js#L4936) | IED input rating: peak factor, thermal withstand current, the requirements, and that a failed IED check fails the core. | 33 | 33 | [ied_rating.json](calc/golden/ied_rating.json) |
+| [RelayDb](calc/tests.js#L4789) | The relay database (23 relays): manufacturers, IEDs per application, burden and t_al per rated current, filling in SR and t_al, and t_al reaching the C-O-C-O check. | 10 | 0 | — |
 
 ### Distance protection (465 checks)
 
@@ -100,46 +100,52 @@ hand-derived.
 | [AutoReclosureComputation](calc/tests.js#L2269) | Curve interpolation, Ktd from a curve, C-O-C-O Ktd and EAL. | 20 | 20 | [auto_reclosure.json](calc/golden/auto_reclosure.json) |
 | [AutoReclosureWaveform](calc/tests.js#L2306) | The C-O-C-O fault current (AC with a decaying DC offset) and the secondary flux by implicit Euler integration (IEC 61869-100 §5.2.3), compared point by point. | 12 | 12 | [auto_reclosure.json](calc/golden/auto_reclosure.json) |
 
-### Transformer differential protection (868 checks)
+### Transformer differential protection (873 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [TransformerDiffMain](calc/tests.js#L2332) | The complete transformer differential calculation against the reference, for each cable-resistance method and wiring topology. | 686 | 661 | [transformer_diff_main.json](calc/golden/transformer_diff_main.json) |
-| [TransformerDiffPresets](calc/tests.js#L2501) | The constants: temperature coefficients, default values and the IEC, Ziegler and E.M.F. method constants. | 7 | 7 | [transformer_diff_presets.json](calc/golden/transformer_diff_presets.json) |
-| [TransformerDiffData](calc/tests.js#L2543) | Input extraction: CT inputs, transformer windings and transformer data. | 32 | 20 | [transformer_diff_data.json](calc/golden/transformer_diff_data.json) |
-| [TransformerDiffBurden](calc/tests.js#L2635) | Burden: resistivity at temperature, cable burden, CT internal burden and total burden. | 21 | 17 | [transformer_diff_burden_calculation.json](calc/golden/transformer_diff_burden_calculation.json) |
-| [TransformerDiffMethodsEmf](calc/tests.js#L2686) | The E.M.F. method: relay resistance and the E.M.F. for internal fault, through fault and inrush. | 28 | 22 | [transformer_diff_methods_emf.json](calc/golden/transformer_diff_methods_emf.json) |
-| [TransformerDiffMethodsIec61869](calc/tests.js#L2736) | The IEC 61869 method: requirements, ALF for external and internal faults, minimum ALF and the adaptation factor. | 31 | 25 | [transformer_diff_methods_iec61869.json](calc/golden/transformer_diff_methods_iec61869.json) |
-| [TransformerDiffMethodsZiegler](calc/tests.js#L2778) | The Ziegler method: Kssc, ALF requirements and the verification. | 18 | 12 | [transformer_diff_methods_ziegler.json](calc/golden/transformer_diff_methods_ziegler.json) |
-| [TransformerDiffFormatting](calc/tests.js#L2818) | The formula steps: transformer data, cable burden, total burden, CT burden and operating ALF. | 45 | 39 | [transformer_diff_formatting.json](calc/golden/transformer_diff_formatting.json) |
+| [TransformerDiffMain](calc/tests.js#L2332) | The complete transformer differential calculation against the reference, for each cable-resistance method and wiring topology. | 691 | 666 | [transformer_diff_main.json](calc/golden/transformer_diff_main.json) |
+| [TransformerDiffPresets](calc/tests.js#L2518) | The constants: temperature coefficients, default values and the IEC, Ziegler and E.M.F. method constants. | 7 | 7 | [transformer_diff_presets.json](calc/golden/transformer_diff_presets.json) |
+| [TransformerDiffData](calc/tests.js#L2560) | Input extraction: CT inputs, transformer windings and transformer data. | 32 | 20 | [transformer_diff_data.json](calc/golden/transformer_diff_data.json) |
+| [TransformerDiffBurden](calc/tests.js#L2652) | Burden: resistivity at temperature, cable burden, CT internal burden and total burden. | 21 | 17 | [transformer_diff_burden_calculation.json](calc/golden/transformer_diff_burden_calculation.json) |
+| [TransformerDiffMethodsEmf](calc/tests.js#L2703) | The E.M.F. method: relay resistance and the E.M.F. for internal fault, through fault and inrush. | 28 | 22 | [transformer_diff_methods_emf.json](calc/golden/transformer_diff_methods_emf.json) |
+| [TransformerDiffMethodsIec61869](calc/tests.js#L2753) | The IEC 61869 method: requirements, ALF for external and internal faults, minimum ALF and the adaptation factor. | 31 | 25 | [transformer_diff_methods_iec61869.json](calc/golden/transformer_diff_methods_iec61869.json) |
+| [TransformerDiffMethodsZiegler](calc/tests.js#L2795) | The Ziegler method: Kssc, ALF requirements and the verification. | 18 | 12 | [transformer_diff_methods_ziegler.json](calc/golden/transformer_diff_methods_ziegler.json) |
+| [TransformerDiffFormatting](calc/tests.js#L2835) | The formula steps: transformer data, cable burden, total burden, CT burden and operating ALF. | 45 | 39 | [transformer_diff_formatting.json](calc/golden/transformer_diff_formatting.json) |
 
 ### Line differential protection (300 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [LineDiffMain](calc/tests.js#L2910) | The complete line differential calculation against the reference, for each cable-resistance method and wiring topology. | 206 | 184 | [line_diff_main.json](calc/golden/line_diff_main.json) |
-| [LineDiffData](calc/tests.js#L3134) | Input extraction: CT inputs, cable data, fault currents and auto-reclosure parameters. | 22 | 14 | [line_diff_data.json](calc/golden/line_diff_data.json) |
-| [LineDiffEmfCalculation](calc/tests.js#L3247) | Total loop resistance (three-phase and single-phase) and the E.M.F. for internal and external faults. | 22 | 14 | [line_diff_emf_calculation.json](calc/golden/line_diff_emf_calculation.json) |
-| [LineDiffKneePoint](calc/tests.js#L3354) | Required knee-point voltage (the largest of the four E.M.F. scenarios) and its adequacy. | 9 | 5 | [line_diff_knee_point.json](calc/golden/line_diff_knee_point.json) |
-| [LineDiffAutoReclosureExt](calc/tests.js#L3397) | Auto-reclosure for line differential cores: Ktd, Kssc, EAL and the complete analysis. | 12 | 9 | [line_diff_auto_reclosure_ext.json](calc/golden/line_diff_auto_reclosure_ext.json) |
-| [LineDiffFormatting](calc/tests.js#L3452) | The formula steps: relay resistance and the E.M.F. for each fault scenario. | 29 | 22 | [line_diff_formatting.json](calc/golden/line_diff_formatting.json) |
+| [LineDiffMain](calc/tests.js#L2927) | The complete line differential calculation against the reference, for each cable-resistance method and wiring topology. | 206 | 184 | [line_diff_main.json](calc/golden/line_diff_main.json) |
+| [LineDiffData](calc/tests.js#L3151) | Input extraction: CT inputs, cable data, fault currents and auto-reclosure parameters. | 22 | 14 | [line_diff_data.json](calc/golden/line_diff_data.json) |
+| [LineDiffEmfCalculation](calc/tests.js#L3264) | Total loop resistance (three-phase and single-phase) and the E.M.F. for internal and external faults. | 22 | 14 | [line_diff_emf_calculation.json](calc/golden/line_diff_emf_calculation.json) |
+| [LineDiffKneePoint](calc/tests.js#L3371) | Required knee-point voltage (the largest of the four E.M.F. scenarios) and its adequacy. | 9 | 5 | [line_diff_knee_point.json](calc/golden/line_diff_knee_point.json) |
+| [LineDiffAutoReclosureExt](calc/tests.js#L3414) | Auto-reclosure for line differential cores: Ktd, Kssc, EAL and the complete analysis. | 12 | 9 | [line_diff_auto_reclosure_ext.json](calc/golden/line_diff_auto_reclosure_ext.json) |
+| [LineDiffFormatting](calc/tests.js#L3469) | The formula steps: relay resistance and the E.M.F. for each fault scenario. | 29 | 22 | [line_diff_formatting.json](calc/golden/line_diff_formatting.json) |
 
 ### Voltage transformers (962 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [VtData](calc/tests.js#L3603) | Input extraction and validation for VT cores and the common data. | 23 | 17 | [vt_data.json](calc/golden/vt_data.json) |
-| [VtPresets](calc/tests.js#L3646) | Voltage drop limits, thermal burden defaults and accuracy class definitions. | 16 | 11 | [vt_presets.json](calc/golden/vt_presets.json) |
-| [VtImpedance](calc/tests.js#L3692) | Rated secondary current, burden impedance, parallel resistance and total impedance. | 72 | 65 | [vt_impedance.json](calc/golden/vt_impedance.json) |
-| [VtCurrentBurden](calc/tests.js#L3758) | Actual current and burden, burden utilisation and reserve capacity. | 71 | 63 | [vt_current_burden.json](calc/golden/vt_current_burden.json) |
-| [VtVoltageAnalysis](calc/tests.js#L3807) | Voltage drop, the largest voltage drop and the limits. | 56 | 49 | [vt_voltage_analysis.json](calc/golden/vt_voltage_analysis.json) |
-| [VtThermal](calc/tests.js#L3855) | Thermal utilisation, limits and margin. | 50 | 44 | [vt_thermal.json](calc/golden/vt_thermal.json) |
-| [VtValidation](calc/tests.js#L3901) | Burden limits, thermal limits and range compliance. | 58 | 50 | [vt_validation.json](calc/golden/vt_validation.json) |
-| [VtFormatting](calc/tests.js#L3951) | The formula steps and result data for VT cores. | 23 | 16 | [vt_formatting.json](calc/golden/vt_formatting.json) |
-| [VtCalculator](calc/tests.js#L3999) | The complete VT calculation for single and multiple cores against the reference, for each cable-resistance method and wiring topology. | 593 | 564 | [vt_calculator.json](calc/golden/vt_calculator.json) |
+| [VtData](calc/tests.js#L3620) | Input extraction and validation for VT cores and the common data. | 23 | 17 | [vt_data.json](calc/golden/vt_data.json) |
+| [VtPresets](calc/tests.js#L3663) | Voltage drop limits, thermal burden defaults and accuracy class definitions. | 16 | 11 | [vt_presets.json](calc/golden/vt_presets.json) |
+| [VtImpedance](calc/tests.js#L3709) | Rated secondary current, burden impedance, parallel resistance and total impedance. | 72 | 65 | [vt_impedance.json](calc/golden/vt_impedance.json) |
+| [VtCurrentBurden](calc/tests.js#L3775) | Actual current and burden, burden utilisation and reserve capacity. | 71 | 63 | [vt_current_burden.json](calc/golden/vt_current_burden.json) |
+| [VtVoltageAnalysis](calc/tests.js#L3824) | Voltage drop, the largest voltage drop and the limits. | 56 | 49 | [vt_voltage_analysis.json](calc/golden/vt_voltage_analysis.json) |
+| [VtThermal](calc/tests.js#L3872) | Thermal utilisation, limits and margin. | 50 | 44 | [vt_thermal.json](calc/golden/vt_thermal.json) |
+| [VtValidation](calc/tests.js#L3918) | Burden limits, thermal limits and range compliance. | 58 | 50 | [vt_validation.json](calc/golden/vt_validation.json) |
+| [VtFormatting](calc/tests.js#L3968) | The formula steps and result data for VT cores. | 23 | 16 | [vt_formatting.json](calc/golden/vt_formatting.json) |
+| [VtCalculator](calc/tests.js#L4016) | The complete VT calculation for single and multiple cores against the reference, for each cable-resistance method and wiring topology. | 593 | 564 | [vt_calculator.json](calc/golden/vt_calculator.json) |
 
 ### End to end (257 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [EndToEnd](calc/tests.js#L4448) | 19 realistic cores of every type, stored as the app stores them, through `CTCalc.calculate` exactly as the app calls it: status, the numbers in the Summary panel and every formula-step row compared with the reference. Nothing is hand-written. | 257 | 257 | [e2e.json](calc/golden/e2e.json) |
+| [EndToEnd](calc/tests.js#L4465) | 19 realistic cores of every type, stored as the app stores them, through `CTCalc.calculate` exactly as the app calls it: status, the numbers in the Summary panel and every formula-step row compared with the reference. Nothing is hand-written. | 257 | 257 | [e2e.json](calc/golden/e2e.json) |
+
+### Other (14 checks)
+
+| Test group | What it checks | Checks | Golden | Fixture |
+|---|---|---:|---:|---|
+| [RelayCalcParams](calc/tests.js#L4837) | — | 14 | 0 | — |

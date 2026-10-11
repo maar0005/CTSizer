@@ -2460,8 +2460,25 @@ const CTTests = (() => {
       return got;
     };
 
-    (G.calculate_transformer_differential || []).forEach((c, i) => {
-      const got = checkCase(`TDIFFMAIN golden #${i}`, c);
+    // Deviation (issue #93): an IED name the database does not have is a
+    // custom relay with the default IEC factors (main.py marks the IEC method
+    // not applicable), so such a case must match the same core without it.
+    const GT = G.calculate_transformer_differential || [];
+    const customTwin = (c) => {
+      const { relay_name, ...rest } = c.input.core_data;
+      if (!relay_name || CTRelayDB.byName(relay_name)) return null;
+      const want = JSON.stringify({ common_data: c.input.common_data, core_data: rest });
+      return GT.find((o) => o !== c && JSON.stringify(o.input) === want) || 'missing';
+    };
+
+    GT.forEach((c, i) => {
+      const twin = customTwin(c);
+      if (twin === 'missing') {
+        results.push(assert(`TDIFFMAIN golden #${i} unknown IED has a no-IED twin`, false, 'none', 'a twin case'));
+        return;
+      }
+      const got = checkCase(`TDIFFMAIN golden #${i}${twin ? ' (unknown IED = custom relay)' : ''}`,
+        twin ? { input: c.input, expected: twin.expected } : c);
       if (c.expected.trafo_ik_max === null) return;  // not calculated (issue #85)
       results.push(assert(`TDIFFMAIN golden #${i} cable_res iec60287 / four_wire (default), k = 2`,
         got.cable_res.method === 'iec60287' && got.cable_res.topology === 'four_wire'
@@ -4815,6 +4832,106 @@ const CTTests = (() => {
     return results;
   }
 
+  // ── The picked IED's calculation parameters (issue #93): busbar Check 3,
+  //    transformer diff IEC 61869 factors, distance Vka factor ─────────────
+  function testRelayCalcParams() {
+    const results = [];
+    const DB = CTRelayDB;
+
+    // Lookups: values from calc/relay_db.js; an IED without the group, no
+    // IED, or a name the database does not have
+    const bb500 = DB.busbarParams({ relay_model: 'ABB REB500' });
+    results.push(assert('RELAYPARAMS REB500 busbar Fa minimum 10 / 20, Tp threshold 120 ms',
+      JSON.stringify(bb500) === JSON.stringify({ fa_min_low_tp: 10, fa_min_high_tp: 20, tp_threshold_ms: 120 }),
+      JSON.stringify(bb500), '{10, 20, 120}'));
+    results.push(assert('RELAYPARAMS no busbar minimum: B90, SEL-487B, manual entry, unknown IED',
+      DB.busbarParams({ relay_model: 'GE Multilin B90' }) === null && DB.busbarParams({ relay_model: 'SEL-487B' }) === null
+        && DB.busbarParams({}) === null && DB.busbarParams({ relay_model: 'Gone IED' }) === null, 'non-null', 'null'));
+    results.push(assert('RELAYPARAMS relay_name is the fallback for relay_model',
+      DB.relayNameOf({ relay_name: 'ABB REB500' }) === 'ABB REB500'
+        && DB.relayNameOf({ relay_model: 'SEL-421', relay_name: 'ABB REB500' }) === 'SEL-421'
+        && DB.busbarParams({ relay_name: 'ABB REB500' }) !== null, 'no fallback', 'relay_model, else relay_name'));
+    const ret = DB.trafoDiffParams({ relay_model: 'ABB RET670' });
+    const ut = DB.trafoDiffParams({ relay_model: 'SIPROTEC 5 7UT86' });
+    const none = DB.trafoDiffParams({});
+    const gone = DB.trafoDiffParams({ relay_model: 'Gone IED' });
+    results.push(assert('RELAYPARAMS transformer diff: E.m.f.-only IED not applicable; 7UT86, no IED and an unknown IED applicable',
+      ret.applicable === false && ret.params === null && ut.applicable && ut.params.ext_fault_factor === 1.5
+        && none.applicable && none.params === null && gone.applicable && gone.params === null
+        && ['GE Multilin T60', 'SEL-487E'].every((n) => !DB.trafoDiffParams({ relay_model: n }).applicable),
+      JSON.stringify([ret.applicable, ut.applicable, none.applicable, gone.applicable]), '[false,true,true,true]'));
+    results.push(assert('RELAYPARAMS distance Vka factor 1.3 (7SA87, no IED)',
+      DB.vkaFactor({ relay_model: 'SIPROTEC 5 7SA87' }) === 1.3 && DB.vkaFactor({}) === 1.3, DB.vkaFactor({}), 1.3));
+
+    // Busbar Check 3: Ifmax/Ipr = 5 < Fa < 10 passes without an IED and
+    // fails the REB500 minimum (Tp 100 ms ≤ 120 ms → 10); Tp 150 ms → 20
+    const cd = { isc_sys: 40, tp: 100, cable_r_method: 'iec60287', cable_temp: 70 };
+    const bb = { Ip: 8000, Is: 5, rct: 1, burden: 30, alf: 6, relay_burden: 0.2,
+                 cable_length: 50, cable_cross: 4, cable_mat: 'cu' };
+    const plain = CTBusbar.calculate(bb, cd);
+    const reb = CTBusbar.calculate({ ...bb, relay_model: 'ABB REB500' }, cd);
+    const slow = CTBusbar.calculate({ ...bb, alf: 15, relay_model: 'ABB REB500' }, { ...cd, tp: 150 });
+    results.push(assert('RELAYPARAMS busbar: no IED → no Check 3; 5 < Fa < 10',
+      plain.is_ok && plain.fa_min === null && !plain.steps.some((x) => x.key === 'check3')
+        && plain.f_a > plain.fault_ratio && plain.f_a < 10, `${plain.is_ok} Fa ${plain.f_a}`, 'OK, 5 < Fa < 10'));
+    results.push(assert('RELAYPARAMS busbar: REB500 Check 3 Fa ≥ 10 fails the core',
+      !reb.is_ok && reb.check2 && !reb.check3 && reb.fa_min === 10
+        && reb.steps.some((x) => x.key === 'check3' && x.is_ok === false)
+        && reb.warnings.some((w) => w[0] === 'warning_manufacturer_fa_minimum' && w[2] === 10),
+      `${reb.is_ok} Fa_min ${reb.fa_min}`, 'NOT OK, Fa_min 10'));
+    results.push(assert('RELAYPARAMS busbar: Tp 150 ms > 120 ms → Fa_min 20',
+      slow.fa_min === 20 && slow.check3 === (slow.f_a >= 20), slow.fa_min, 20));
+
+    // A test IED with non-default values: every parameter must come from the
+    // database, none from a constant in the calculation
+    const TEST = { name: 'TEST IED', manufacturer: 'Test', series: 'T', model: 'T1',
+      applications: ['busbar', 'distance', 'transformer_differential'], measurement_time_ms: 25, ct_inputs: {},
+      busbar: { fa_min_low_tp: 7 },
+      transformer_diff: { ext_fault_factor: 2, int_fault_factor: 0.5, min_alf: 15, max_fadap: 1 },
+      distance: { vka_factor: 1.6 } };
+    DB.RELAYS.push(TEST);
+    try {
+      const tp = DB.busbarParams({ relay_model: 'TEST IED' });
+      results.push(assert('RELAYPARAMS a missing field takes the default (busbar 20 / 120 ms)',
+        tp.fa_min_low_tp === 7 && tp.fa_min_high_tp === 20 && tp.tp_threshold_ms === 120, JSON.stringify(tp), '{7, 20, 120}'));
+      const bt = CTBusbar.calculate({ ...bb, relay_model: 'TEST IED' }, cd);
+      results.push(assert('RELAYPARAMS busbar Check 3 uses the IED minimum (7)',
+        bt.fa_min === 7 && bt.check3 === (bt.f_a >= 7), bt.fa_min, 7));
+
+      const tcd = { voltage: 150, isc_sys: 40, cable_r_method: 'iec60287', cable_temp: 70 };
+      const tcore = { Ip: 1000, Is: 1, rct: 3, burden: 20, alf: 20, relay_burden: 0.1,
+        cable_length: 50, cable_cross: 4, cable_mat: 'cu', trafo_voltage_kv: 150, trafo_power_mva: 100,
+        trafo_z_percent: 12, trafo_ik_max: 22000 };
+      const t0 = CTTransformerDiff.calculate(tcore, tcd);
+      const tt = CTTransformerDiff.calculate({ ...tcore, relay_model: 'TEST IED' }, tcd);
+      const latex = (r, k) => r.steps.find((x) => x.key === k).latex;
+      results.push(assert('RELAYPARAMS transformer diff Krav 1–3 use the IED factors (2, 0.5, 15)',
+        approx(tt.alf_ext_required, t0.alf_ext_required * 2 / 1.5) && approx(tt.alf_int_required, t0.alf_int_required * 0.5 / 0.4)
+          && t0.alf_min_required === 12.5 && tt.alf_min_required === 15,
+        JSON.stringify([tt.alf_ext_required / t0.alf_ext_required, tt.alf_min_required]), '[1.333, 15]'));
+      results.push(assert('RELAYPARAMS transformer diff formulas show the IED factors',
+        latex(t0, 'requirement_1_alf_external_fault').startsWith('ALF_{ext} = 1.5 ')
+          && latex(tt, 'requirement_1_alf_external_fault').startsWith('ALF_{ext} = 2 ')
+          && latex(tt, 'requirement_2_alf_internal_fault').startsWith('ALF_{int} = 0.5 '),
+        latex(tt, 'requirement_1_alf_external_fault'), 'ALF_{ext} = 2 …'));
+      const krav4 = tt.steps.find((x) => x.key === 'iec_requirement_4');
+      results.push(assert('RELAYPARAMS transformer diff Krav 4 uses the IED F_adap range (0.05 default – 1)',
+        String(krav4.result).startsWith('Krav 4: 0.05 <= ') && String(krav4.result).includes('<= 1 →'),
+        krav4.result, 'Krav 4: 0.05 <= Fadap (…) <= 1 → …'));
+
+      const dsys = { voltage: 132, freq: '50', isc_sys: 31.5, tp: 80 };
+      const dcore = { Ip: 3000, Is: 1, rct: 3, burden: 15, relay_burden: 0.1, alf: 40, ct_class_family: '5PR',
+        cable_length: 120, cable_cross: 4, cable_mat: 'cu' };
+      const d0 = CTDistance.calculate({ ...dcore }, dsys);
+      const dt = CTDistance.calculate({ ...dcore, relay_model: 'TEST IED' }, dsys);
+      results.push(assert('RELAYPARAMS distance Vka uses the IED factor (1.6)',
+        approx(dt.vka, d0.vka * 1.3 / 1.6), dt.vka, d0.vka * 1.3 / 1.6));
+    } finally {
+      DB.RELAYS.pop();
+    }
+    return results;
+  }
+
   // ── IED input rating (calc/ied_rating.js ← ct_ied_rating.py) ──────────
   function testIedRating() {
     const results = [];
@@ -4946,6 +5063,7 @@ const CTTests = (() => {
       { name: 'CtCalculations', fn: testCtCalculations },
       { name: 'CableResConsistency', fn: testCableResConsistency },
       { name: 'RelayDb',        fn: testRelayDb        },
+      { name: 'RelayCalcParams', fn: testRelayCalcParams },
       { name: 'IedRating',      fn: testIedRating      },
       { name: 'EndToEnd',       fn: testEndToEnd       },
     ];

@@ -1,9 +1,10 @@
 'use strict';
 /**
- * relays.js — CTRelayDB: IED lookup for the Relay Information card.
+ * relays.js — CTRelayDB: IED lookup for the Relay Information card and the
+ * relay-specific calculation parameters.
  *
- * The data is ctvt_dim's relay database (data/relays.db), exported to
- * calc/relay_db.js by tools/gen_relay_db.py. The lookups follow
+ * The data is calc/relay_db.js, CTSizer's IED database (imported from
+ * ctvt_dim's data/relays.db, now edited here). The lookups follow
  * data/relay_database.py and ctvt_dim's relay picker (ui/ct_widget/handlers.py):
  * - the model list is filtered by the core's application
  *   (get_relays_by_application, supported_applications);
@@ -15,18 +16,30 @@
  *
  * The core keys: relay_model = the database name (e.g. "SIPROTEC 5 7SA87"),
  * relay_manufacturer / relay_type = its manufacturer and model, relay_burden =
- * SR (VA), relay_tal = t_al (ms). ctvt_dim's GUI stores the pick as
- * relay_model too; it never sets relay_name, so the relay-specific calc
- * parameters keyed by relay_name stay off, as in ctvt_dim.
+ * SR (VA), relay_tal = t_al (ms). relayNameOf(core) is the one rule for
+ * which IED a core uses: relay_model, else relay_name (the key ctvt_dim's
+ * calculations read; an imported core may carry it).
  *
  * iedRatingSpecs feeds the IED input rating check (CTIedRating,
- * calc/ied_rating.js), which reads relay_model as ctvt_dim's
- * calculations/ct_ied_rating.py does.
+ * calc/ied_rating.js). busbarParams / trafoDiffParams / vkaFactor feed the
+ * busbar P-class Check 3, the transformer differential IEC 61869 ALF method
+ * and the distance close-in Vka. ctvt_dim reads these from relay_name only,
+ * which its GUI never sets, so there they are always off; CTSizer applies
+ * the picked IED's values (issue #93, PORTING_PLAN.md F-BB-RELAY).
  */
 
 const CTRelayDB = (() => {
   const RELAYS = typeof CT_RELAY_DB_DATA !== 'undefined' ? CT_RELAY_DB_DATA : [];
   const DEFAULT_TAL_MS = 25;
+
+  // Defaults for a field missing inside an IED's busbar / distance group
+  // (relay_database.py get_relay_busbar_params, get_relay_vka_factor). The
+  // transformer_diff defaults are the module's IEC_CONSTANTS
+  // (calc/transformer_diff/presets.js).
+  const CALC_DEFAULTS = {
+    busbar: { fa_min_low_tp: 10, fa_min_high_tp: 20, tp_threshold_ms: 120 },
+    distance: { vka_factor: 1.3 },
+  };
 
   // CTSizer calc_type → ctvt_dim supported_applications entry
   const APPLICATION = {
@@ -54,6 +67,44 @@ const CTRelayDB = (() => {
 
   function byName(name) {
     return name ? RELAYS.find((r) => r.name === name) || null : null;
+  }
+
+  // The IED a core uses: relay_model (the picker), else relay_name
+  function relayNameOf(core) {
+    return (core && (core.relay_model || core.relay_name)) || null;
+  }
+
+  // The core's IED in the database, or null (manual entry, or a name the
+  // database no longer has: both calculate with the defaults)
+  function relayOf(core) {
+    return byName(relayNameOf(core));
+  }
+
+  function group(relay, key) {
+    return relay && relay[key] ? { ...CALC_DEFAULTS[key], ...relay[key] } : null;
+  }
+
+  // Busbar P-class Fa minimum { fa_min_low_tp, fa_min_high_tp,
+  // tp_threshold_ms } for the core's IED; null: no IED, or one without a
+  // manufacturer minimum (Check 3 not evaluated).
+  function busbarParams(core) {
+    return group(relayOf(core), 'busbar');
+  }
+
+  // Transformer differential IEC 61869 ALF factors for the core's IED:
+  // { applicable, params }, params = the IED's own factors (a missing one
+  // takes IEC_CONSTANTS). No IED: applicable, no factors of its own. An IED
+  // without the transformer_diff group is E.m.f.-only: not applicable.
+  function trafoDiffParams(core) {
+    const relay = relayOf(core);
+    if (!relay) return { applicable: true, params: null };
+    const params = relay.transformer_diff ? { ...relay.transformer_diff } : null;
+    return { applicable: params != null, params };
+  }
+
+  // Distance close-in Vka divisor for the core's IED (default 1.3)
+  function vkaFactor(core) {
+    return (group(relayOf(core), 'distance') || CALC_DEFAULTS.distance).vka_factor;
   }
 
   // get_ct_specs(name, Isr) → the CT input spec, or null
@@ -112,5 +163,8 @@ const CTRelayDB = (() => {
     return changed ? { ...core, ...want } : core;
   }
 
-  return { RELAYS, DEFAULT_TAL_MS, APPLICATION, supports, manufacturers, list, byName, ctSpecs, iedRatingSpecs, lookup, apply };
+  return {
+    RELAYS, DEFAULT_TAL_MS, CALC_DEFAULTS, APPLICATION, supports, manufacturers, list, byName,
+    relayNameOf, relayOf, ctSpecs, iedRatingSpecs, lookup, apply, busbarParams, trafoDiffParams, vkaFactor,
+  };
 })();

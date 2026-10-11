@@ -27,15 +27,15 @@
  *   Ziegler). The cable-burden step's k_wire is the topology factor, not
  *   IEC_CONSTANTS.k_wire. The toolbox steps come first, its warnings last.
  * - Relay-specific IEC ALF parameters: main.py queries
- *   `data.relay_database.get_relay_trafo_diff_params(relay_name)`. CTSizer has
- *   no relay database yet, so `getRelayTrafoDiffParams` below carries a snapshot
- *   of ctvt_dim's data/relays.db trafo_diff columns. A relay with all-NULL
- *   columns (EMF-only relays) *and* a relay name not found in the DB both
- *   return null, which main.py treats as "IEC method not applicable" — that
- *   second case contradicts the DB function's docstring ("caller uses
- *   defaults") but is what main.py actually does; preserved.
- * - The IEC `min_alf` from the relay params only feeds the Krav 3 warning
- *   argument; calculate_iec_requirements always uses IEC_CONSTANTS.min_alf.
+ *   `data.relay_database.get_relay_trafo_diff_params(relay_name)`; CTSizer
+ *   asks CTRelayDB.trafoDiffParams for the core's IED (relay_model, else
+ *   relay_name). An E.m.f.-only IED (no transformer_diff group: ABB RET670,
+ *   GE Multilin T60, SEL-487E) marks the IEC method not applicable, as
+ *   main.py does. Deviations (issue #93): an IED name the database does not
+ *   have is a custom relay and takes the defaults (main.py marks it not
+ *   applicable, against the DB function's docstring "caller uses defaults"),
+ *   and the IED's `min_alf` sets Krav 3 (main.py only passes it to the Krav 3
+ *   warning; calculate_iec_requirements always used IEC_CONSTANTS.min_alf).
  * - Warnings are kept as Python's structured tuples ([key, ...args]).
  * - `conclusion` is the status key, as Python's `calculations["conclusion"]`;
  *   `failed_methods` is returned alongside.
@@ -48,24 +48,6 @@
  */
 
 CTTransformerDiff.calculate = (() => {
-  // Snapshot of ctvt_dim data/relays.db (trafo_diff_* columns): every relay
-  // with values carries the Siemens 7UT8 defaults. ABB RET670, GE Multilin T60
-  // and SEL-487E have all-NULL columns (EMF-only) and, like unknown names,
-  // are absent here → null → IEC method not applicable.
-  const IEC_RELAYS = [
-    'SIPROTEC 5 7UT86', 'SIPROTEC 5 7UT87', 'SIPROTEC 5 7SD87', 'SIPROTEC 5 7SJ86',
-    'SIPROTEC 5 7SA87', 'SIPROTEC 5 7SS85', 'SIPROTEC 4 7UT613', 'SIPROTEC 4 7SA522',
-    'ABB RED670', 'ABB REL670', 'ABB REF615', 'ABB REB670', 'ABB REB500',
-    'GE Multilin L90', 'GE Multilin D60', 'GE Multilin B90',
-    'SEL-311L', 'SEL-421', 'SEL-751', 'SEL-487B',
-  ];
-
-  // data.relay_database.get_relay_trafo_diff_params(name) → params | null
-  function getRelayTrafoDiffParams(name) {
-    if (!IEC_RELAYS.includes(name)) return null;
-    return { ext_fault_factor: 1.5, int_fault_factor: 0.4, min_alf: 12.5, min_fadap: 0.05, max_fadap: 20.0 };
-  }
-
   return function calculate(core, commonData = {}) {
     const T = CTTransformerDiff;
     const { IEC_CONSTANTS, Z_PERCENT_RANGE } = T.presets;
@@ -126,15 +108,10 @@ CTTransformerDiff.calculate = (() => {
       warnings.push(['warning_z_percent_out_of_range', z_percent, Z_PERCENT_RANGE.min, Z_PERCENT_RANGE.max]);
     }
 
-    // Relay-specific IEC ALF parameters
-    const iec_params = { ...IEC_CONSTANTS };
-    let iec_method_applicable = true;
-    const relay_name = core.relay_name;
-    if (relay_name) {
-      const relay_params = getRelayTrafoDiffParams(relay_name);
-      if (relay_params == null) iec_method_applicable = false;
-      else Object.assign(iec_params, relay_params);
-    }
+    // Relay-specific IEC ALF parameters of the core's IED
+    const relay_iec = CTRelayDB.trafoDiffParams(core);
+    const iec_method_applicable = relay_iec.applicable;
+    const iec_params = { ...IEC_CONSTANTS, ...relay_iec.params };
 
     // ========== IEC 61869 ALF METHOD ==========
     const [s_wire, rho_t] = T.burden.calculateCableBurden(
@@ -165,12 +142,13 @@ CTTransformerDiff.calculate = (() => {
         T.methods.iec61869.calculateIecRequirements(
           trafo_it_max, trafo_ik_max, ctInputs.primary_current,
           trafo_rated_power, trafo_primary_voltage,
-          iec_params.ext_fault_factor, iec_params.int_fault_factor
+          iec_params.ext_fault_factor, iec_params.int_fault_factor, iec_params.min_alf
         );
 
       F.formatIecRequirementSteps(
         alf_ext_required, alf_int_required, trafo_it_max, trafo_ik_max,
-        ctInputs.primary_current, i_ref, trafo_rated_power, trafo_primary_voltage, f_adap
+        ctInputs.primary_current, i_ref, trafo_rated_power, trafo_primary_voltage, f_adap,
+        iec_params.ext_fault_factor, iec_params.int_fault_factor
       ).forEach((s) => steps.push(s));
 
       let req1_ok, req2_ok, req3_ok, req4_ok;
@@ -183,7 +161,7 @@ CTTransformerDiff.calculate = (() => {
       if (iec_results.length) {
         if (!req1_ok) warnings.push(['warning_iec_req_1_not_met', alf_o, alf_ext_required]);
         if (!req2_ok) warnings.push(['warning_iec_req_2_not_met', alf_o, alf_int_required]);
-        if (!req3_ok) warnings.push(['warning_iec_req_3_not_met', alf_o, iec_params.min_alf ?? 12.5]);
+        if (!req3_ok) warnings.push(['warning_iec_req_3_not_met', alf_o, alf_min_required]);
         if (!req4_ok) warnings.push(['warning_iec_req_4_not_met', f_adap]);
 
         F.formatIecVerificationSteps(iec_results).forEach((s) => steps.push(s));

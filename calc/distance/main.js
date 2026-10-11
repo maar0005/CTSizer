@@ -33,10 +33,10 @@
  * - `core.ar_tp = params.tp / 1000` mutates the input core object (Python does
  *   `core_data["ar_tp"] = ...`), feeding calculateOdeSaturationCheck's `tp`
  *   default-chain. Side effect preserved for fidelity.
- * - The relay-database vka_factor lookup (main.py 173-182) is a try/except
- *   around an unavailable `data.relay_database` import — dead-letter in the
- *   Python codebase too; not ported (vka_factor hardcoded 1.3, matching every
- *   already-ported sub-file's assumption).
+ * - vka_factor: main.py 173-182 looks up get_relay_vka_factor(relay_name),
+ *   which ctvt_dim's GUI never reaches (it writes relay_model). CTSizer takes
+ *   it from the core's IED (CTRelayDB.vkaFactor: relay_model, else
+ *   relay_name; 1.3 without one, the value every IED in the database has).
  * - get_ar_preview_path / make_section_header dividers are presentation/
  *   file-system plumbing — not ported (PORTING_PLAN.md §1 non-goals).
  * - Return object carries Python-fidelity lowercase primaries PLUS the
@@ -126,8 +126,8 @@ CTDistance.calculate = function calculate(core, commonData = {}) {
     result: r_total, unit: 'Ω', precision: 4,
   }));
 
-  // vka_factor: relay-specific close-in factor (relay-DB lookup not ported).
-  const vka_factor = 1.3;
+  // vka_factor: the IED's close-in Vka divisor (default 1.3)
+  const vka_factor = CTRelayDB.vkaFactor(core);
 
   // K'ssc1 (close-in) and Vka
   const kssc1 = D.transientFactors.calculateKssc(ktd_a, params.iscc_max, params.primary_current);

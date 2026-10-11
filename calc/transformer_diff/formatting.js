@@ -26,6 +26,7 @@
  */
 
 CTTransformerDiff.formatting = (() => {
+  const { IEC_CONSTANTS } = CTTransformerDiff.presets;
   const passFail = (ok) => (ok ? 'passed' : 'failed');
 
   // ── format_transformer_data_step(...) ───────────────────────────────────
@@ -97,14 +98,18 @@ CTTransformerDiff.formatting = (() => {
   }
 
   // ── format_iec_requirement_steps(...) → [req1, req2, Iref, Fadap] ────────
+  // extFaultFactor / intFaultFactor: the IED's factors, shown in the formulas
+  // (CTSizer addition, issue #93; the Python prints 1.5 and 0.4 always).
   function formatIecRequirementSteps(alfExtRequired, alfIntRequired, trafoItMax, trafoIkMax,
-                                     primaryCurrent, iRef, trafoRatedPower, trafoPrimaryVoltage, fAdap) {
+                                     primaryCurrent, iRef, trafoRatedPower, trafoPrimaryVoltage, fAdap,
+                                     extFaultFactor = IEC_CONSTANTS.ext_fault_factor,
+                                     intFaultFactor = IEC_CONSTANTS.int_fault_factor) {
     return [
       CTStep.make({
         key: 'requirement_1_alf_external_fault',
         label_en: 'Requirement 1: ALF for external fault',
         label_da: 'Krav 1: ALF for ekstern fejl',
-        latex: 'ALF_{ext} = 1.5 \\cdot \\frac{I_{sc,max,ext}}{I_{pr}}',
+        latex: `ALF_{ext} = ${extFaultFactor} \\cdot \\frac{I_{sc,max,ext}}{I_{pr}}`,
         variables: { Isc_max_ext: trafoItMax, Ipr: primaryCurrent },
         result: alfExtRequired, unit: '', precision: 2,
       }),
@@ -112,7 +117,7 @@ CTTransformerDiff.formatting = (() => {
         key: 'requirement_2_alf_internal_fault',
         label_en: 'Requirement 2: ALF for internal fault',
         label_da: 'Krav 2: ALF for intern fejl',
-        latex: 'ALF_{int} = 0.4 \\cdot \\frac{I_{sc,max,int}}{I_{pr}}',
+        latex: `ALF_{int} = ${intFaultFactor} \\cdot \\frac{I_{sc,max,int}}{I_{pr}}`,
         variables: { Isc_max_int: trafoIkMax, Ipr: primaryCurrent },
         result: alfIntRequired, unit: '', precision: 2,
       }),

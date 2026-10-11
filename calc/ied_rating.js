@@ -55,8 +55,9 @@ const CTIedRating = (() => {
     thermal_short_time: ['IED short-time thermal check', 'IED korttids termisk kontrol'],
   };
 
+  // The shared rule (CTRelayDB.relayNameOf): relay_model, else relay_name
   function relayNameOf(core) {
-    return (core && (core.relay_model || core.relay_name)) || null;
+    return CTRelayDB.relayNameOf(core);
   }
 
   // IEC 60909-0 peak factor κ = 1.02 + 0.98·e^(−3R/X), R/X = 1/(ω·Tp)

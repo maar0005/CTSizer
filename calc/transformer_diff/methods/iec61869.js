@@ -22,11 +22,14 @@ CTTransformerDiff.methods.iec61869 = (() => {
 
   // ── calculate_iec_requirements ────────────────────────────────────────
   // → [alf_ext_required, alf_int_required, alf_min_required, i_ref, f_adap]
+  // minAlf (the IED's min_alf) is a CTSizer addition (issue #93): the Python
+  // always takes IEC_CONSTANTS.min_alf for Requirement 3.
   function calculateIecRequirements(trafoItMax, trafoIkMax, primaryCurrent,
                                     trafoRatedPower, trafoPrimaryVoltage,
-                                    extFaultFactor = null, intFaultFactor = null) {
+                                    extFaultFactor = null, intFaultFactor = null, minAlf = null) {
     if (extFaultFactor == null) extFaultFactor = IEC_CONSTANTS.ext_fault_factor;
     if (intFaultFactor == null) intFaultFactor = IEC_CONSTANTS.int_fault_factor;
+    if (minAlf == null) minAlf = IEC_CONSTANTS.min_alf;
 
     // Requirement 1: ALF_O >= ext_fault_factor × (Isc,max,ext / Ipr)
     const alfExtRequired = extFaultFactor * (trafoItMax / primaryCurrent);
@@ -35,7 +38,7 @@ CTTransformerDiff.methods.iec61869 = (() => {
     const alfIntRequired = intFaultFactor * (trafoIkMax / primaryCurrent);
 
     // Requirement 3: ALF_O >= min_alf
-    const alfMinRequired = IEC_CONSTANTS.min_alf;
+    const alfMinRequired = minAlf;
 
     // Requirement 4: adaptation factor range
     const iRef = trafoRatedPower / (Math.sqrt(3) * trafoPrimaryVoltage);  // kA
