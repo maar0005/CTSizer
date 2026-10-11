@@ -1,7 +1,7 @@
 # CTSizer tests
 
-This release passed **5,828 checks in 53 test groups**
-before it was published. 5,150 of them are golden checks against the
+This release passed **5,840 checks in 53 test groups**
+before it was published. 5,162 of them are golden checks against the
 42 fixture files in `calc/golden/`; the other 678 are
 hand-derived checks.
 
@@ -47,11 +47,11 @@ download the golden fixtures, so it runs the hand-derived checks only.
 "Golden" is the number of golden checks in the group; the rest are
 hand-derived.
 
-### Foundation and materials (136 checks)
+### Foundation and materials (144 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [Foundation](calc/tests.js#L3534) | The CT base functions every module builds on: ALF or Vk from the core data, relay burden resistance, EALF, operating ALF, the proposed knee-point voltage and its adequacy, remanence factors, typical secondary time constants, CT class parsing, core adequacy and the CT class recommendation. | 79 | 79 | [foundation.json](calc/golden/foundation.json) |
+| [Foundation](calc/tests.js#L3534) | The CT base functions every module builds on: ALF or Vk from the core data, relay burden resistance, EALF, operating ALF, the proposed knee-point voltage and its adequacy, remanence factors, typical secondary time constants, CT class parsing, core adequacy and the CT class recommendation. | 87 | 87 | [foundation.json](calc/golden/foundation.json) |
 | [Materials](calc/tests.js#L53) | Conductor materials: copper or aluminium, material properties, DC resistance per km, wiring factor, resistivity and resistance at temperature, cable burden. | 57 | 54 | [materials.json](calc/golden/materials.json) |
 
 ### Cable resistance (2,053 checks)
@@ -62,7 +62,7 @@ hand-derived.
 | [CableResTable](calc/tests.js#L358) | The `table` method: IEC 60228 conductor resistances for every cross-section, material and temperature. | 925 | 896 | [cable_resistance.json](calc/golden/cable_resistance.json) |
 | [CableResIec60287](calc/tests.js#L591) | The `iec60287` method (the default): the resistance calculated from resistivity and temperature. | 923 | 896 | [cable_resistance.json](calc/golden/cable_resistance.json) |
 | [CableResTopology](calc/tests.js#L478) | Four-wire and six-wire wiring: the loop factor for every fault current case, including √3 for a two-phase fault in four-wire, and the formula-step labels. | 65 | 0 | — |
-| [CableResConsistency](calc/tests.js#L4371) | The same cable through every protection module, as the app calls them: for every method, temperature and wiring the loop resistance is the identical number in every module (372 combinations). | 19 | 0 | — |
+| [CableResConsistency](calc/tests.js#L4391) | The same cable through every protection module, as the app calls them: for every method, temperature and wiring the loop resistance is the identical number in every module (372 combinations). | 19 | 0 | — |
 
 ### Protection and metering cores (672 checks)
 
@@ -72,9 +72,9 @@ hand-derived.
 | [Metering](calc/tests.js#L1009) | Complete metering core calculation (instrument security factor) against the reference, for each cable-resistance method and wiring topology. | 136 | 119 | [metering.json](calc/golden/metering.json) |
 | [Busbar](calc/tests.js#L1163) | Complete busbar protection core calculation (P class: operating ALF; PX class: E.M.F. and knee-point voltage for high-impedance schemes) against the reference, for each cable-resistance method and wiring topology. | 133 | 110 | [busbar.json](calc/golden/busbar.json) |
 | [Generic](calc/tests.js#L1300) | The generic protection core, for a relay type without its own module (ALF or Vk against the connected burden), against the reference, for each cable-resistance method and wiring topology. | 102 | 78 | [generic.json](calc/golden/generic.json) |
-| [CtCalculations](calc/tests.js#L4239) | The dispatcher the app uses (`CTCalc`): which module each core type is routed to, the single-core calculation and the security factor constant. | 122 | 112 | [ct_calculations.json](calc/golden/ct_calculations.json) |
-| [IedRating](calc/tests.js#L4936) | IED input rating: peak factor, thermal withstand current, the requirements, and that a failed IED check fails the core. | 33 | 33 | [ied_rating.json](calc/golden/ied_rating.json) |
-| [RelayDb](calc/tests.js#L4789) | The relay database (23 relays): manufacturers, IEDs per application, burden and t_al per rated current, filling in SR and t_al, and t_al reaching the C-O-C-O check. | 10 | 0 | — |
+| [CtCalculations](calc/tests.js#L4259) | The dispatcher the app uses (`CTCalc`): which module each core type is routed to, the single-core calculation and the security factor constant. | 122 | 112 | [ct_calculations.json](calc/golden/ct_calculations.json) |
+| [IedRating](calc/tests.js#L4969) | IED input rating: peak factor, thermal withstand current, the requirements, and that a failed IED check fails the core. | 33 | 33 | [ied_rating.json](calc/golden/ied_rating.json) |
+| [RelayDb](calc/tests.js#L4822) | The relay database (23 relays): manufacturers, IEDs per application, burden and t_al per rated current, filling in SR and t_al, and t_al reaching the C-O-C-O check. | 10 | 0 | — |
 
 ### Distance protection (465 checks)
 
@@ -128,24 +128,24 @@ hand-derived.
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [VtData](calc/tests.js#L3620) | Input extraction and validation for VT cores and the common data. | 23 | 17 | [vt_data.json](calc/golden/vt_data.json) |
-| [VtPresets](calc/tests.js#L3663) | Voltage drop limits, thermal burden defaults and accuracy class definitions. | 16 | 11 | [vt_presets.json](calc/golden/vt_presets.json) |
-| [VtImpedance](calc/tests.js#L3709) | Rated secondary current, burden impedance, parallel resistance and total impedance. | 72 | 65 | [vt_impedance.json](calc/golden/vt_impedance.json) |
-| [VtCurrentBurden](calc/tests.js#L3775) | Actual current and burden, burden utilisation and reserve capacity. | 71 | 63 | [vt_current_burden.json](calc/golden/vt_current_burden.json) |
-| [VtVoltageAnalysis](calc/tests.js#L3824) | Voltage drop, the largest voltage drop and the limits. | 56 | 49 | [vt_voltage_analysis.json](calc/golden/vt_voltage_analysis.json) |
-| [VtThermal](calc/tests.js#L3872) | Thermal utilisation, limits and margin. | 50 | 44 | [vt_thermal.json](calc/golden/vt_thermal.json) |
-| [VtValidation](calc/tests.js#L3918) | Burden limits, thermal limits and range compliance. | 58 | 50 | [vt_validation.json](calc/golden/vt_validation.json) |
-| [VtFormatting](calc/tests.js#L3968) | The formula steps and result data for VT cores. | 23 | 16 | [vt_formatting.json](calc/golden/vt_formatting.json) |
-| [VtCalculator](calc/tests.js#L4016) | The complete VT calculation for single and multiple cores against the reference, for each cable-resistance method and wiring topology. | 593 | 564 | [vt_calculator.json](calc/golden/vt_calculator.json) |
+| [VtData](calc/tests.js#L3640) | Input extraction and validation for VT cores and the common data. | 23 | 17 | [vt_data.json](calc/golden/vt_data.json) |
+| [VtPresets](calc/tests.js#L3683) | Voltage drop limits, thermal burden defaults and accuracy class definitions. | 16 | 11 | [vt_presets.json](calc/golden/vt_presets.json) |
+| [VtImpedance](calc/tests.js#L3729) | Rated secondary current, burden impedance, parallel resistance and total impedance. | 72 | 65 | [vt_impedance.json](calc/golden/vt_impedance.json) |
+| [VtCurrentBurden](calc/tests.js#L3795) | Actual current and burden, burden utilisation and reserve capacity. | 71 | 63 | [vt_current_burden.json](calc/golden/vt_current_burden.json) |
+| [VtVoltageAnalysis](calc/tests.js#L3844) | Voltage drop, the largest voltage drop and the limits. | 56 | 49 | [vt_voltage_analysis.json](calc/golden/vt_voltage_analysis.json) |
+| [VtThermal](calc/tests.js#L3892) | Thermal utilisation, limits and margin. | 50 | 44 | [vt_thermal.json](calc/golden/vt_thermal.json) |
+| [VtValidation](calc/tests.js#L3938) | Burden limits, thermal limits and range compliance. | 58 | 50 | [vt_validation.json](calc/golden/vt_validation.json) |
+| [VtFormatting](calc/tests.js#L3988) | The formula steps and result data for VT cores. | 23 | 16 | [vt_formatting.json](calc/golden/vt_formatting.json) |
+| [VtCalculator](calc/tests.js#L4036) | The complete VT calculation for single and multiple cores against the reference, for each cable-resistance method and wiring topology. | 593 | 564 | [vt_calculator.json](calc/golden/vt_calculator.json) |
 
-### End to end (257 checks)
+### End to end (261 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [EndToEnd](calc/tests.js#L4465) | 19 realistic cores of every type, stored as the app stores them, through `CTCalc.calculate` exactly as the app calls it: status, the numbers in the Summary panel and every formula-step row compared with the reference. Nothing is hand-written. | 257 | 257 | [e2e.json](calc/golden/e2e.json) |
+| [EndToEnd](calc/tests.js#L4485) | 19 realistic cores of every type, stored as the app stores them, through `CTCalc.calculate` exactly as the app calls it: status, the numbers in the Summary panel and every formula-step row compared with the reference. Nothing is hand-written. | 261 | 261 | [e2e.json](calc/golden/e2e.json) |
 
 ### Other (14 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [RelayCalcParams](calc/tests.js#L4837) | — | 14 | 0 | — |
+| [RelayCalcParams](calc/tests.js#L4870) | — | 14 | 0 | — |

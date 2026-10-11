@@ -40,6 +40,80 @@
       }
     }
   ],
+  "create_result_template": [
+    {
+      "input": [
+        "overcurrent"
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": [],
+        "calculation_type": "overcurrent"
+      }
+    },
+    {
+      "input": [
+        "busbar"
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": [],
+        "calculation_type": "busbar"
+      }
+    },
+    {
+      "input": [
+        "metering"
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": [],
+        "calculation_type": "metering"
+      }
+    },
+    {
+      "input": [
+        "line_differential"
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": [],
+        "calculation_type": "line_differential"
+      }
+    },
+    {
+      "input": [
+        "transformer_differential"
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": [],
+        "calculation_type": "transformer_differential"
+      }
+    },
+    {
+      "input": [
+        "distance"
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {},
+        "warnings": [],
+        "intermediate_steps": [],
+        "calculation_type": "distance"
+      }
+    }
+  ],
   "calculate_relay_resistance": [
     {
       "input": [

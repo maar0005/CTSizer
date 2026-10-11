@@ -92,6 +92,7 @@ const CTSReport = (() => {
       chart_ar: 'C-O-C-O auto-reclosure \u2014 IEC 61869-100 transient analysis',
       chart_sat_warn: 'CT will saturate \u2014 increase ALF or reduce burden',
       chart_no_ode: 'No IEC 61869-100 ODE check: a PX core has no rated ALF (ALFo). The verdict is EAL_AR \u2264 Vk.',
+      chart_no_ode_ld: 'No IEC 61869-100 ODE check: line differential has none (no ALFo). The verdict is EAL_AR \u2264 proposed Vk.',
     },
     da: {
       report_title_ct: 'CT Dimensioneringsrapport', report_title_vt: 'VT Dimensioneringsrapport',
@@ -158,6 +159,7 @@ const CTSReport = (() => {
       chart_ar: 'C-O-C-O genindkobling \u2014 IEC 61869-100 transient analyse',
       chart_sat_warn: 'CT vil gå i mætning \u2014 øg ALF eller reducér byrden',
       chart_no_ode: 'Ingen IEC 61869-100 ODE-kontrol: en PX-kerne har ingen mærke-ALF (ALFo). Konklusionen er EAL_AR \u2264 Vk.',
+      chart_no_ode_ld: 'Ingen IEC 61869-100 ODE-kontrol: linjedifferential har ingen (ingen ALFo). Konklusionen er EAL_AR \u2264 foreslået Vk.',
     },
   };
   const L = (lang, k) => (S[lang] || S.en)[k] ?? S.en[k] ?? k;

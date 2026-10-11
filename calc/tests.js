@@ -3537,6 +3537,26 @@ const CTTests = (() => {
       ? CT_GOLDEN.foundation : null;
     if (!G) return results;
 
+    // ct_base.create_result_template (§10.6 F-TPL): the same keys, in the same
+    // order, with the same values, and a fresh object per call (Python builds a
+    // new dict each time). Required: a missing golden key fails.
+    results.push(assert('base.resultTemplate golden present',
+      Array.isArray(G.create_result_template) && G.create_result_template.length > 0,
+      G.create_result_template ? G.create_result_template.length : 'missing', '> 0 cases'));
+    (G.create_result_template || []).forEach((c, i) => {
+      const got = JSON.stringify(CTBase.createResultTemplate(c.input[0]));
+      results.push(assert(`base.resultTemplate #${i} ${c.input[0]}`,
+        got === JSON.stringify(c.expected), got, JSON.stringify(c.expected)));
+    });
+    {
+      const a = CTBase.createResultTemplate('distance');
+      const b = CTBase.createResultTemplate('distance');
+      a.warnings.push('x'); a.calculations.k = 1; a.intermediate_steps.push('s');
+      results.push(assert('base.resultTemplate fresh object per call',
+        a !== b && b.warnings.length === 0 && Object.keys(b.calculations).length === 0 && b.intermediate_steps.length === 0,
+        JSON.stringify(b), 'untouched'));
+    }
+
     (G.calculate_relay_resistance || []).forEach((c, i) => {
       const got = CTBase.calcRelayResistance(c.input[0], c.input[1]);
       results.push(assert(`base.relayR #${i}`, approx(got, c.expected), got, c.expected, ' Ω'));
@@ -4752,6 +4772,19 @@ const CTTests = (() => {
           : r.eal_ar === null && r.ktd_ar === null && !r.steps.some((x) => /^auto_reclosure_/.test(x.key)),
           { eal_ar: r.eal_ar, proposed_vk: r.proposed_vk, fail: jsFail, status: r.status },
           ar ? { eal_ar: st.auto_reclosure_transient_dimensioning, fail: pyFail, status: e.status } : 'no AR'));
+        // ar_is_adequate (beyond Python, §10.6 F-LD-AR-UI): the UI's AR verdict
+        // is the absence of Python's AR warning, and null without AR.
+        results.push(assert(`${tag} ar_is_adequate = no Python AR warning`,
+          r.ar_is_adequate === (ar ? !pyFail : null), r.ar_is_adequate, ar ? !pyFail : null));
+        if (ar) {
+          // The passing side: a higher ALF lifts the proposed Vk over EAL_AR.
+          const hi = CTCalc.calculate('line_diff',
+            { ...c.inputs, alf: Math.ceil(c.inputs.alf * r.eal_ar / r.proposed_vk) + 1 }, { ...c.system });
+          const hiFail = hi.warnings.some((w) => [].concat(w)[0] === 'warning_auto_reclosure_eal_below_vk');
+          results.push(assert(`${tag} ar_is_adequate true when proposed Vk ≥ EAL_AR`,
+            hi.ar_is_adequate === true && !hiFail && hi.proposed_vk >= hi.eal_ar,
+            { ar_is_adequate: hi.ar_is_adequate, proposed_vk: hi.proposed_vk, eal_ar: hi.eal_ar }, true));
+        }
       }
     });
 

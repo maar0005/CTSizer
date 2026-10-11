@@ -27,7 +27,9 @@ const CTBase = (() => {
     return { alf, vk: null, is_px: false };
   }
 
-  // ct_base.create_result_template
+  // ct_base.create_result_template. The Python modules start from it; the JS
+  // modules build their result objects directly, so it has no JS caller. Kept
+  // as the port and pinned by the foundation golden (PORTING_PLAN.md §10.6 F-TPL).
   function createResultTemplate(calculationType) {
     return {
       status: 'OK',

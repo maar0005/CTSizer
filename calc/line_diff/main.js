@@ -39,6 +39,11 @@
  * - The AR adequacy check (`proposed_vk < eal_ar`) is inlined directly here,
  *   since ct_line_differential's auto_reclosure_ext.py has no separate
  *   `verify_ar_adequacy`-equivalent function (unlike ct_distance's package).
+ *   Its verdict is returned as `ar_is_adequate` (`proposed_vk ≥ eal_ar`; null
+ *   without AR), a named addition beyond Python, which only shows the AR
+ *   failure as the warning and `status`: it is the UI's AR badge and Charts
+ *   verdict (PORTING_PLAN.md §10.6 F-LD-AR-UI) and is true exactly when the
+ *   warning is absent.
  * - `try/except ImportError` around the AR sub-import (main.py 260-297) is
  *   dead-letter (module always available) — not ported, consistent with the
  *   identical pattern already handled this way in distance/main.js.
@@ -158,7 +163,7 @@ CTLineDiff.calculate = function calculate(core, commonData = {}) {
   }
 
   // ── Auto-reclosure extension (optional) ──────────────────────────────────
-  let eal_ar = null, ktd_ar = null, kssc_ar = null;
+  let eal_ar = null, ktd_ar = null, kssc_ar = null, ar_is_adequate = null;
   if (arParams != null) {
     const arResults = L.autoReclosureExt.computeAutoReclosureAnalysis(
       arParams, faultCurrents, ctInputs, burden_resistance
@@ -175,7 +180,8 @@ CTLineDiff.calculate = function calculate(core, commonData = {}) {
 
       // Bug 2 fix (Python): compare offered (proposed_vk/EALF) vs C-O-C-O
       // required (eal_ar).
-      if (proposed_vk < eal_ar) {
+      ar_is_adequate = !(proposed_vk < eal_ar);
+      if (!ar_is_adequate) {
         warnings.push(['warning_auto_reclosure_eal_below_vk', eal_ar, proposed_vk]);
         // Bug 1 fix (Python): AR failure must change overall status.
         status = 'NOT_OK';
@@ -198,6 +204,8 @@ CTLineDiff.calculate = function calculate(core, commonData = {}) {
     total_resistance_1p: emfResults.total_resistance_1p,
     vk_required, proposed_vk, is_px: is_px_class,
     eal_ar, ktd_ar, kssc_ar,
+    // AR verdict (beyond Python, see the header)
+    ar_is_adequate,
     // Back-compat aliases read by the UI (ctsizer-panels.jsx)
     Rc: cable_resistance, Rc_3ph, Rc_1ph, cable_res,
     EALF: proposed_vk, Vk_req: vk_required,

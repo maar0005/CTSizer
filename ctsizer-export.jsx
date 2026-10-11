@@ -104,7 +104,7 @@ async function coreCharts(core, result, system, lang) {
       img: canvasChart(CTSDraw.drawArWaveform, ar.canvasParams, lang, 760, 360),
       caption: `${a.is_ok ? '\u2713 PASS' : '\u2717 FAIL'}  EALF = ${a.EALF.toFixed(1)} V / EAL_AR = ${a.EAL_AR.toFixed(1)} V | ` +
         `Ktd = ${a.Ktd.toFixed(3)} | Kssc = ${a.Kssc.toFixed(2)}${a.ALFo != null ? ` | ALFo = ${a.ALFo.toFixed(1)}` : ''}` +
-        (a.ode_is_ok == null ? `\n${t('chart_no_ode')}` : ''),
+        (a.ode_is_ok == null ? `\n${t(a.no_ode === 'line_diff' ? 'chart_no_ode_ld' : 'chart_no_ode')}` : ''),
     }));
   }
   return out;

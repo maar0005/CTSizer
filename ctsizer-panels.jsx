@@ -867,17 +867,20 @@ function chartFaultParams(result, systemVals, core) {
 // (CTDistance.calculate → distance/auto_reclosure_ext.js): the EAL_AR check
 // (eal_ar, is_adequate) and the IEC 61869-100 ODE check (ode_is_ok, ALFo
 // from its step). Both flip result.status, so the badge needs both.
-// Distance only: a line diff result carries eal_ar / ktd_ar / kssc_ar but no
-// AR verdict of its own, no ODE check and no ALFo; its EAL_AR row is in
-// Formula Steps (PORTING_PLAN.md §10.6 F-LD-AR-UI).
 // The canvas draws the ODE check's own flux trace: the same inputs and
 // defaults as calculateOdeSaturationCheck (ar_* timings, Tp, and ct_class
 // from CTCalc.moduleCore), its Kssc and ALFo, and its verdict. A PX core has
 // no ODE check (no rated ALF, as ctvt_dim): the trace is drawn without ALFo.
+// Line diff (§10.6 F-LD-AR-UI): the verdict is the module's ar_is_adequate
+// (proposed Vk ≥ EAL_AR); there is no ODE check and no ALFo, so the trace is
+// drawn from the C-O-C-O Ktd's own inputs and defaults (line_diff/data.js:
+// Ts 0.05 s, t_al 0.2 s) with its Kssc, and no verdict of its own.
 // → { arResult, canvasParams } or null.
 function chartArData(type, core, result, systemVals) {
-  if (type !== 'distance' || !core?.inputs?.auto_reclose_enabled) return null;
+  if (type !== 'distance' && type !== 'line_diff') return null;
+  if (!core?.inputs?.auto_reclose_enabled) return null;
   if (!result || result.eal_ar == null) return null;
+  if (type === 'line_diff') return chartArDataLineDiff(core, result, systemVals);
   const alfoStep = result.steps.find(s => s.key === 'auto_reclosure_operating_alf');
   const arResult = {
     is_ok:  result.is_adequate === true && result.ode_is_ok !== false,
@@ -901,6 +904,35 @@ function chartArData(type, core, result, systemVals) {
     alfo:          arResult.ALFo,
     is_ok:         arResult.ode_is_ok,
     ct_class:      inp.ct_class ?? '5P',   // the ODE default
+    amplitude: 1.0,
+  };
+  return { arResult, canvasParams };
+}
+
+function chartArDataLineDiff(core, result, systemVals) {
+  const arResult = {
+    is_ok:  result.ar_is_adequate === true,
+    ode_is_ok: null,
+    no_ode: 'line_diff',
+    EALF:   result.proposed_vk,
+    EAL_AR: result.eal_ar,
+    Ktd:    result.ktd_ar,
+    Kssc:   result.kssc_ar,
+    ALFo:   null,
+  };
+  const inp = CTCalc.moduleCore('line_diff', core?.inputs ?? {}, systemVals);
+  const t_prime = inp.ar_t_prime ?? 0.1;
+  const canvasParams = {
+    tp_ms:         systemVals?.tp ?? 100,
+    ts_s:          inp.ar_ts ?? 0.05,
+    t_prime_s:     t_prime,
+    tfr_s:         inp.ar_tfr ?? 0.4,
+    t_double_al_s: inp.ar_t_double_al ?? t_prime,
+    t_al_ms:       (inp.ar_t_al ?? 0.2) * 1000,
+    kssc:          arResult.Kssc,
+    alfo:          null,
+    is_ok:         null,
+    ct_class:      inp.ct_class ?? '5P',
     amplitude: 1.0,
   };
   return { arResult, canvasParams };
@@ -1029,7 +1061,9 @@ function ResultsPanel({ lang, result, core, systemVals, theme }) {
               )}
               {arResult.ode_is_ok == null && (
                 <div data-testid="ar-no-ode" style={{marginTop:6,fontFamily:'var(--font-mono)',fontSize:11,color:'var(--text-muted)'}}>
-                  No IEC 61869-100 ODE check: a PX core has no rated ALF (ALFo), as in ctvt_dim. The verdict is EAL_AR ≤ Vk.
+                  {arResult.no_ode === 'line_diff'
+                    ? 'No IEC 61869-100 ODE check: line differential has none (no ALFo), as in ctvt_dim. The verdict is EAL_AR ≤ proposed Vk.'
+                    : 'No IEC 61869-100 ODE check: a PX core has no rated ALF (ALFo), as in ctvt_dim. The verdict is EAL_AR ≤ Vk.'}
                 </div>
               )}
             </SectionCard>
