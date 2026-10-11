@@ -183,6 +183,7 @@ function ExportDialog({ lang, onClose, report, setReport, settings, system, feed
     }
     const { rtf, filename } = CTSReport.build({
       lang: repLang, projName, system, feeders, settings, results,
+      fingerprint: CTSFingerprint.of({ system, feeders, projName, report }),
       meta: { title: r.title, doc_no: r.doc_no, revision: r.revision, rev_desc: r.rev_desc, date,
               client: r.client, prepared_by: r.prepared_by || preparedDefault,
               checked_by: r.checked_by, approved_by: r.approved_by, note: r.note },

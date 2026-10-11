@@ -42,6 +42,8 @@ const CTSReport = (() => {
       std_61869_100: 'IEC TR 61869-100: Guidance for application of current transformers in power system protection',
       std_60287: 'IEC 60287 / IEC 60228: Conductor resistance of cables',
       beta_footer: 'Beta version, still under development \u2014 do not rely 100% on all calculations; verify every result independently.',
+      fingerprint: 'Project fingerprint',
+      fingerprint_note: 'SHA-256 of the project content; the same value is saved in the project file (.ctvt).',
       disclaimer: 'Generated with CTSizer. The results are the responsibility of the user and must be verified by a qualified engineer before use.',
       toc: 'Table of contents',
       toc_hint: 'Right-click here and choose "Update field" (or press F9) to build the table of contents.',
@@ -106,6 +108,8 @@ const CTSReport = (() => {
       std_61869_100: 'IEC TR 61869-100: Vejledning i anvendelse af strømtransformere til beskyttelse',
       std_60287: 'IEC 60287 / IEC 60228: Lederresistans i kabler',
       beta_footer: 'Betaversion, stadig under udvikling \u2014 stol ikke 100 % på alle beregninger; kontrollér alle resultater uafhængigt.',
+      fingerprint: 'Projektets fingeraftryk',
+      fingerprint_note: 'SHA-256 af projektets indhold; samme værdi gemmes i projektfilen (.ctvt).',
       disclaimer: 'Udarbejdet med CTSizer. Resultaterne er brugerens ansvar og skal verificeres af en kvalificeret ingeniør før brug.',
       toc: 'Indholdsfortegnelse',
       toc_hint: 'Højreklik her og vælg "Opdater felt" (eller tryk F9) for at opbygge indholdsfortegnelsen.',
@@ -487,10 +491,11 @@ const CTSReport = (() => {
   const PAGE_W = 11906, PAGE_H = 16838, MARGIN = 1134;   // A4, 2 cm margins
   const TEXT_W = PAGE_W - 2 * MARGIN;                   // 9638
   // Colour table indices
-  const C = { text: 1, muted: 2, green: 3, red: 4, headFill: 5, border: 6, greenFill: 7, redFill: 8, accent: 9, lightFill: 10 };
+  const C = { text: 1, muted: 2, green: 3, red: 4, headFill: 5, border: 6, greenFill: 7, redFill: 8, accent: 9, lightFill: 10, watermark: 11 };
   const COLORTBL = '{\\colortbl;' + [
     [33, 37, 41], [100, 110, 120], [30, 123, 52], [180, 35, 24], [233, 236, 239],
     [191, 197, 204], [212, 237, 218], [248, 215, 218], [2, 100, 160], [245, 247, 250],
+    [214, 219, 225],
   ].map(([r, g, b]) => `\\red${r}\\green${g}\\blue${b};`).join('') + '}';
 
   const FONTTBL = '{\\fonttbl{\\f0\\fswiss\\fcharset0 Calibri{\\*\\falt Arial};}' +
@@ -773,6 +778,21 @@ const CTSReport = (() => {
 
   const stepLabel = (lang, s) => (lang === 'da' ? s.label_da || s.label_en : s.label_en || s.label_da) || s.key || '';
 
+  // Watermark: a narrow text box in the left margin of the page, text
+  // running bottom-to-top, no border or fill, behind the text. Put in the
+  // page header so it is on every page; `id` must differ per shape.
+  function watermark(text, id) {
+    const w = 320, h = PAGE_H - 2 * MARGIN;
+    const left = Math.round((MARGIN - w) / 2), top = MARGIN;
+    const sp = (n, v) => `{\\sp{\\sn ${n}}{\\sv ${v}}}`;
+    return `{\\shp{\\*\\shpinst\\shpleft${left}\\shptop${top}\\shpright${left + w}\\shpbottom${top + h}` +
+      `\\shpfhdr1\\shpbxpage\\shpbxignore\\shpbypage\\shpbyignore\\shpwr3\\shpwrk0\\shpfblwtxt1\\shpz0\\shplid${id}` +
+      sp('shapeType', 202) + sp('posrelh', 1) + sp('posrelv', 1) + sp('fLine', 0) + sp('fFilled', 0) +
+      sp('fBehindDocument', 1) + sp('fLayoutInCell', 1) + sp('fAllowOverlap', 1) + sp('txflTextFlow', 2) +
+      sp('dxTextLeft', 0) + sp('dxTextRight', 0) + sp('dyTextTop', 0) + sp('dyTextBottom', 0) +
+      `{\\shptxt\\pard\\plain\\qc\\f2\\fs13\\cf${C.watermark} ${esc(text)}\\par}}}`;
+  }
+
   // ── Sections ───────────────────────────────────────────────────────────
   function frontPage(ctx, title, cores) {
     const { lang, system = {}, settings = {}, meta = {}, projName } = ctx;
@@ -814,6 +834,7 @@ const CTSReport = (() => {
     if (company || dept) info.push({ cells: [{ ...kv('company', [company, dept].filter(Boolean).join(' \u2014 ')), span: 2 }] });
     if (addr) info.push({ cells: [{ ...kv('address', addr), span: 2 }] });
     if (meta.note) info.push({ cells: [{ rtf: `{\\i ${esc(meta.note)}}`, span: 2 }] });
+    if (ctx.fingerprint) info.push({ cells: [{ rtf: `{\\b ${esc(st('fingerprint'))}:} {\\f2\\fs16 ${esc(ctx.fingerprint)}}\\line {\\i\\fs16\\cf${C.muted} ${esc(st('fingerprint_note'))}}`, span: 2 }] });
     out += table(info.map((r) => ({ ...r, fill: C.lightFill })), [TEXT_W / 2, TEXT_W / 2], { fontSize: 20, pad: 140 });
     out += spacer(500);
 
@@ -1103,8 +1124,11 @@ const CTSReport = (() => {
     // Running header / footer (not on the front page: \titlepg)
     const hdrLeft = [settings.company_name, settings.department].filter(Boolean).join(' \u2014 ');
     const hdrRight = [system.station_abbr || system.station_name, meta.doc_no].filter(Boolean).join(' \u00b7 ');
+    // The fingerprint as a watermark in the left margin of every page
+    const wmText = ctx.fingerprint ? `${st('fingerprint')}: ${ctx.fingerprint}` : '';
     const header = `{\\header\\pard\\plain\\ql\\tqr\\tx${TEXT_W}\\brdrb\\brdrs\\brdrw8\\brdrcf${C.border}\\brsp40\\f0\\fs16\\cf${C.muted} ` +
-      `${esc(hdrLeft)}\\tab ${esc(title)}${hdrRight ? esc(' \u2014 ' + hdrRight) : ''}\\par}`;
+      `${wmText ? watermark(wmText, 1025) : ''}${esc(hdrLeft)}\\tab ${esc(title)}${hdrRight ? esc(' \u2014 ' + hdrRight) : ''}\\par}`;
+    const headerFirst = `{\\headerf\\pard\\plain ${wmText ? watermark(wmText, 1026) : ''}\\par}`;
     const footLeft = [meta.doc_no, meta.revision ? `${st('rev')} ${meta.revision}` : '', meta.date].filter(Boolean).join('  \u00b7  ');
     // Version print on every page, front page included (ctsizer-version.js)
     const V = typeof CTSVersion !== 'undefined' ? CTSVersion : null;
@@ -1133,7 +1157,7 @@ const CTSReport = (() => {
       `\\paperw${PAGE_W}\\paperh${PAGE_H}\\margl${MARGIN}\\margr${MARGIN}\\margt${MARGIN}\\margb${MARGIN}` +
       `\\headery567\\footery567\\deflang${lang === 'da' ? 1030 : 2057}\\widowctrl\\viewkind1\n` +
       `\\sectd\\titlepg\\pgwsxn${PAGE_W}\\pghsxn${PAGE_H}\n` +
-      header + '\n' + footer + '\n{\\headerf\\pard\\plain\\par}' + footerFirst + '\n' +
+      header + '\n' + footer + '\n' + headerFirst + footerFirst + '\n' +
       body + '}';
     return { rtf, filename: fileName(ctx), title, cores: cores.length };
   }

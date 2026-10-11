@@ -1,0 +1,40 @@
+# .htaccess — served with the site (tools/build-public.sh copies it).
+#
+# Security headers for ctsizer.com. The source checkout compiles its .jsx
+# files in the browser with Babel, which needs 'unsafe-eval' and
+# 'unsafe-inline' in script-src; tools/build-deploy.mjs compiles them ahead
+# of time and removes those two keywords from the deployed copy of this file.
+# style-src keeps 'unsafe-inline' because React and KaTeX set style attributes.
+
+Options -Indexes
+
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>
+
+# The feedback relay's configuration (feedback-config.php, written by the
+# deploy workflow) and any editor or backup copy of it are never served, even
+# if PHP stops executing. Same for files that never belong in a web root.
+<FilesMatch "^(feedback-config\.php.*|\.(git.*|env.*|htaccess)|package(-lock)?\.json)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>
+<FilesMatch "(\.(bak|orig|old|save|swp|tmp|log)|~)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>

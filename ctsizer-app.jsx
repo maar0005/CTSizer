@@ -37,10 +37,7 @@ const DEVICE_DEFS = {
   custom:           { cores:[] },
 };
 
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "themeMode": "light",
-  "lang": "en"
-}/*EDITMODE-END*/;
+const DEFAULT_THEME = 'light', DEFAULT_LANG = 'en';
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 let _uid = 0;
@@ -113,7 +110,8 @@ function deleteTpl(kind, id) {
 
 // ── File API ──────────────────────────────────────────────────────────────
 function doSave(state) {
-  const blob = new Blob([JSON.stringify({version:'2.1',...state},null,2)],{type:'application/json'});
+  // The fingerprint (ctsizer-fingerprint.js) lets the file be checked on import and matched to a report.
+  const blob = new Blob([JSON.stringify({version:'2.1',fingerprint:CTSFingerprint.of(state),...state},null,2)],{type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${state.system.station_abbr||'project'}.ctvt`;
@@ -129,8 +127,8 @@ function doOpen(file, cb) {
 // ── App ───────────────────────────────────────────────────────────────────
 // ctl (ctsizer-projects.jsx ProjectsGate): { projectId, toList, newProject, importFile }
 function App({ ctl }) {
-  const [themeMode, setThemeMode] = useState(() => load('ctsizer_theme', TWEAK_DEFAULTS.themeMode));
-  const [lang,      setLang]      = useState(() => load('ctsizer_lang',  TWEAK_DEFAULTS.lang));
+  const [themeMode, setThemeMode] = useState(() => load('ctsizer_theme', DEFAULT_THEME));
+  const [lang,      setLang]      = useState(() => load('ctsizer_lang',  DEFAULT_LANG));
   const [system,    setSystem]    = useState(() => load('ctsizer_system', DEFAULT_SYSTEM));
   const [feeders,   setFeeders]   = useState(() => {
     const saved = load('ctsizer_feeders', null);
@@ -163,7 +161,6 @@ function App({ ctl }) {
   const [sel, setSel] = useState({ feederId: feeders[0]?.id,
     deviceId: feeders[0]?.devices?.[0]?.id, coreId: feeders[0]?.devices?.[0]?.cores?.[0]?.id });
   const [navActive, setNavActive] = useState('ct');
-  const [showTweaks,setShowTweaks]= useState(false);
   const [showFeedback,setShowFeedback] = useState(false);
   const [showExport,setShowExport] = useState(false);
   const [showNewFeeder,setShowNewFeeder] = useState(false);
@@ -199,18 +196,6 @@ function App({ ctl }) {
     if (firstRender.current) { firstRender.current = false; return; }
     CTSActivity.log('settings', 'Language / theme', { key: 'lang_theme', to: `${lang} / ${themeMode}` });
   }, [lang, themeMode]);
-
-  // ── Tweaks bridge ──
-  useEffect(() => {
-    const h = e => {
-      if (e.data?.type==='__activate_edit_mode')   setShowTweaks(true);
-      if (e.data?.type==='__deactivate_edit_mode') setShowTweaks(false);
-    };
-    window.addEventListener('message', h);
-    window.parent?.postMessage({type:'__edit_mode_available'},'*');
-    return () => window.removeEventListener('message', h);
-  }, []);
-  useEffect(()=>{ window.parent?.postMessage({type:'__edit_mode_set_keys',edits:{themeMode,lang}},'*'); },[themeMode,lang]);
 
   // ── Feeder management ──
   // spec: { tpl } (bay template) or { feeder_type, name, device_types } (NewFeederDialog)
@@ -365,7 +350,7 @@ function App({ ctl }) {
   const handleOpen = file => doOpen(file, data => {
     CTSActivity.log('file', `Opened project file "${file.name}" (version ${data.version ?? '—'}, ` +
       `${data.feeders?.length ?? 0} bays)`);
-    if (!ctl.importFile(data, file.name)) alert('Invalid .ctvt file');
+    if (!ctl.importFile(data, file.name, lang)) alert(T('proj_import_bad'));
   });
 
   const T = k => CTSI18n.t(lang, k);
@@ -470,36 +455,6 @@ function App({ ctl }) {
           onOpenSettings={() => { setShowExport(false); setNavActive('settings'); setSel({}); }}/>
       )}
 
-      {/* Tweaks */}
-      {showTweaks && (
-        <div style={{position:'fixed',bottom:24,right:24,width:220,background:'var(--surface)',
-                      border:'1px solid var(--border-2)',borderRadius:10,padding:16,zIndex:9999,
-                      boxShadow:'0 8px 32px rgba(0,0,0,0.25)',display:'flex',flexDirection:'column',gap:14}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-            <span style={{fontFamily:'var(--font-head)',fontWeight:700,fontSize:13,color:'var(--text)'}}>Tweaks</span>
-            <button style={{background:'none',border:'none',color:'var(--text-muted)',fontSize:18,
-                              cursor:'pointer',lineHeight:1}} onClick={()=>setShowTweaks(false)}>×</button>
-          </div>
-          {[{label:'Theme',opts:['light','dark','auto'],val:themeMode,set:setThemeMode},
-            {label:'Language',opts:['en','da'],val:lang,set:setLang}].map(row=>(
-            <div key={row.label} style={{display:'flex',flexDirection:'column',gap:5}}>
-              <div style={{fontSize:10,fontFamily:'var(--font-mono)',color:'var(--text-muted)',
-                             textTransform:'uppercase',letterSpacing:'0.06em'}}>{row.label}</div>
-              <div style={{display:'flex',gap:5}}>
-                {row.opts.map(o=>(
-                  <button key={o} onClick={()=>row.set(o)}
-                    style={{flex:1,padding:'4px 0',borderRadius:5,cursor:'pointer',fontSize:11,
-                              fontFamily:'var(--font-mono)',fontWeight:600,
-                              background:row.val===o?'var(--accent-glow)':'var(--surface-2)',
-                              color:row.val===o?'var(--accent)':'var(--text-muted)',
-                              border:`1px solid ${row.val===o?'var(--accent)':'var(--border-2)'}`,
-                              transition:'all 0.15s'}}>{o}</button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -721,11 +676,41 @@ function DeviceOverview({ lang, device, feeder, results, sel, setSel }) {
 Object.assign(window, { FeederOverview, DeviceOverview, DEVICE_DEFS, makeDevice, devLabel,
   getTpls, saveTpl, deleteTpl, defaultInputs });
 
+// An error thrown while the app renders (for example from a damaged project
+// in localStorage) shows this instead of a blank page, with a way back to the
+// project list — where the project can be deleted — so nobody is locked out.
+class AppBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  componentDidCatch(error) { try { CTSActivity.log('error', `App render failed: ${error?.message ?? error}`); } catch { /* ignore */ } }
+  render() {
+    const { error } = this.state;
+    if (!error) return this.props.children;
+    const T = k => CTSI18n.t(load('ctsizer_lang', DEFAULT_LANG), k);
+    const b = { padding:'8px 16px', borderRadius:6, cursor:'pointer', fontFamily:'var(--font-head)', fontSize:13,
+                fontWeight:600, border:'1px solid var(--border-2)', background:'var(--surface-2)', color:'var(--text)' };
+    return (
+      <div role="alert" data-testid="app-error"
+        style={{ maxWidth:560, margin:'60px auto', padding:24, background:'var(--surface)', color:'var(--text)',
+                 border:'1px solid var(--red)', borderRadius:10, fontFamily:'var(--font-body)' }}>
+        <h1 style={{ fontFamily:'var(--font-head)', fontSize:18, marginBottom:8 }}>{T('app_error_title')}</h1>
+        <p style={{ fontSize:13, color:'var(--text-dim)', marginBottom:12 }}>{T('app_error_text')}</p>
+        <pre style={{ fontFamily:'var(--font-mono)', fontSize:11, whiteSpace:'pre-wrap', marginBottom:16,
+                      color:'var(--red)' }}>{String(error?.message ?? error)}</pre>
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+          <button style={b} onClick={() => { this.setState({ error:null }); this.props.ctl.toList(); }}>{T('app_error_list')}</button>
+          <button style={b} onClick={() => location.reload()}>{T('app_error_reload')}</button>
+        </div>
+      </div>
+    );
+  }
+}
+
 // Landing page → Terms and Conditions → project list → the chosen project.
 ReactDOM.createRoot(document.getElementById('root')).render(
   <LandingGate>
     <TermsGate>
-      <ProjectsGate render={ctl => <App key={ctl.mountKey} ctl={ctl}/>}/>
+      <ProjectsGate render={ctl => <AppBoundary key={ctl.mountKey} ctl={ctl}><App ctl={ctl}/></AppBoundary>}/>
     </TermsGate>
   </LandingGate>
 );

@@ -111,12 +111,110 @@ function createProject(name, data) {
   return p;
 }
 
-// Project from a .ctvt file. Settings in the file replace the user's, as opening a file always has.
-function importProject(data, fileName) {
-  if (!data || (typeof data !== 'object')) return null;
-  if (data.settings) writeJSON('ctsizer_settings', data.settings);
-  const name = data.projName || (fileName || '').replace(/\.(ctvt|json)$/i, '') || 'Imported Project';
-  return createProject(name, data);
+// ── Project file validation ───────────────────────────────────────────────
+// A .ctvt file is untrusted input: it can come from anyone. Only the fields
+// the app reads are taken over, each checked for its type and size, so a
+// crafted or damaged file cannot plant unexpected data in localStorage or in
+// the calculation engine, and a file that is not a project is refused.
+const LIMITS = { feeders: 500, devices: 50, cores: 20, keys: 300, items: 2000, text: 20000, depth: 6, id: 64 };
+const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+const text = (v, max = LIMITS.text) => typeof v === 'string' ? v.slice(0, max) : null;
+const ident = v => typeof v === 'string' && v.length > 0 && v.length <= LIMITS.id ? v : newId();
+
+// JSON-safe copy: finite numbers, strings (capped), booleans, null, arrays and
+// plain objects (capped, depth-limited); anything else is dropped.
+function clean(v, depth = LIMITS.depth) {
+  if (typeof v === 'string') return v.slice(0, LIMITS.text);
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  if (typeof v === 'boolean' || v === null) return v;
+  if (depth <= 0) return null;
+  if (Array.isArray(v)) return v.slice(0, LIMITS.items).map(x => clean(x, depth - 1));
+  if (isObj(v)) {
+    const o = {};
+    for (const k of Object.keys(v).slice(0, LIMITS.keys)) {
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
+      const x = clean(v[k], depth - 1);
+      if (x !== undefined) o[k] = x;
+    }
+    return o;
+  }
+  return undefined;
+}
+const cleanObj = v => isObj(v) ? clean(v) : null;
+
+// Settings: the user/company text fields and the report logo (PNG/JPEG base64
+// under ~1 MB, as LogoPicker stores it). Other string fields are kept.
+const SETTINGS_TEXT = ['full_name', 'initials', 'company_name', 'department', 'address', 'postal_code', 'city', 'country'];
+function cleanSettings(v) {
+  if (!isObj(v)) return null;
+  const s = {};
+  for (const k of Object.keys(v).slice(0, LIMITS.keys)) {
+    if (k === 'logo' || k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
+    if (typeof v[k] === 'string') s[k] = v[k].slice(0, 500);
+    else if (typeof v[k] === 'boolean' || (typeof v[k] === 'number' && Number.isFinite(v[k]))) s[k] = v[k];
+  }
+  const l = v.logo;
+  if (isObj(l) && (l.type === 'png' || l.type === 'jpeg') && typeof l.data === 'string' && l.data.length <= 1_400_000
+      && /^[A-Za-z0-9+/]+={0,2}$/.test(l.data)
+      && Number.isInteger(l.w) && Number.isInteger(l.h) && l.w > 0 && l.h > 0 && l.w <= 20000 && l.h <= 20000)
+    s.logo = { type: l.type, data: l.data, w: l.w, h: l.h };
+  const empty = Object.values(s).every(x => x === '' || x === null || x === false);
+  return empty ? null : s;
+}
+
+// Returns { version, fingerprint, projName, system, feeders, report, settings }
+// or null if the data is not a project file.
+function validateProjectFile(data) {
+  if (!isObj(data)) return null;
+  if (data.version !== undefined && typeof data.version !== 'string') return null;
+  if (data.feeders !== undefined && !Array.isArray(data.feeders)) return null;
+  if (data.system !== undefined && data.system !== null && !isObj(data.system)) return null;
+  if (data.feeders === undefined && data.system === undefined) return null;   // not a project at all
+  const feeders = [];
+  for (const f of (data.feeders || []).slice(0, LIMITS.feeders)) {
+    if (!isObj(f)) return null;
+    const devices = [];
+    for (const d of (Array.isArray(f.devices) ? f.devices : []).slice(0, LIMITS.devices)) {
+      if (!isObj(d)) return null;
+      const cores = [];
+      for (const c of (Array.isArray(d.cores) ? d.cores : []).slice(0, LIMITS.cores)) {
+        if (!isObj(c) || typeof c.calc_type !== 'string') return null;
+        cores.push({ ...clean(c), id: ident(c.id), name: text(c.name, 200) ?? 'Core', kind: text(c.kind, 20) ?? 'ct',
+                     calc_type: c.calc_type.slice(0, 40), inputs: cleanObj(c.inputs) || {} });
+      }
+      devices.push({ ...clean(d), id: ident(d.id), name: text(d.name, 200) ?? 'Device',
+                     device_type: text(d.device_type, 40) ?? 'custom', cores });
+    }
+    feeders.push({ ...clean(f), id: ident(f.id), name: text(f.name, 200) ?? 'Bay',
+                   feeder_type: text(f.feeder_type, 40) ?? 'line', devices });
+  }
+  return {
+    version: text(data.version, 20) ?? undefined,
+    fingerprint: text(data.fingerprint, 80) ?? undefined,
+    projName: text(data.projName, 200) || null,
+    system: cleanObj(data.system),
+    feeders,
+    report: cleanObj(data.report) || {},
+    settings: cleanSettings(data.settings),
+  };
+}
+
+// Project from a .ctvt file. The file's user/company settings replace the
+// user's own only after the user agrees (the project is imported either way).
+function importProject(data, fileName, lang) {
+  const file = validateProjectFile(data);
+  if (!file) return null;
+  // Fingerprint (ctsizer-fingerprint.js): recomputed from the content; a
+  // missing or different one is reported, the file is imported all the same.
+  const integrity = CTSFingerprint.check(file);
+  if (integrity !== 'ok') {
+    CTSActivity.log('file', `Project file "${fileName || ''}": fingerprint ${integrity}`);
+    window.alert(CTSI18n.t(lang || 'en', integrity === 'missing' ? 'proj_fp_missing' : 'proj_fp_mismatch'));
+  }
+  if (file.settings && window.confirm(CTSI18n.t(lang || 'en', 'proj_import_settings')))
+    writeJSON('ctsizer_settings', file.settings);
+  const name = file.projName || (fileName || '').replace(/\.(ctvt|json)$/i, '') || 'Imported Project';
+  return createProject(name, file);
 }
 
 function renameProject(id, name) {
@@ -146,8 +244,8 @@ function deleteProject(id) {
 // Same file format as the app's Save (ctsizer-app.jsx doSave).
 function downloadProject(p) {
   const settings = readJSON('ctsizer_settings', {});
-  const blob = new Blob([JSON.stringify({ version: '2.1', system: p.system, feeders: p.feeders || [], settings,
-                                          projName: p.name, report: p.report || {} }, null, 2)],
+  const content = { system: p.system, feeders: p.feeders || [], projName: p.name, report: p.report || {} };
+  const blob = new Blob([JSON.stringify({ version: '2.1', fingerprint: CTSFingerprint.of(content), ...content, settings }, null, 2)],
                         { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -254,7 +352,7 @@ function ProjectList({ lang, setLang, onOpen }) {
     r.onload = e => {
       let data;
       try { data = JSON.parse(e.target.result); } catch { setError(T('proj_import_bad')); return; }
-      const p = importProject(data, file.name);
+      const p = importProject(data, file.name, lang);
       if (!p) { setError(T('proj_import_bad')); return; }
       CTSActivity.log('file', `Imported project file "${file.name}" (version ${data.version ?? '—'}, ${data.feeders?.length ?? 0} bays)`);
       onOpen(p.id, true);
@@ -317,7 +415,7 @@ function ProjectList({ lang, setLang, onOpen }) {
           </div>
         )}
 
-        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 20, lineHeight: 1.6 }}>{T('proj_storage_note')}</p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 20, lineHeight: 1.6 }}>{T('proj_storage_note')} {T('proj_file_note')}</p>
         <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
           <button style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-muted)',
                            fontSize: 12, textDecoration: 'underline' }} onClick={() => setShowPrivacy(true)}>{T('privacy_view')}</button>
@@ -354,12 +452,12 @@ function ProjectsGate({ render }) {
     projectId: openId, mountKey: `${openId}:${mount}`,
     toList: () => { syncActive(); setLangState(readJSON('ctsizer_lang', 'en')); setOpenId(null); },
     newProject: name => { const p = createProject(name); if (p) open(p.id, true); },
-    importFile: (data, fileName) => { syncActive(); const p = importProject(data, fileName); if (p) open(p.id, true); return !!p; },
+    importFile: (data, fileName, lang) => { syncActive(); const p = importProject(data, fileName, lang); if (p) open(p.id, true); return !!p; },
   };
   return render(ctl);
 }
 
-window.CTSProjects = { syncActive, openProject, createProject, importProject, renameProject,
+window.CTSProjects = { syncActive, openProject, createProject, importProject, validateProjectFile, renameProject,
                        duplicateProject, deleteProject, list: () => readAll() || [] };
 Object.assign(window, { ProjectsGate });
 })();

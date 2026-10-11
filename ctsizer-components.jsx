@@ -810,8 +810,11 @@ function FormulaStep({ step, lang }) {
   useEffect(() => {
     if (katexRef.current && window.katex && step.latex) {
       try {
+        // trust:false rejects \href, \url, \includegraphics and \html* (no
+        // links or raw HTML can come out of a formula); maxExpand caps macro
+        // expansion — the engine's formulas use no macros.
         katexRef.current.innerHTML = window.katex.renderToString(step.latex,
-          { displayMode: false, throwOnError: false, output: 'html' });
+          { displayMode: false, throwOnError: false, output: 'html', trust: false, maxExpand: 100 });
       } catch { katexRef.current.textContent = step.latex; }
     }
   }, [step.latex]);

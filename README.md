@@ -26,16 +26,33 @@ version and build shown in the app.
 - `calc/golden/` — the golden test vectors (see **Tests** and `TESTS.md`).
 - `tools/run-tests.mjs` — runs the test suite with Node.js.
 - `feedback.php` — the server-side relay for the "Give feedback" dialog.
+- `.htaccess` — the security headers (Content Security Policy and the rest) the site is served with.
 - `vendor/`, `fonts/` — React, Babel, KaTeX and the fonts, served locally (no CDN).
+- `tools/build-deploy.mjs` — builds the deployed site (see **The deployed build**).
+- `SECURITY.md` — how to report a security problem.
 
 ## Run it locally
 
-There is no build step. Serve the folder with any static web server, for
-example
+There is no build step for development: `index.html` loads the `.jsx` files
+and Babel compiles them in the browser. Serve the folder with any static web
+server, for example
 
     python3 -m http.server 8000
 
 and open <http://localhost:8000/>.
+
+## The deployed build
+
+What ctsizer.com serves is this source after `tools/build-deploy.mjs`: the
+`.jsx` files are compiled ahead of time with the same Babel and the same
+options the browser would use, the page loads the production builds of React,
+Babel is left out, and the Content Security Policy in `.htaccess` is tightened
+to `script-src 'self'`. Reproduce it with
+
+    node tools/build-deploy.mjs deploy
+    node tools/serve.mjs deploy 8000
+
+and open <http://127.0.0.1:8000/>.
 
 ## Tests
 

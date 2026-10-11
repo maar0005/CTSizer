@@ -2,13 +2,18 @@
 // feedback.php — relay for the "Give feedback" dialog (ctsizer-feedback.jsx).
 //
 // The browser POSTs {title, body} as JSON; this script creates the issue in
-// the CTSizer repository with a fine-grained GitHub token that never reaches
-// the browser. The token comes from feedback-config.php (written by the deploy
-// workflow from the FEEDBACK_GITHUB_TOKEN secret, never committed) or the
-// CTSIZER_FEEDBACK_TOKEN environment variable.
+// the CTSizer repository with a fine-grained GitHub token (Issues: read and
+// write on that one private repository) that never reaches the browser. The
+// token comes from feedback-config.php (written by the deploy workflow from
+// the FEEDBACK_GITHUB_TOKEN secret, never committed, never served: see
+// .htaccess) or the CTSIZER_FEEDBACK_TOKEN environment variable.
 //
 // Abuse limits: only same-site JSON POSTs, capped size, and at most
-// PER_IP_HOUR reports per visitor per hour and PER_DAY reports in total per day.
+// PER_IP_HOUR reports per visitor per hour and PER_DAY reports in total per
+// day (both can be raised in feedback-config.php: 'per_ip_hour', 'per_day').
+// Visitors are stored as salted hashes, never as raw IP addresses.
+// @mentions in the report are neutralised so a report cannot notify
+// arbitrary GitHub users from the site's account.
 declare(strict_types=1);
 
 const REPO        = 'maar0005/CTSizer-dev';   // private: reports may hold an email
@@ -35,15 +40,21 @@ function config(): array {
     if (!is_array($cfg)) $cfg = [];
     $env = getenv('CTSIZER_FEEDBACK_TOKEN');
     if (empty($cfg['token']) && $env) $cfg['token'] = $env;
+    // Salt for the visitor hashes and the name of the rate-limit directory: a
+    // dedicated 'salt' in the config, else derived from the token (so the
+    // token itself is never used as a salt).
+    if (empty($cfg['salt']) && !empty($cfg['token'])) $cfg['salt'] = hash('sha256', 'ctsizer-feedback-salt|' . $cfg['token']);
     return $cfg;
 }
 
-// Sliding-window limits kept in one JSON file under an exclusive lock.
-// Visitors are stored as salted hashes, never as raw IP addresses.
-function rate_limited(string $visitor): bool {
-    $dir = sys_get_temp_dir() . '/ctsizer-feedback';
+// Sliding-window limits kept in one JSON file under an exclusive lock, in a
+// private directory whose name cannot be guessed without the salt.
+function rate_limited(string $visitor, string $salt, int $perIpHour, int $perDay): bool {
+    $dir = sys_get_temp_dir() . '/ctsizer-feedback-' . substr(hash('sha256', 'dir|' . $salt), 0, 16);
+    $old = umask(077);
     if (!is_dir($dir)) @mkdir($dir, 0700, true);
     $fh = @fopen($dir . '/rate.json', 'c+');
+    umask($old);
     if (!$fh) return false;                       // no storage: do not block feedback
     flock($fh, LOCK_EX);
     $now = time();
@@ -53,7 +64,8 @@ function rate_limited(string $visitor): bool {
         if (!$data[$k]) unset($data[$k]);
     }
     $mine = array_filter($data[$visitor] ?? [], fn($t) => $t > $now - 3600);
-    $limited = count($mine) >= PER_IP_HOUR || count($data['*'] ?? []) >= PER_DAY;
+    $dayFull = count($data['*'] ?? []) >= $perDay;
+    $limited = count($mine) >= $perIpHour || $dayFull;
     if (!$limited) {
         $data[$visitor][] = $now;
         $data['*'][] = $now;
@@ -63,6 +75,7 @@ function rate_limited(string $visitor): bool {
     fwrite($fh, json_encode($data));
     flock($fh, LOCK_UN);
     fclose($fh);
+    if ($dayFull) error_log('ctsizer feedback: daily cap reached, report refused');
     return $limited;
 }
 
@@ -73,6 +86,7 @@ function github(string $url, string $token, array $payload): array {
         CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 20,
+        CURLOPT_PROTOCOLS      => CURLPROTO_HTTPS,
         CURLOPT_HTTPHEADER     => [
             'Authorization: Bearer ' . $token,
             'Accept: application/vnd.github+json',
@@ -86,11 +100,21 @@ function github(string $url, string $token, array $payload): array {
     return [$status, is_string($raw) ? (json_decode($raw, true) ?: []) : []];
 }
 
+// "@name" would notify that GitHub user; a zero-width space after the @ keeps
+// the text readable and stops the mention. Control characters are dropped.
+function neutralise(string $s): string {
+    $s = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $s) ?? '';
+    return preg_replace('/@(?=[A-Za-z0-9])/u', "@\u{200B}", $s) ?? $s;
+}
+
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') reply(405, ['error' => 'method']);
 
 $cfg = config();
 $origins = array_merge(ORIGINS, $cfg['origins'] ?? []);
 if (!in_array($_SERVER['HTTP_ORIGIN'] ?? '', $origins, true)) reply(403, ['error' => 'origin']);
+// Browsers that send Sec-Fetch-Site must say the request is same-origin.
+$site = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '';
+if ($site !== '' && $site !== 'same-origin') reply(403, ['error' => 'origin']);
 // A JSON content type cannot be sent cross-site without a CORS preflight,
 // which this script never approves.
 if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== 0) reply(415, ['error' => 'content_type']);
@@ -98,14 +122,18 @@ if (empty($cfg['token'])) reply(503, ['error' => 'not_configured']);
 
 $raw = file_get_contents('php://input', false, null, 0, MAX_REQUEST + 1);
 if ($raw === false || strlen($raw) > MAX_REQUEST) reply(413, ['error' => 'too_large']);
-$in = json_decode($raw, true);
+$in = json_decode($raw, true, 32);
 $title = is_array($in) && is_string($in['title'] ?? null) ? trim($in['title']) : '';
 $body  = is_array($in) && is_string($in['body'] ?? null) ? $in['body'] : '';
 if ($title === '' || trim($body) === '') reply(400, ['error' => 'empty']);
+if (!mb_check_encoding($title, 'UTF-8') || !mb_check_encoding($body, 'UTF-8')) reply(400, ['error' => 'encoding']);
 if (mb_strlen($title) > MAX_TITLE || mb_strlen($body) > MAX_BODY) reply(413, ['error' => 'too_large']);
+$title = neutralise(str_replace(["\r", "\n"], ' ', $title));
+$body  = neutralise($body);
 
-$visitor = hash('sha256', $cfg['token'] . '|' . ($_SERVER['REMOTE_ADDR'] ?? ''));
-if (rate_limited($visitor)) reply(429, ['error' => 'rate_limited']);
+$visitor = hash('sha256', $cfg['salt'] . '|' . ($_SERVER['REMOTE_ADDR'] ?? ''));
+if (rate_limited($visitor, $cfg['salt'], (int) ($cfg['per_ip_hour'] ?? PER_IP_HOUR), (int) ($cfg['per_day'] ?? PER_DAY)))
+    reply(429, ['error' => 'rate_limited']);
 
 $api = ($cfg['api'] ?? 'https://api.github.com') . '/repos/' . REPO . '/issues';
 $issue = [
