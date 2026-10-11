@@ -402,7 +402,9 @@ const CTSReport = (() => {
           }
           if (name === 'sqrt') {
             let index = '';
-            if (s[i] === '[') { const j = s.indexOf(']', i); index = s.slice(i + 1, j); i = j + 1; }
+            // An unclosed [ is left as text: indexOf -1 would rewind i to 0 and
+            // re-parse the string, which blows up exponentially on nested \sqrt[.
+            if (s[i] === '[') { const j = s.indexOf(']', i); if (j >= 0) { index = s.slice(i + 1, j); i = j + 1; } }
             const a = arg(false);
             put(`${index ? `{\\super ${esc(index)}}` : ''}\\u8730?${a.complex || a.long ? `(${a.rtf})` : a.rtf}`);
             continue;
@@ -475,7 +477,9 @@ const CTSReport = (() => {
       return { rtf: esc(ch), complex: false };
     }
 
-    return seq(false, false).rtf.replace(/ +/g, ' ').trim();
+    // A trailing space that ends a control word (\line ) is kept: the result is
+    // embedded in other runs, and the next letters would extend the word.
+    return seq(false, false).rtf.replace(/ +/g, ' ').replace(/^ /, '').replace(/(?<!\\[a-z]+) $/, '');
   }
 
   // Plain text of a LaTeX string (used where RTF runs cannot go, e.g. tests).

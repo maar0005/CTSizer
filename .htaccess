@@ -15,12 +15,14 @@ Options -Indexes
   Header always set X-Frame-Options "DENY"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
 </IfModule>
 
 # The feedback relay's configuration (feedback-config.php, written by the
 # deploy workflow) and any editor or backup copy of it are never served, even
-# if PHP stops executing. Same for files that never belong in a web root.
-<FilesMatch "^(feedback-config\.php.*|\.(git.*|env.*|htaccess)|package(-lock)?\.json)$">
+# if PHP stops executing. Same for files that never belong in a web root,
+# among them the deploy action's file list (.ftp-deploy-sync-state.json).
+<FilesMatch "^(feedback-config\.php.*|\.(git.*|env.*|htaccess|ftp-deploy-sync-state\.json)|package(-lock)?\.json)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

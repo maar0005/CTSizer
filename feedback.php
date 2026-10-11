@@ -10,8 +10,9 @@
 //
 // Abuse limits: only same-site JSON POSTs, capped size, and at most
 // PER_IP_HOUR reports per visitor per hour and PER_DAY reports in total per
-// day (both can be raised in feedback-config.php: 'per_ip_hour', 'per_day').
-// Visitors are stored as salted hashes, never as raw IP addresses.
+// day (both can be raised in feedback-config.php: 'per_ip_hour', 'per_day');
+// an IPv6 visitor counts per /64. Visitors are stored as salted hashes, never
+// as raw IP addresses.
 // @mentions in the report are neutralised so a report cannot notify
 // arbitrary GitHub users from the site's account.
 declare(strict_types=1);
@@ -101,10 +102,22 @@ function github(string $url, string $token, array $payload): array {
 }
 
 // "@name" would notify that GitHub user; a zero-width space after the @ keeps
-// the text readable and stops the mention. Control characters are dropped.
+// the text readable and stops the mention. An @ written as an HTML entity
+// (&#64; &#x40; &commat;) becomes one in the rendered issue, so it is turned
+// into a plain @ first. Control characters are dropped.
 function neutralise(string $s): string {
     $s = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $s) ?? '';
+    $s = preg_replace('/&(?:#0*64;?|#[xX]0*40;?|commat;)/u', '@', $s) ?? $s;
     return preg_replace('/@(?=[A-Za-z0-9])/u', "@\u{200B}", $s) ?? $s;
+}
+
+// Rate-limit key for an address: an IPv6 visitor usually holds a whole /64,
+// so IPv6 addresses count per /64 (otherwise one visitor could use up the
+// daily cap alone). IPv4 and IPv4-mapped addresses count per address.
+function visitor_net(string $ip): string {
+    $bin = @inet_pton($ip);
+    if ($bin === false || strlen($bin) !== 16 || str_starts_with($bin, str_repeat("\0", 10) . "\xff\xff")) return $ip;
+    return inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8)) . '/64';
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') reply(405, ['error' => 'method']);
@@ -131,7 +144,7 @@ if (mb_strlen($title) > MAX_TITLE || mb_strlen($body) > MAX_BODY) reply(413, ['e
 $title = neutralise(str_replace(["\r", "\n"], ' ', $title));
 $body  = neutralise($body);
 
-$visitor = hash('sha256', $cfg['salt'] . '|' . ($_SERVER['REMOTE_ADDR'] ?? ''));
+$visitor = hash('sha256', $cfg['salt'] . '|' . visitor_net($_SERVER['REMOTE_ADDR'] ?? ''));
 if (rate_limited($visitor, $cfg['salt'], (int) ($cfg['per_ip_hour'] ?? PER_IP_HOUR), (int) ($cfg['per_day'] ?? PER_DAY)))
     reply(429, ['error' => 'rate_limited']);
 
