@@ -2,7 +2,7 @@
 // The app is not mounted until the terms have been accepted. Acceptance is held
 // in memory only, so it must be given again on every page load or refresh.
 (() => {
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, useContext } = React;
 
 const TERMS_VERSION   = '1.1';
 const TERMS_EFFECTIVE = '2026-10-10';
@@ -274,7 +274,9 @@ function Overlay({ children, labelledBy }) {
 
 // ── Gate: renders children only after the current version is accepted ────
 function TermsGate({ children }) {
-  const [accepted, setAccepted] = useState(false);
+  // Back from the landing page (the logo) in the same page load: already accepted.
+  const gate = useContext(window.CTSGateContext);
+  const [accepted, setAccepted] = useState(() => !!gate.termsOk);
   const [lang, setLangState]    = useState(() => readJSON('ctsizer_lang', 'en'));
   const [declined, setDeclined] = useState(false);
   const [readToEnd, setReadToEnd] = useState(false);
@@ -329,6 +331,7 @@ function TermsGate({ children }) {
   const accept = () => {
     if (!allChecked) return;
     saveAcceptance(lang);
+    gate.acceptTerms();
     setAccepted(true);
   };
   const chkRow = key => (

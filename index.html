@@ -183,6 +183,23 @@
     }
     /* But NOT canvas, SVG paths — no transition on those */
     canvas, svg path, svg line, svg circle { transition: none; }
+
+    /* App shell: the visible height, without a phone browser's toolbars */
+    .ctsizer-app { height: 100vh; height: 100dvh; }
+
+    /* ── Phone (same width as useMobile in ctsizer-components.jsx) ── */
+    @media (max-width: 760px) {
+      /* iOS zooms into any field with text under 16px when it is tapped */
+      input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
+      /* Sidebar drawer: rows tall enough to tap */
+      .ctsizer-drawer button { min-height: 34px; }
+      .ctsizer-drawer button[title] { min-width: 30px; }
+      /* Paired fields (Ipr / Isr …) one under the other; result metrics two per row */
+      .ctsizer-pair { grid-template-columns: minmax(0, 1fr) !important; }
+      .ctsizer-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      /* Wide formulas scroll sideways instead of widening the page */
+      .katex-display { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; }
+    }
   </style>
 </head>
 <body>

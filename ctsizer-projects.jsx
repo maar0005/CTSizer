@@ -13,7 +13,7 @@
 // list is shown and before another project is opened. A browser that only has
 // the older single-project keys gets them migrated into one project.
 (() => {
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, useContext } = React;
 
 const STORE  = 'ctsizer_projects';
 const ACTIVE = 'ctsizer_active_project';
@@ -263,6 +263,9 @@ const btnSt = (primary, disabled) => ({
 });
 const smallBtn = { padding: '4px 9px', borderRadius: 5, cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font-mono)',
                    border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--text-dim)' };
+// The logo in the header: a button back to the landing page.
+const homeBtnSt = { display: 'flex', alignItems: 'center', gap: 10, padding: 0, border: 'none', background: 'none',
+                    cursor: 'pointer' };
 const inputSt = { background: 'var(--surface-2)', border: '1px solid var(--border-2)', color: 'var(--text)',
                   borderRadius: 6, padding: '7px 10px', fontFamily: 'var(--font-body)', fontSize: 13, minWidth: 0 };
 
@@ -330,7 +333,7 @@ function ProjectCard({ lang, p, onOpen, onChanged }) {
   );
 }
 
-function ProjectList({ lang, setLang, onOpen }) {
+function ProjectList({ lang, setLang, onOpen, onHome }) {
   const T = k => CTSI18n.t(lang, k);
   const [list, setList] = useState(() => syncActive());
   const [newName, setNewName] = useState('');
@@ -364,10 +367,12 @@ function ProjectList({ lang, setLang, onOpen }) {
     <div style={{ position: 'fixed', inset: 0, overflowY: 'auto', background: 'var(--bg)' }}>
       <header style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 16px', display: 'flex', alignItems: 'center', gap: 10, height: 54 }}>
-          <img src="logo/icon.svg" alt="" width="26" height="26"/>
-          <span style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 16, color: 'var(--accent)', letterSpacing: '-0.3px' }}>
-            CT<span style={{ color: 'var(--text-dim)' }}>Sizer</span>
-          </span>
+          <button onClick={onHome} title={T('home')} aria-label={T('home')} style={homeBtnSt}>
+            <img src="logo/icon.svg" alt="" width="26" height="26"/>
+            <span style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 16, color: 'var(--accent)', letterSpacing: '-0.3px' }}>
+              CT<span style={{ color: 'var(--text-dim)' }}>Sizer</span>
+            </span>
+          </button>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 5 }}>
             {[['en', 'EN'], ['da', 'DA']].map(([l, label]) => (
               <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l}
@@ -446,10 +451,15 @@ function ProjectsGate({ render }) {
     setOpenId(id); setMount(m => m + 1);
   };
 
-  if (!openId) return <ProjectList lang={lang} setLang={setLang} onOpen={open}/>;
+  // The logo: back to the landing page (the open project is saved first).
+  const gate = useContext(window.CTSGateContext);
+  const toHome = () => { syncActive(); gate.home(); };
+
+  if (!openId) return <ProjectList lang={lang} setLang={setLang} onOpen={open} onHome={toHome}/>;
 
   const ctl = {
     projectId: openId, mountKey: `${openId}:${mount}`,
+    toHome,
     toList: () => { syncActive(); setLangState(readJSON('ctsizer_lang', 'en')); setOpenId(null); },
     newProject: name => { const p = createProject(name); if (p) open(p.id, true); },
     importFile: (data, fileName, lang) => { syncActive(); const p = importProject(data, fileName, lang); if (p) open(p.id, true); return !!p; },

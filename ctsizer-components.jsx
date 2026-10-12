@@ -34,7 +34,24 @@ const icons = {
   message:  'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
   export:   'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3',
   grid:     'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+  menu:     'M3 6h18M3 12h18M3 18h18',
+  more:     'M12 5.5v.01M12 12v.01M12 18.5v.01',
 };
+
+// ── Phone layout ───────────────────────────────────────────────────────────
+// Below this width the sidebar becomes a drawer, the top-bar actions move into
+// a menu and the core page stacks its input and result panels.
+const MOBILE_QUERY = '(max-width: 760px)';
+function useMobile() {
+  const [m, setM] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const h = e => setM(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+  return m;
+}
 
 // CT type metadata
 const CT_TYPES = [
@@ -47,64 +64,113 @@ const CT_TYPES = [
 ];
 
 // ── TopBar ─────────────────────────────────────────────────────────────────
-function TopBar({ lang, setLang, themeMode, setThemeMode, projectName, setProjectName, onProjects, onNew, onSave, onOpen, onExport, onFeedback }) {
+function TopBar({ lang, setLang, themeMode, setThemeMode, projectName, setProjectName, onHome, onProjects, onNew, onSave, onOpen, onExport, onFeedback,
+                  mobile, onMenu }) {
   const [editingName, setEditingName] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const nameRef = useRef(null);
   const fileRef = useRef(null);
   useEffect(() => { if (editingName) nameRef.current?.focus(); }, [editingName]);
+  useEffect(() => { if (!mobile) setMoreOpen(false); }, [mobile]);
 
   const themeIcons = { light: icons.sun, dark: icons.moon, auto: icons.monitor };
   const nextTheme  = { light: 'dark', dark: 'auto', auto: 'light' };
 
+  const actions = [
+    [icons.grid,   T(lang,'projects'),     onProjects],
+    [icons.file,   T(lang,'new_project'),  onNew],
+    [icons.open,   T(lang,'open_project'), () => fileRef.current?.click()],
+    [icons.save,   T(lang,'save_project'), onSave],
+    [icons.export, T(lang,'export_rtf'),   onExport],
+  ];
+  const langPill = (
+    <button style={topbarSt.pill} onClick={() => setLang(lang === 'en' ? 'da' : 'en')}>
+      <img src={lang === 'en' ? 'logo/flag_uk.svg' : 'logo/flag_dk.svg'}
+           style={{ width: 16, height: 11, borderRadius: 1 }} alt={lang} />
+      <span style={topbarSt.pillLabel}>{lang.toUpperCase()}</span>
+    </button>
+  );
+  const themePill = (
+    <button style={topbarSt.pill} title={themeMode}
+      onClick={() => setThemeMode(nextTheme[themeMode] || 'light')}>
+      <Icon d={themeIcons[themeMode] || icons.sun} size={14} />
+      <span style={topbarSt.pillLabel}>{themeMode}</span>
+    </button>
+  );
+  const fileInput = (
+    <input ref={fileRef} type="file" accept=".ctvt,.json" style={{ display: 'none' }}
+      onChange={e => { if (e.target.files[0]) onOpen(e.target.files[0]); e.target.value=''; }} />
+  );
+
   return (
-    <header style={topbarSt.bar}>
-      <div style={topbarSt.logo}>
+    <header style={{ ...topbarSt.bar, ...(mobile ? { padding: '0 6px', gap: 4 } : null) }}>
+      {mobile && (
+        <button style={topbarSt.iconBtn} onClick={onMenu} aria-label={T(lang,'menu')} title={T(lang,'menu')}>
+          <Icon d={icons.menu} size={20} />
+        </button>
+      )}
+
+      {/* The logo returns to the landing page */}
+      <button style={topbarSt.logo} onClick={onHome} title={T(lang,'home')} aria-label={T(lang,'home')}>
         <img src="logo/icon.svg" alt="" style={{ width: 26, height: 26 }} />
-        <span style={topbarSt.logoText}>CT<span style={{ color: 'var(--text-dim)' }}>Sizer</span></span>
-        {window.CTSVersionBadge && <window.CTSVersionBadge note={T(lang,'beta_note')} />}
-      </div>
+        {!mobile && <span style={topbarSt.logoText}>CT<span style={{ color: 'var(--text-dim)' }}>Sizer</span></span>}
+        {!mobile && window.CTSVersionBadge && <window.CTSVersionBadge note={T(lang,'beta_note')} />}
+      </button>
 
       <div style={topbarSt.divider} />
 
-      <div style={topbarSt.projWrap} onClick={() => setEditingName(true)}>
+      <div style={{ ...topbarSt.projWrap, ...(mobile ? { flex: 1, minWidth: 0 } : null) }} onClick={() => setEditingName(true)}>
         {editingName ? (
           <input ref={nameRef} defaultValue={projectName}
             onBlur={e => { setProjectName(e.target.value || 'Untitled'); setEditingName(false); }}
             onKeyDown={e => e.key === 'Enter' && e.target.blur()}
-            style={topbarSt.projInput} />
+            style={{ ...topbarSt.projInput, ...(mobile ? { width: '100%' } : null) }} />
         ) : (
-          <span style={topbarSt.projName}>{projectName}</span>
+          <span style={{ ...topbarSt.projName, ...(mobile ? topbarSt.ellipsis : null) }}>{projectName}</span>
         )}
       </div>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
-        <TBtn icon={icons.grid}  label={T(lang,'projects')} onClick={onProjects} />
-        <TBtn icon={icons.file}  label={T(lang,'new_project')} onClick={onNew} />
-        <TBtn icon={icons.open}  label={T(lang,'open_project')} onClick={() => fileRef.current?.click()} />
-        <TBtn icon={icons.save}  label={T(lang,'save_project')} onClick={onSave} />
-        <TBtn icon={icons.export} label={T(lang,'export_rtf')} onClick={onExport} />
+      {mobile ? (
+        <>
+          {fileInput}
+          <button style={topbarSt.iconBtn} onClick={() => setMoreOpen(o => !o)} aria-expanded={moreOpen}
+            aria-label={T(lang,'more_actions')} title={T(lang,'more_actions')}>
+            <Icon d={icons.more} size={22} strokeWidth={3} />
+          </button>
+          {moreOpen && (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 300 }} onClick={() => setMoreOpen(false)}>
+              <div role="menu" style={topbarSt.menu} onClick={e => e.stopPropagation()}>
+                {[...actions, [icons.message, T(lang,'feedback'), onFeedback]].map(([icon, label, fn]) => (
+                  <button key={label} role="menuitem" style={topbarSt.menuItem}
+                    onClick={() => { setMoreOpen(false); fn(); }}>
+                    <Icon d={icon} size={16} />
+                    <span>{label}</span>
+                  </button>
+                ))}
+                <div style={{ display: 'flex', gap: 8, padding: '10px 12px 4px', borderTop: '1px solid var(--border)', marginTop: 4 }}>
+                  {langPill}
+                  {themePill}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+          {actions.map(([icon, label, fn]) => <TBtn key={label} icon={icon} label={label} onClick={fn} />)}
 
-        <input ref={fileRef} type="file" accept=".ctvt,.json" style={{ display: 'none' }}
-          onChange={e => { if (e.target.files[0]) onOpen(e.target.files[0]); e.target.value=''; }} />
+          {fileInput}
 
-        <div style={topbarSt.divider} />
+          <div style={topbarSt.divider} />
 
-        <TBtn icon={icons.message} label={T(lang,'feedback')} onClick={onFeedback} />
+          <TBtn icon={icons.message} label={T(lang,'feedback')} onClick={onFeedback} />
 
-        <div style={topbarSt.divider} />
+          <div style={topbarSt.divider} />
 
-        <button style={topbarSt.pill} onClick={() => setLang(lang === 'en' ? 'da' : 'en')}>
-          <img src={lang === 'en' ? 'logo/flag_uk.svg' : 'logo/flag_dk.svg'}
-               style={{ width: 16, height: 11, borderRadius: 1 }} alt={lang} />
-          <span style={topbarSt.pillLabel}>{lang.toUpperCase()}</span>
-        </button>
-
-        <button style={topbarSt.pill} title={themeMode}
-          onClick={() => setThemeMode(nextTheme[themeMode] || 'light')}>
-          <Icon d={themeIcons[themeMode] || icons.sun} size={14} />
-          <span style={topbarSt.pillLabel}>{themeMode}</span>
-        </button>
-      </div>
+          {langPill}
+          {themePill}
+        </div>
+      )}
     </header>
   );
 }
@@ -123,7 +189,8 @@ function TBtn({ icon, label, onClick }) {
 const topbarSt = {
   bar:      { height: 'var(--topbar-h)', background: 'var(--surface)', borderBottom: '1px solid var(--border)',
                display: 'flex', alignItems: 'center', padding: '0 14px', gap: 8, flexShrink: 0, zIndex: 100 },
-  logo:     { display: 'flex', alignItems: 'center', gap: 7 },
+  logo:     { display: 'flex', alignItems: 'center', gap: 7, padding: 0, border: 'none', background: 'none',
+               cursor: 'pointer', flexShrink: 0 },
   logoText: { fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 16, color: 'var(--accent)', letterSpacing: '-0.3px' },
   divider:  { width: 1, height: 18, background: 'var(--border-2)', margin: '0 2px' },
   projWrap: { cursor: 'text', padding: '3px 6px', borderRadius: 4 },
@@ -136,6 +203,15 @@ const topbarSt = {
   pill:     { display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 5,
                background: 'var(--surface-3)', border: '1px solid var(--border-2)', cursor: 'pointer',
                color: 'var(--text-dim)' },
+  iconBtn:  { display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, flexShrink: 0,
+               borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-dim)' },
+  ellipsis: { display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  menu:     { position: 'absolute', top: 'calc(var(--topbar-h) - 4px)', right: 6, minWidth: 220, padding: '6px 0',
+               background: 'var(--surface)', border: '1px solid var(--border-2)', borderRadius: 8,
+               boxShadow: '0 8px 28px rgba(0,0,0,0.3)' },
+  menuItem: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '11px 16px', border: 'none',
+               background: 'transparent', cursor: 'pointer', color: 'var(--text)', fontFamily: 'var(--font-body)',
+               fontSize: 15, textAlign: 'left' },
   pillLabel:{ fontFamily: 'var(--font-mono)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' },
 };
 
@@ -164,7 +240,8 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
                     onNavSelect, onCoreSelect,
                     onAddFeeder, removeFeeder, saveFeederTpl,
                     addDevice, removeDevice, addCore, removeCore,
-                    renameFeeder, renameDevice, renameCore, results }) {
+                    renameFeeder, renameDevice, renameCore, results,
+                    mobile, open, onClose }) {
   const [expFeeders, setExpFeeders] = useState({});
   const [expDevices, setExpDevices] = useState({});
   const [showAddDevice, setShowAddDevice] = useState(null); // feederId
@@ -185,8 +262,22 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
   const toggleF = id => setExpFeeders(e => ({...e,[id]:!e[id]}));
   const toggleD = id => setExpDevices(e => ({...e,[id]:!e[id]}));
 
+  // On a phone the sidebar is a drawer over the page, opened from the top bar.
+  // No transform while open: the template dialog inside is position:fixed.
+  const navSt = mobile
+    ? { ...sb3.nav, ...sb3.drawer, transform: open ? 'none' : 'translateX(-105%)',
+        visibility: open ? 'visible' : 'hidden' }
+    : sb3.nav;
+
   return (
-    <nav style={sb3.nav}>
+    <>
+    {mobile && open && <div style={sb3.backdrop} onClick={onClose} aria-hidden="true"/>}
+    <nav style={navSt} className={mobile ? 'ctsizer-drawer' : undefined} aria-hidden={mobile && !open ? true : undefined}>
+      {mobile && (
+        <button style={sb3.drawerClose} onClick={onClose} aria-label={Tl('close')} title={Tl('close')}>
+          <Icon d={icons.x} size={18}/>
+        </button>
+      )}
       {/* Station Data */}
       <SNavItem item={{key:'station',icon:icons.station,label:Tl('nav_station')}}
         active={navActive==='station'} onClick={()=>onNavSelect('station')}/>
@@ -390,6 +481,7 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
         </div>
       )}
     </nav>
+    </>
   );
 }
 
@@ -557,6 +649,12 @@ function SNavItem({ item, active, onClick, disabled }) {
 const sb3 = {
   nav:        { width:'var(--sidebar-w)',background:'var(--surface)',borderRight:'1px solid var(--border)',
                  display:'flex',flexDirection:'column',flexShrink:0,paddingTop:8,overflowY:'hidden' },
+  drawer:     { position:'fixed',top:'var(--topbar-h)',bottom:0,left:0,width:'min(320px, 86vw)',zIndex:160,
+                 boxShadow:'4px 0 24px rgba(0,0,0,0.3)',transition:'transform 0.2s ease, visibility 0.2s' },
+  backdrop:   { position:'fixed',inset:'var(--topbar-h) 0 0 0',background:'rgba(0,0,0,0.45)',zIndex:150 },
+  drawerClose:{ position:'absolute',top:4,right:4,width:36,height:36,display:'flex',alignItems:'center',
+                 justifyContent:'center',border:'none',background:'transparent',cursor:'pointer',
+                 color:'var(--text-muted)',zIndex:1 },
   navItem:    { display:'flex',alignItems:'center',gap:8,padding:'7px 12px 7px 14px',border:'none',
                  fontFamily:'var(--font-body)',transition:'all 0.12s',width:'100%',textAlign:'left' },
   secLabel:   { display:'flex',alignItems:'center',gap:5,padding:'10px 14px 4px',fontSize:10,
@@ -949,7 +1047,7 @@ function SaturationChart({ result, lang }) {
 }
 
 Object.assign(window, {
-  Icon, icons, InlineEdit,
+  Icon, icons, InlineEdit, useMobile,
   TopBar, Sidebar3, SNavItem, NewFeederDialog, FEEDER_PURPOSES, purposeDevices,
   SectionCard, FormRow, NumInput, OptNumInput, SelectInput, TextInput,
   MetricCard, StatusBadge, FormulaStep,

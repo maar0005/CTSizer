@@ -355,6 +355,11 @@ function App({ ctl }) {
 
   const T = k => CTSI18n.t(lang, k);
 
+  // Phone: the sidebar is a drawer (closed when a core or a page is picked).
+  const mobile = useMobile();
+  const [navOpen, setNavOpen] = useState(false);
+  useEffect(() => { if (!mobile) setNavOpen(false); }, [mobile]);
+
   // ── View logic ──
   const isStation  = navActive==='station';
   const isSettings = navActive==='settings';
@@ -363,9 +368,11 @@ function App({ ctl }) {
   const showFeeder = !isStation && !isSettings && !activeCore && !activeDevice && !!activeFeeder;
 
   return (
-    <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'var(--bg)',overflow:'hidden'}}>
+    <div className="ctsizer-app" style={{display:'flex',flexDirection:'column',background:'var(--bg)',overflow:'hidden'}}>
       <TopBar lang={lang} setLang={setLang} themeMode={themeMode} setThemeMode={setThemeMode}
         projectName={projName} setProjectName={setProjName} onSave={handleSave} onOpen={handleOpen}
+        mobile={mobile} onMenu={() => setNavOpen(o => !o)}
+        onHome={() => { CTSActivity.log('file', 'Front page (logo)'); ctl.toHome(); }}
         onProjects={() => ctl.toList()}
         onNew={() => { CTSActivity.log('file', 'New project'); ctl.newProject(); }}
         onExport={() => { CTSActivity.log('file', 'Opened RTF export dialog'); setShowExport(true); }}
@@ -375,17 +382,18 @@ function App({ ctl }) {
         <Sidebar3
           lang={lang} navActive={navActive} setNavActive={setNavActive}
           feeders={feeders} sel={sel}
-          onNavSelect={nav => { setNavActive(nav); setSel({}); }}
-          onCoreSelect={s  => { setSel(s); setNavActive('ct'); }}
+          onNavSelect={nav => { setNavActive(nav); setSel({}); setNavOpen(false); }}
+          onCoreSelect={s  => { setSel(s); setNavActive('ct'); if (s.coreId) setNavOpen(false); }}
           onAddFeeder={() => setShowNewFeeder(true)} removeFeeder={removeFeeder} saveFeederTpl={saveFeederTpl}
           addDevice={addDevice} removeDevice={removeDevice}
           addCore={addCore} removeCore={removeCore}
           renameFeeder={renameFeeder} renameDevice={renameDevice} renameCore={renameCore}
           setFeederType={setFeederType}
           results={results}
+          mobile={mobile} open={navOpen} onClose={() => setNavOpen(false)}
         />
 
-        <main style={{flex:1,overflow:'auto',padding:20}}>
+        <main style={{flex:1,overflow:'auto',padding:mobile?12:20,minWidth:0}}>
 
           {isStation && (
             <div style={{maxWidth:600}}>
@@ -410,7 +418,8 @@ function App({ ctl }) {
           )}
 
           {showCore && (
-            <div style={{display:'grid',gridTemplateColumns:'400px 1fr',gap:20,maxWidth:1300,margin:'0 auto'}}>
+            <div style={{display:'grid',gridTemplateColumns:mobile?'minmax(0,1fr)':'400px minmax(0,1fr)',
+                         gap:mobile?14:20,maxWidth:1300,margin:'0 auto'}}>
               <CoreInputPanel
                 lang={lang} core={activeCore} systemVals={system}
                 onChange={(inp,ct)=>updateCore(sel.feederId,sel.deviceId,sel.coreId,inp,ct)}
@@ -432,7 +441,13 @@ function App({ ctl }) {
           {!isStation && !isSettings && feeders.length>0 && !showCore && !showDevice && !showFeeder && (
             <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'60vh',
                           color:'var(--text-muted)',fontFamily:'var(--font-mono)',fontSize:13}}>
-              Select a bay or core from the sidebar
+              {mobile ? (
+                <button onClick={() => setNavOpen(true)}
+                  style={{padding:'10px 18px',borderRadius:6,border:'1px solid var(--border-2)',cursor:'pointer',
+                           background:'var(--surface-2)',color:'var(--text-dim)',fontFamily:'var(--font-head)',fontSize:14}}>
+                  ☰ {T('menu')}
+                </button>
+              ) : 'Select a bay or core from the sidebar'}
             </div>
           )}
         </main>
@@ -462,6 +477,7 @@ function App({ ctl }) {
 // ── Feeder overview ────────────────────────────────────────────────────────
 function FeederOverview({ lang, feeder, results, sel, setSel, setFeederType, addDevice }) {
   const T = k => CTSI18n.t(lang, k);
+  const mobile = useMobile();
   const FEEDER_TYPES = FEEDER_PURPOSES.map(p => p.id);
   const ft = feeder.feeder_type || 'line';
   const scheme = typeof CTSDraw !== 'undefined' ? CTSDraw.SCHEMES[ft] : '';
@@ -473,7 +489,8 @@ function FeederOverview({ lang, feeder, results, sel, setSel, setFeederType, add
   const overallOk = totalCores > 0 && okCores === totalCores;
 
   return (
-    <div style={{maxWidth:860,display:'grid',gridTemplateColumns:'200px 1fr',gap:20,alignItems:'start'}}>
+    <div style={{maxWidth:860,display:'grid',gridTemplateColumns:mobile?'minmax(0,1fr)':'200px minmax(0,1fr)',
+                 gap:mobile?14:20,alignItems:'start'}}>
       {/* Left: Protection scheme diagram */}
       <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:10,padding:14}}>
         <div style={{fontSize:10,fontFamily:'var(--font-mono)',color:'var(--text-muted)',

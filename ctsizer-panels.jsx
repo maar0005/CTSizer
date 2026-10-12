@@ -68,7 +68,7 @@ function SystemPanel({ lang, v, onChange }) {
   return (
     <SectionCard title={Tp(lang,'section_system')} defaultOpen>
       <div style={{paddingTop:8}}>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+        <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
           <FormRow label={Tp(lang,'lbl_station_name')}>
             <input type="text" value={v.station_name||''} onChange={e=>set('station_name',e.target.value)}
               placeholder={Tp(lang,'placeholder_name')}
@@ -122,7 +122,7 @@ function OvercurrentInputs({ lang, v, set, onChange }) {
       <SectionCard title={Tp(lang,'section_ct')} defaultOpen accent>
         <div style={{paddingTop:8}}>
           <CTClassRow lang={lang} v={v} onChange={onChange}/>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             <FormRow label={Tp(lang,'lbl_Ip')} unit="A">
               <NumInput value={v.Ip??2000} onChange={x=>set('Ip',x)} min={1} max={100000}/>
             </FormRow>
@@ -161,7 +161,7 @@ function MeteringInputs({ lang, v, set }) {
     <>
       <SectionCard title={Tp(lang,'section_ct') + ' — ' + Tp(lang,'ct_type_metering')} defaultOpen accent>
         <div style={{paddingTop:8}}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             <FormRow label={Tp(lang,'lbl_Ip')} unit="A">
               <NumInput value={v.Ip??1000} onChange={x=>set('Ip',x)} min={1} max={100000}/>
             </FormRow>
@@ -203,7 +203,7 @@ function BusbarInputs({ lang, v, set, onChange }) {
     <>
       <SectionCard title={Tp(lang,'section_ct') + ' — ' + Tp(lang,'ct_type_busbar')} defaultOpen accent>
         <div style={{paddingTop:8}}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             <FormRow label={Tp(lang,'lbl_Ip')} unit="A">
               <NumInput value={v.Ip??2000} onChange={x=>set('Ip',x)} min={1} max={100000}/>
             </FormRow>
@@ -379,7 +379,7 @@ function PxAlfRow({ lang, v, set, onChange }) {
 function PrimarySecondaryRow({ lang, v, set }) {
   const Tl = k => CTSI18n.t(lang, k);
   return (
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+    <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
       <FormRow label={Tl('lbl_Ip')} unit="A">
         <NumInput value={v.Ip??2000} onChange={x=>set('Ip',x)} min={1} max={100000}/>
       </FormRow>
@@ -1007,7 +1007,7 @@ function ResultsPanel({ lang, result, core, systemVals, theme }) {
 
       {/* SUMMARY */}
       {tab === 'summary' && (
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+        <div className="ctsizer-metrics" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
           {metrics.map(m => <MetricCard key={m.label} {...m}/>)}
         </div>
       )}
@@ -1237,7 +1237,7 @@ function SettingsPanel({ lang, setLang, themeMode, setThemeMode, settings, setSe
     <div style={{maxWidth:640,margin:'0 auto',display:'flex',flexDirection:'column',gap:14}}>
 
       <SectionCard title={Tp(lang,'section_settings_user')}>
-        <div style={{paddingTop:8,display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+        <div className="ctsizer-pair" style={{paddingTop:8,display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
           <FormRow label={Tp(lang,'settings_full_name')}>
             <TextInput value={settings.full_name||''} onChange={v=>set('full_name',v)}/>
           </FormRow>
@@ -1248,7 +1248,7 @@ function SettingsPanel({ lang, setLang, themeMode, setThemeMode, settings, setSe
       </SectionCard>
 
       <SectionCard title={Tp(lang,'section_settings_company')}>
-        <div style={{paddingTop:8,display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+        <div className="ctsizer-pair" style={{paddingTop:8,display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
           <FormRow label={Tp(lang,'settings_company')}>
             <TextInput value={settings.company_name||''} onChange={v=>set('company_name',v)}/>
           </FormRow>

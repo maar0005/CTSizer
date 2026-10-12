@@ -5,7 +5,12 @@
 // Conditions (ctsizer-terms.jsx). Like the terms, the acknowledgement is held
 // in memory only and is asked for again on every page load.
 (() => {
-const { useState, useEffect } = React;
+const { useState, useEffect, useMemo } = React;
+
+// Shared by the gates: `home()` returns to this landing page from the project
+// list or a project (the logo); `termsOk` remembers, for this page load only,
+// that the terms were accepted, so they are not asked for again on the way back.
+const GateContext = React.createContext({ home: null, termsOk: false, acceptTerms: () => {} });
 
 const PRIVACY_VERSION   = '1.0';
 const PRIVACY_EFFECTIVE = '2026-10-10';
@@ -64,6 +69,7 @@ const TEXT = {
     read_privacy: 'Read the full Privacy Policy',
     ack: 'I have read the description of CTSizer and the Privacy Policy.',
     continue: 'Continue to Terms and Conditions',
+    continue_back: 'Continue to your projects',
     oss_h: 'Free and open source',
     oss: 'CTSizer is a non-commercial spare-time project. The complete source code is public under the GNU AGPL-3.0 licence — read how every result is calculated, report an issue or contribute.',
     oss_cta: 'View on GitHub',
@@ -119,6 +125,7 @@ const TEXT = {
     read_privacy: 'Læs hele privatlivspolitikken',
     ack: 'Jeg har læst beskrivelsen af CTSizer og privatlivspolitikken.',
     continue: 'Fortsæt til Vilkår og betingelser',
+    continue_back: 'Fortsæt til dine projekter',
     oss_h: 'Gratis og open source',
     oss: 'CTSizer er et ikke-kommercielt fritidsprojekt. Hele kildekoden er offentlig under licensen GNU AGPL-3.0 — se, hvordan hvert resultat beregnes, rapportér en fejl, eller bidrag.',
     oss_cta: 'Se på GitHub',
@@ -427,9 +434,9 @@ function PrivacyViewer({ lang, onClose }) {
 }
 
 // ── Landing page ──────────────────────────────────────────────────────────
-function LandingPage({ lang, setLang, onContinue }) {
+function LandingPage({ lang, setLang, onContinue, returning }) {
   const L = txt(lang);
-  const [ack, setAck] = useState(false);
+  const [ack, setAck] = useState(!!returning);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const wrap = { maxWidth: 1040, margin: '0 auto', padding: '0 16px' };
 
@@ -541,7 +548,7 @@ function LandingPage({ lang, setLang, onContinue }) {
               ({L.privacy_link})</button></span>
           </label>
           <div>
-            <button style={btnSt(true, !ack)} disabled={!ack} onClick={() => ack && onContinue()}>{L.continue} →</button>
+            <button style={btnSt(true, !ack)} disabled={!ack} onClick={() => ack && onContinue()}>{returning ? L.continue_back : L.continue} →</button>
           </div>
         </section>
         <OpenSourceCard L={L}/>
@@ -571,6 +578,8 @@ function LandingPage({ lang, setLang, onContinue }) {
 function LandingGate({ children }) {
   const [passed, setPassed] = useState(false);
   const [lang, setLangState] = useState(() => readJSON('ctsizer_lang', 'en'));
+  // Set once the user has passed this page and accepted the terms (this page load only).
+  const [termsOk, setTermsOk] = useState(false);
 
   // Language picked here carries over to the terms and the app.
   const setLang = l => {
@@ -580,11 +589,19 @@ function LandingGate({ children }) {
 
   useEffect(() => { if (!passed) applyStoredTheme(); }, [passed]);
 
-  if (passed) return children;
-  return <LandingPage lang={lang} setLang={setLang} onContinue={() => { window.scrollTo(0, 0); setPassed(true); }}/>;
+  const gate = useMemo(() => ({
+    home: () => { setLangState(readJSON('ctsizer_lang', 'en')); window.scrollTo(0, 0); setPassed(false); },
+    termsOk,
+    acceptTerms: () => setTermsOk(true),
+  }), [termsOk]);
+
+  // Returning unmounts the terms and the project list; they mount afresh on Continue.
+  if (passed) return <GateContext.Provider value={gate}>{children}</GateContext.Provider>;
+  return <LandingPage lang={lang} setLang={setLang} returning={termsOk}
+    onContinue={() => { window.scrollTo(0, 0); setPassed(true); }}/>;
 }
 
 window.CTSPrivacy = { PRIVACY_VERSION, PRIVACY_EFFECTIVE };
 window.CTSVersionBadge = VersionBadge;
-Object.assign(window, { LandingGate, PrivacyViewer });
+Object.assign(window, { LandingGate, PrivacyViewer, CTSGateContext: GateContext });
 })();
