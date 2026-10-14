@@ -48,6 +48,15 @@ const CTBaseClasses = (() => {
     return 'low';
   }
 
+  // ui/ct_widget/data_io.py / handlers.py: the classes specified by their knee
+  // point voltage (is_px = ct_class in ["PX", "TPX", "TPY", "TPZ"]). Their
+  // panel shows the Vk field, not the ALF, and the core carries vk_voltage
+  // with alf None (PORTING_PLAN.md §10.6 F-TP-PX).
+  const VK_CLASSES = ['PX', 'TPX', 'TPY', 'TPZ'];
+  function isVkClass(ctClass) {
+    return VK_CLASSES.includes(ctClass);
+  }
+
   // ct_base.CT_CLASS_DESCRIPTIONS — IEC 61869-2 class metadata. The `_key`
   // fields are Python Translator keys; CTSizer has no resolved EN/DA text for
   // them (no source strings exist anywhere in ctvt_dim either), so they are
@@ -133,6 +142,8 @@ const CTBaseClasses = (() => {
     getRemanenceFactor,
     getTypicalTs,
     mapClassToTimeConstant,
+    VK_CLASSES,
+    isVkClass,
     CT_CLASS_DESCRIPTIONS,
     estimateAlfFromVoltage,
     extractAlfFromClass,

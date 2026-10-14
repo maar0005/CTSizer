@@ -9,6 +9,9 @@
  *   checkBurdenLimits        → [is_ok, warnings]
  *   checkThermalBurdenLimits → [is_ok, warnings]
  *   verifyRangeCompliance    → { range, description, compliant[, warning] }
+ *   resolveBurdenRange       → 'I' | 'II' (CTSizer, issue #125)
+ *   checkBurdenRange         → { range, is_ok, low_percent, warnings } (CTSizer)
+ *   burdenRangeLabel         → rating-plate style label, e.g. "0 VA-10 VA class 0.2"
  *
  * The warnings and descriptions keep the Python Danish text. Their "{x:.1f}" goes
  * through pyFixed1, because Python rounds an exact tie (24.25, 100.75, …) half to
@@ -90,5 +93,45 @@ CTVT.validation = (() => {
     }
   }
 
-  return { checkBurdenLimits, checkThermalBurdenLimits, verifyRangeCompliance };
+  // ── CTSizer: the VT's burden range (IEC 61869-3 5.6.301.3, issue #125) ──
+  // Range I: 0 – 100 % of the rated burden at pf 1 (standard outputs 1, 2.5,
+  // 5, 10 VA); range II: 25 – 100 % at pf 0.8 (10, 25, 50, 100 VA). The core's
+  // vt_burden_range, else I for a rated burden ≤ 10 VA and II above.
+  const RANGE_I_MAX_VA = 10;
+  function resolveBurdenRange(core = {}) {
+    const r = core.vt_burden_range;
+    if (r === 'I' || r === 'II') return r;
+    return (core.burden ?? 0) <= RANGE_I_MAX_VA ? 'I' : 'II';
+  }
+
+  // Range I has no lower limit (a 0.1 VA meter on a 10 VA range I VT is
+  // fine); range II fails below 25 % (verifyRangeCompliance). Over 100 % is
+  // checkBurdenLimits' failure. A rated burden outside the range's standard
+  // values is allowed (NOTE 301) but warned. Warnings are [key, ...args].
+  function checkBurdenRange(range, burden_utilization, rated_burden) {
+    const warnings = [];
+    let is_ok = true;
+    if (range === 'II') {
+      if (verifyRangeCompliance(burden_utilization).range === 'I') {
+        is_ok = false;
+        warnings.push(['warning_vt_range_ii_below_25', burden_utilization]);
+      }
+      if (rated_burden < RANGE_I_MAX_VA) warnings.push(['warning_vt_range_nonstandard', 'II', rated_burden]);
+    } else if (rated_burden > RANGE_I_MAX_VA) {
+      warnings.push(['warning_vt_range_nonstandard', 'I', rated_burden]);
+    }
+    return { range, is_ok, low_percent: range === 'II' ? 25 : 0, warnings };
+  }
+
+  // Rating-plate style (6.13.302), e.g. "0 VA-10 VA class 0.2"; range II
+  // starts at 25 % of the rated burden.
+  function burdenRangeLabel(range, rated_burden, vt_class) {
+    const low = range === 'II' ? +(rated_burden * 0.25).toPrecision(6) : 0;
+    return `${low} VA-${rated_burden} VA class ${vt_class}`;
+  }
+
+  return {
+    checkBurdenLimits, checkThermalBurdenLimits, verifyRangeCompliance,
+    resolveBurdenRange, checkBurdenRange, burdenRangeLabel,
+  };
 })();

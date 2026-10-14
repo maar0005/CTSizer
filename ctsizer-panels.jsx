@@ -8,28 +8,36 @@ const inputSt = { background:'var(--surface-2)', border:'1px solid var(--border-
 // ── Shared cable section ──────────────────────────────────────────────────
 // Per-core cable run and wiring. The method and the conductor temperature are
 // project settings (SystemPanel, PORTING_PLAN.md §9.4). The wiring is per core
-// (core.cable_topology, default from the calc type, §9.8), with a help picture.
-function CableSection({ lang, v, set, calcType }) {
-  const topology = CTCalc.cableRes.resolveTopology(v, calcType);
+// (core.cable_topology, chosen by the user, §9.8), with a help picture.
+// `attached` (metering / VT): the attached resistor Rres, a part of the
+// secondary circuit, is entered here too ({ label, max }). No default values:
+// every field starts blank (calc/required.js).
+function CableSection({ lang, v, set, calcType, attached }) {
+  const topology = v.cable_topology;
   return (
-    <SectionCard title={Tp(lang,'section_cable')} defaultOpen={false}>
+    <SectionCard title={Tp(lang,'section_cable')} defaultOpen={false} section="cable">
       <div style={{ paddingTop: 8 }}>
-        <FormRow label={Tp(lang,'lbl_cable_length')} unit="m">
-          <NumInput value={v.cable_length??100} onChange={x=>set('cable_length',x)} min={0} max={5000} step={1}/>
+        <FormRow label={Tp(lang,'lbl_cable_length')} unit="m" field="cable_length">
+          <NumInput value={v.cable_length} onChange={x=>set('cable_length',x)} min={0} max={5000} step={1}/>
         </FormRow>
-        <FormRow label={Tp(lang,'lbl_cable_cross')} unit="mm²">
-          <SelectInput value={v.cable_cross??4} onChange={x=>set('cable_cross',parseFloat(x))}
-            options={[['1.5','1.5'],['2.5','2.5'],['4','4'],['6','6'],['10','10'],['16','16'],['25','25'],['35','35'],['50','50']]}/>
+        <FormRow label={Tp(lang,'lbl_cable_cross')} unit="mm²" field="cable_cross">
+          <SelectInput value={v.cable_cross} onChange={x=>set('cable_cross',parseFloat(x))}
+            options={CTRequired.CABLE_CROSS.map(c=>[String(c),String(c)])}/>
         </FormRow>
-        <FormRow label={Tp(lang,'lbl_cable_mat')}>
-          <SelectInput value={v.cable_mat??'cu'} onChange={x=>set('cable_mat',x)}
+        <FormRow label={Tp(lang,'lbl_cable_mat')} field="cable_mat">
+          <SelectInput value={v.cable_mat} onChange={x=>set('cable_mat',x)}
             options={[['cu',Tp(lang,'lbl_cu')],['al',Tp(lang,'lbl_al')]]}/>
         </FormRow>
-        <FormRow label={Tp(lang,'lbl_cable_topology')}>
+        <FormRow label={Tp(lang,'lbl_cable_topology')} field="cable_topology">
           <SelectInput value={topology} onChange={x=>set('cable_topology',x)}
             options={CTCalc.cableRes.listTopologies().map(t=>[t.id, lang==='da'?t.label_da:t.label_en])}/>
         </FormRow>
-        <WiringDiagram lang={lang} topology={topology} calcType={calcType}/>
+        {topology && <WiringDiagram lang={lang} topology={topology} calcType={calcType}/>}
+        {attached && (
+          <FormRow label={Tp(lang,attached.label)} unit="Ω" field="attached_resistor">
+            <NumInput value={v.attached_resistor} onChange={x=>set('attached_resistor',x)} min={0} max={attached.max} step={0.01}/>
+          </FormRow>
+        )}
       </div>
     </SectionCard>
   );
@@ -63,19 +71,23 @@ function TypeSelector({ lang, type, setType }) {
 }
 
 // ── System Data Panel ────────────────────────────────────────────────────
+// No default values: every field starts blank and is marked until entered
+// (CTRequired.system); no core is calculated before the station data is complete.
 function SystemPanel({ lang, v, onChange }) {
   const set = (k,x) => onChange({...v,[k]:x});
+  const chk = useMemo(() => ({ ...CTRequired.system(v), lang }), [v, lang]);
   return (
-    <SectionCard title={Tp(lang,'section_system')} defaultOpen>
+    <InputCheck.Provider value={chk}>
+    <SectionCard title={Tp(lang,'section_system')} defaultOpen section="station">
       <div style={{paddingTop:8}}>
         <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-          <FormRow label={Tp(lang,'lbl_station_name')}>
+          <FormRow label={Tp(lang,'lbl_station_name')} field="station_name">
             <input type="text" value={v.station_name||''} onChange={e=>set('station_name',e.target.value)}
               placeholder={Tp(lang,'placeholder_name')}
               style={{background:'var(--surface-2)',border:'1px solid var(--border-2)',color:'var(--text)',
                       borderRadius:5,padding:'5px 8px',fontFamily:'var(--font-body)',fontSize:12,width:'100%',outline:'none'}}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_station_abbr')}>
+          <FormRow label={Tp(lang,'lbl_station_abbr')} field="station_abbr">
             <input type="text" value={v.station_abbr||''} maxLength={12}
               onChange={e=>set('station_abbr',e.target.value.toUpperCase())}
               placeholder={Tp(lang,'placeholder_abbr')}
@@ -83,19 +95,19 @@ function SystemPanel({ lang, v, onChange }) {
                       borderRadius:5,padding:'5px 8px',fontFamily:'var(--font-mono)',fontSize:12,width:'100%',outline:'none',letterSpacing:'0.08em'}}/>
           </FormRow>
         </div>
-        <FormRow label={Tp(lang,'lbl_voltage')} unit="kV">
-          <NumInput value={v.voltage??132} onChange={x=>set('voltage',x)} min={0} max={1200}/>
+        <FormRow label={Tp(lang,'lbl_voltage')} unit="kV" field="voltage">
+          <NumInput value={v.voltage} onChange={x=>set('voltage',x)} min={0} max={1200}/>
         </FormRow>
-        <FormRow label={Tp(lang,'lbl_freq')} unit="Hz">
-          <SelectInput value={v.freq??'50'} onChange={x=>set('freq',x)} options={[['50','50 Hz'],['60','60 Hz']]}/>
+        <FormRow label={Tp(lang,'lbl_freq')} unit="Hz" field="freq">
+          <SelectInput value={v.freq} onChange={x=>set('freq',x)} options={[['50','50 Hz'],['60','60 Hz']]}/>
         </FormRow>
-        <FormRow label={Tp(lang,'lbl_isc_sys')} unit="kA">
-          <NumInput value={v.isc_sys??20} onChange={x=>set('isc_sys',x)} min={0} max={200} step={0.1}/>
+        <FormRow label={Tp(lang,'lbl_isc_sys')} unit="kA" field="isc_sys">
+          <NumInput value={v.isc_sys} onChange={x=>set('isc_sys',x)} min={0} max={200} step={0.1}/>
         </FormRow>
         <div style={{display:'flex',alignItems:'flex-end',gap:10}}>
           <div style={{flex:1}}>
-            <FormRow label={Tp(lang,'lbl_tp')} unit="ms">
-              <NumInput value={v.tp??100} onChange={x=>set('tp',x)} min={1} max={500} step={1}/>
+            <FormRow label={Tp(lang,'lbl_tp')} unit="ms" field="tp">
+              <NumInput value={v.tp} onChange={x=>set('tp',x)} min={1} max={500} step={1}/>
             </FormRow>
           </div>
           <label style={{display:'flex',alignItems:'center',gap:5,cursor:'pointer',paddingBottom:7,flexShrink:0}}>
@@ -103,15 +115,16 @@ function SystemPanel({ lang, v, onChange }) {
             <span style={{fontSize:11,color:'var(--text-dim)'}}>{Tp(lang,'lbl_tp_confirm')}</span>
           </label>
         </div>
-        <FormRow label={Tp(lang,'lbl_cable_r_method')} wide>
-          <SelectInput value={CTCalc.cableRes.resolveMethod(v)} onChange={x=>set('cable_r_method',x)}
+        <FormRow label={Tp(lang,'lbl_cable_r_method')} wide field="cable_r_method">
+          <SelectInput value={v.cable_r_method} onChange={x=>set('cable_r_method',x)}
             options={CTCalc.cableRes.listMethods().map(m=>[m.id, lang==='da'?m.label_da:m.label_en])}/>
         </FormRow>
-        <FormRow label={Tp(lang,'lbl_project_cable_temp')} unit="°C">
-          <NumInput value={v.cable_temp??CTCalc.cableRes.DEFAULT_TEMP_C} onChange={x=>set('cable_temp',x)} min={-20} max={90} step={1}/>
+        <FormRow label={Tp(lang,'lbl_project_cable_temp')} unit="°C" field="cable_temp">
+          <NumInput value={v.cable_temp} onChange={x=>set('cable_temp',x)} min={-20} max={90} step={1}/>
         </FormRow>
       </div>
     </SectionCard>
+    </InputCheck.Provider>
   );
 }
 
@@ -119,33 +132,17 @@ function SystemPanel({ lang, v, onChange }) {
 function OvercurrentInputs({ lang, v, set, onChange }) {
   return (
     <>
-      <SectionCard title={Tp(lang,'section_ct')} defaultOpen accent>
+      <SectionCard title={Tp(lang,'section_ct')} defaultOpen accent section="ct">
         <div style={{paddingTop:8}}>
           <CTClassRow lang={lang} v={v} onChange={onChange}/>
-          <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-            <FormRow label={Tp(lang,'lbl_Ip')} unit="A">
-              <NumInput value={v.Ip??2000} onChange={x=>set('Ip',x)} min={1} max={100000}/>
-            </FormRow>
-            <FormRow label={Tp(lang,'lbl_Is')} unit="A">
-              <SelectInput value={v.Is??1} onChange={x=>set('Is',parseFloat(x))} options={[['1','1 A'],['5','5 A']]}/>
-            </FormRow>
-          </div>
-          <FormRow label={Tp(lang,'lbl_rct')} unit="Ω">
-            <NumInput value={v.rct??4} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
+          <PrimarySecondaryRow lang={lang} v={v} set={set}/>
+          <FormRow label={Tp(lang,'lbl_rct')} unit="Ω" field="rct">
+            <NumInput value={v.rct} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_burden')} unit="VA">
-            <NumInput value={v.burden??30} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
+          <FormRow label={Tp(lang,'lbl_burden')} unit="VA" field="burden">
+            <NumInput value={v.burden} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
           </FormRow>
-          <div style={{marginTop:11,display:'flex',alignItems:'center',gap:7}}>
-            <label style={{display:'flex',alignItems:'center',gap:5,cursor:'pointer'}}>
-              <input type="checkbox" checked={!!v.is_px} onChange={e=>set('is_px',e.target.checked)}/>
-              <span style={{fontSize:12,color:'var(--text-dim)'}}>{Tp(lang,'lbl_is_px')}</span>
-            </label>
-          </div>
-          {v.is_px
-            ? <FormRow label={Tp(lang,'lbl_vk')} unit="V"><NumInput value={v.vk??200} onChange={x=>set('vk',x)} min={0} max={10000}/></FormRow>
-            : <FormRow label={Tp(lang,'lbl_alf')}><NumInput value={ctAlfUsed(v)} onChange={x=>onChange(withAlf(v,x))} min={1} max={200} step={1}/></FormRow>
-          }
+          <AlfVkRow lang={lang} v={v} set={set} onChange={onChange}/>
           <div style={{fontSize:11,color:'var(--text-muted)',fontFamily:'var(--font-mono)',marginTop:6}}>Isc max: from Station Data (Ik max)</div>
         </div>
       </SectionCard>
@@ -156,44 +153,128 @@ function OvercurrentInputs({ lang, v, set, onChange }) {
 }
 
 // ── Metering Input Panel ─────────────────────────────────────────────────
-function MeteringInputs({ lang, v, set }) {
+// Issue #125: each value in the card of the equipment it belongs to — the CT
+// nameplate here (FS is a CT rating), the meter's burden and Fmin in the
+// Meter / Relay / IED card, the attached resistor with the cable.
+const MT_CLASSES = CTRequired.MT_CLASSES;
+const noteSt = { fontSize:11, color:'var(--text-muted)', fontFamily:'var(--font-mono)', marginTop:6 };
+function MeteringInputs({ lang, v, set, onChange }) {
+  const fromClass = MT_CLASSES.includes(v.mt_class);
   return (
     <>
-      <SectionCard title={Tp(lang,'section_ct') + ' — ' + Tp(lang,'ct_type_metering')} defaultOpen accent>
+      <SectionCard title={Tp(lang,'section_ct') + ' — ' + Tp(lang,'ct_type_metering')} defaultOpen accent section="ct">
         <div style={{paddingTop:8}}>
-          <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-            <FormRow label={Tp(lang,'lbl_Ip')} unit="A">
-              <NumInput value={v.Ip??1000} onChange={x=>set('Ip',x)} min={1} max={100000}/>
-            </FormRow>
-            <FormRow label={Tp(lang,'lbl_Is')} unit="A">
-              <SelectInput value={v.Is??1} onChange={x=>set('Is',parseFloat(x))} options={[['1','1 A'],['5','5 A']]}/>
-            </FormRow>
+          <PrimarySecondaryRow lang={lang} v={v} set={set}/>
+          <FormRow label={Tp(lang,'lbl_rct')} unit="Ω" field="rct">
+            <NumInput value={v.rct} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
+          </FormRow>
+          <FormRow label={Tp(lang,'lbl_burden')} unit="VA" field="burden">
+            <NumInput value={v.burden} onChange={x=>set('burden',x)} min={0} max={100} step={0.1}/>
+          </FormRow>
+          <FormRow label={Tp(lang,'lbl_mt_class')} field="mt_class">
+            <SelectInput value={v.mt_class} onChange={x=>set('mt_class',x)}
+              options={[['custom', Tp(lang,'mt_class_custom')], ...MT_CLASSES.map(c=>[c,c])]}/>
+          </FormRow>
+          <FormRow label={Tp(lang,'lbl_fs')} field="fs_factor">
+            <NumInput value={v.fs_factor} onChange={x=>set('fs_factor',x)} min={1} max={50} step={1}/>
+          </FormRow>
+          <div style={noteSt}>{Tp(lang,'fs_note')}</div>
+          <div style={{marginTop:11,display:'flex',alignItems:'center',gap:7}}>
+            <label style={{display:'flex',alignItems:'center',gap:5,cursor:'pointer'}}>
+              <input type="checkbox" data-testid="mt-extended-range" checked={!!v.extended_burden_range}
+                onChange={e=>set('extended_burden_range',e.target.checked)}/>
+              <span style={{fontSize:12,color:'var(--text-dim)'}}>{Tp(lang,'lbl_extended_range')}</span>
+            </label>
           </div>
-          <FormRow label={Tp(lang,'lbl_rct')} unit="Ω">
-            <NumInput value={v.rct??2} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
-          </FormRow>
-          <FormRow label={Tp(lang,'lbl_burden')} unit="VA">
-            <NumInput value={v.burden??5} onChange={x=>set('burden',x)} min={0} max={100} step={0.1}/>
-          </FormRow>
-          <FormRow label={Tp(lang,'lbl_fs')}>
-            <NumInput value={v.fs_factor??5} onChange={x=>set('fs_factor',x)} min={1} max={50} step={1}/>
-          </FormRow>
-          <FormRow label={Tp(lang,'lbl_fmin')}>
-            <NumInput value={v.min_safety_factor??5} onChange={x=>set('min_safety_factor',x)} min={1} max={50} step={1}/>
-          </FormRow>
-          <FormRow label={Tp(lang,'lbl_min_burden_pct')} unit="%">
-            <NumInput value={v.min_burden_percent??25} onChange={x=>set('min_burden_percent',x)} min={0} max={100} step={1}/>
-          </FormRow>
-          <FormRow label={Tp(lang,'lbl_device_burden')} unit="VA">
-            <NumInput value={v.device_burden??0} onChange={x=>set('device_burden',x)} min={0} max={100} step={0.1}/>
-          </FormRow>
-          <FormRow label={Tp(lang,'lbl_attached_r')} unit="Ω">
-            <NumInput value={v.attached_resistor??0} onChange={x=>set('attached_resistor',x)} min={0} max={100} step={0.01}/>
-          </FormRow>
+          <div style={noteSt}>{Tp(lang,'extended_range_note')}</div>
+          {!v.extended_burden_range && <>
+            <FormRow label={Tp(lang,'lbl_min_burden_pct')} unit="%" field="min_burden_percent">
+              <NumInput value={fromClass ? CTMetering.sminPercent(v) : v.min_burden_percent}
+                onChange={x=>set('min_burden_percent',x)} min={0} max={100} step={1} readOnly={fromClass}/>
+            </FormRow>
+            {fromClass && <div style={noteSt}>{Tp(lang,'smin_from_class')}</div>}
+          </>}
         </div>
       </SectionCard>
-      <CableSection lang={lang} calcType="metering" v={v} set={(k,x)=>set(k,x)}/>
+      <MeterSection lang={lang} v={v} set={set} onChange={onChange} calcType="metering"/>
+      <CableSection lang={lang} calcType="metering" v={v} set={(k,x)=>set(k,x)}
+        attached={{ label:'lbl_attached_r', max:100 }}/>
     </>
+  );
+}
+
+// ── Meter / Relay / IED section (metering CT and VT cores) ────────────────
+// Issue #125. The same card position and look as RelaySection on the
+// protection panels. A preset (CTMeterDB, calc/meters.js) fills the meter
+// burden and, on a metering core, Fmin; unlike the relay database the values
+// stay editable, and a changed value keeps the model with a "modified from
+// preset" note. On a VT core the supply mode fills the burden (aux 0.1 VA,
+// self-powered 6 VA per phase), also editable.
+// No default values (calc/required.js): nothing is pre-picked. A picked
+// preset fills the burden and Fmin (on a VT core for the supply mode, once
+// that is picked); a meter without a preset is typed.
+function MeterSection({ lang, v, set, onChange, calcType }) {
+  const Tl = k => CTSI18n.t(lang, k);
+  const fmt = (k, o) => Object.keys(o).reduce((t, x) => t.replace(`{${x}}`, o[x]), Tl(k));
+  const isVt = calcType === 'vt';
+  const mode = v.vt_supply_mode === 'aux' || v.vt_supply_mode === 'self' ? v.vt_supply_mode : null;
+  const preset = CTMeterDB.byId(v.meter_model);
+  const dbMfrs = CTMeterDB.manufacturers();
+  const mfr = v.meter_manufacturer || '';
+  const mfrs = [...new Set([...dbMfrs, ...(mfr ? [mfr] : []), 'Other'])];
+  const models = mfr ? CTMeterDB.list(mfr) : [];
+  const modified = CTMeterDB.modifiedFields(v, calcType);
+  const presetFor = (id, m) => (!CTMeterDB.byId(id) || (isVt && !m)) ? {} : CTMeterDB.presetValues(id, calcType, m);
+  const pickMfr = m => { const n = { ...v, meter_manufacturer:m }; delete n.meter_model; onChange(n); };
+  const pickModel = id => {
+    const n = { ...v };
+    if (!id) { delete n.meter_model; onChange(n); return; }
+    onChange({ ...n, meter_model:id, meter_manufacturer:CTMeterDB.byId(id).manufacturer, ...presetFor(id, mode) });
+  };
+  const pickMode = m => onChange({ ...v, vt_supply_mode:m, ...presetFor(v.meter_model, m) });
+  const burden = isVt ? CTVT.migrateInputs(v).device_burden : v.device_burden;
+  return (
+    <SectionCard title={Tl('section_meter')} defaultOpen section="meter">
+      <div data-testid="meter-section" style={{paddingTop:8}}>
+        <FormRow label={Tl('lbl_meter_manufacturer')} field="meter_manufacturer">
+          <SelectInput value={mfr} onChange={pickMfr} options={mfrs.map(m=>[m,m])}/>
+        </FormRow>
+        <FormRow label={Tl('lbl_meter_model')} wide>
+          <SelectInput value={preset ? v.meter_model : ''} onChange={pickModel}
+            options={[['', Tl('meter_custom')], ...models.map(m=>[m.id, m.model])]}/>
+        </FormRow>
+        {!preset && (
+          <FormRow label={Tl('lbl_meter_type')}>
+            <TextInput value={v.meter_type||''} onChange={x=>set('meter_type',x)} placeholder="e.g. Prometer 100"/>
+          </FormRow>
+        )}
+        <FormRow label={Tl('lbl_meter_tag')}>
+          <TextInput value={v.meter_tag||''} onChange={x=>set('meter_tag',x)} placeholder="e.g. M1"/>
+        </FormRow>
+        {isVt && (
+          <FormRow label={Tl('lbl_vt_supply')} wide field="vt_supply_mode">
+            <SelectInput value={mode} onChange={pickMode}
+              options={[['aux', Tl('vt_supply_aux')], ['self', Tl('vt_supply_self')]]}/>
+          </FormRow>
+        )}
+        <FormRow label={Tl('lbl_meter_burden')} unit="VA/ph" field="device_burden">
+          <NumInput value={burden} onChange={x=>set('device_burden',x)} min={0} max={isVt ? 1000 : 100} step={0.1}/>
+        </FormRow>
+        {!isVt && <>
+          <FormRow label={Tl('lbl_meter_fmin')} field="min_safety_factor">
+            <NumInput value={v.min_safety_factor} onChange={x=>set('min_safety_factor',x)}
+              min={1} max={100} step={1}/>
+          </FormRow>
+          <div style={noteSt}>{Tl('meter_fmin_note')}</div>
+        </>}
+        {isVt && <div style={noteSt}>{Tl('vt_supply_note')}</div>}
+        {preset && (
+          <div data-testid={modified.length ? 'meter-modified' : 'meter-from-preset'} style={noteSt}>
+            {fmt(modified.length ? 'meter_modified' : 'meter_preset_note', { model: `${preset.manufacturer} ${preset.model}` })}
+          </div>
+        )}
+      </div>
+    </SectionCard>
   );
 }
 
@@ -201,24 +282,17 @@ function MeteringInputs({ lang, v, set }) {
 function BusbarInputs({ lang, v, set, onChange }) {
   return (
     <>
-      <SectionCard title={Tp(lang,'section_ct') + ' — ' + Tp(lang,'ct_type_busbar')} defaultOpen accent>
+      <SectionCard title={Tp(lang,'section_ct') + ' — ' + Tp(lang,'ct_type_busbar')} defaultOpen accent section="ct">
         <div style={{paddingTop:8}}>
-          <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-            <FormRow label={Tp(lang,'lbl_Ip')} unit="A">
-              <NumInput value={v.Ip??2000} onChange={x=>set('Ip',x)} min={1} max={100000}/>
-            </FormRow>
-            <FormRow label={Tp(lang,'lbl_Is')} unit="A">
-              <SelectInput value={v.Is??1} onChange={x=>set('Is',parseFloat(x))} options={[['1','1 A'],['5','5 A']]}/>
-            </FormRow>
-          </div>
-          <FormRow label={Tp(lang,'lbl_rct')} unit="Ω">
-            <NumInput value={v.rct??4} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
+          <PrimarySecondaryRow lang={lang} v={v} set={set}/>
+          <FormRow label={Tp(lang,'lbl_rct')} unit="Ω" field="rct">
+            <NumInput value={v.rct} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_burden')} unit="VA">
-            <NumInput value={v.burden??30} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
+          <FormRow label={Tp(lang,'lbl_burden')} unit="VA" field="burden">
+            <NumInput value={v.burden} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_alf')}>
-            <NumInput value={v.alf??20} onChange={x=>set('alf',x)} min={1} max={200} step={1}/>
+          <FormRow label={Tp(lang,'lbl_alf')} field="alf">
+            <NumInput value={v.alf} onChange={x=>set('alf',x)} min={1} max={200} step={1}/>
           </FormRow>
         </div>
       </SectionCard>
@@ -229,48 +303,62 @@ function BusbarInputs({ lang, v, set, onChange }) {
 }
 
 // ── CT Class selector ────────────────────────────────────────────────────
-const CT_FAMILIES = ['5P','5PR','10P','10PR','PX','TPX','TPY','TPZ'];
+const CT_FAMILIES = CTRequired.CT_FAMILIES;
 const CT_ALF_OPTS = [5,10,15,20,30,40,50];
 
-// One ALF for the class row and the ALF field (issue #88): the ALF the
-// calculation uses (CTBase.getAlfOrVk: the core's alf, else its default 30).
-// Typing an ALF that is one of the select's options also sets ct_class_alf;
-// any other ALF is added to the select, and the class label shows it.
-const ctAlfUsed = v => CTBase.getAlfOrVk({ ...v, is_px:false }).alf;
+// One ALF for the class row and the ALF field (issue #88): the core's alf,
+// blank until entered (no default). Typing an ALF that is one of the select's
+// options also sets ct_class_alf; any other ALF is added to the select, and
+// the class label shows it.
 const withAlf = (v, a) => CT_ALF_OPTS.includes(a) ? { ...v, alf:a, ct_class_alf:a } : { ...v, alf:a };
 
+// The class decides how the core is specified (ctvt_dim data_io.py): PX, TPX,
+// TPY and TPZ by Vk (no ALF select; AlfVkRow shows the Vk field), so picking
+// a class also sets is_px (PORTING_PLAN.md §10.6 F-TP-PX). A core stored
+// without a class shows PX when is_px is set (CTRequired.ctFamily); otherwise
+// no class is picked until the user picks one.
 function CTClassRow({ lang, v, onChange }) {
-  const family = v.ct_class_family || '5P';
-  const alfVal = ctAlfUsed(v);
-  const alfOpts = CT_ALF_OPTS.includes(alfVal) ? CT_ALF_OPTS : [...CT_ALF_OPTS, alfVal].sort((a,b)=>a-b);
-  const isPxFamily = ['PX','TPX','TPY','TPZ'].includes(family);
+  const chk = React.useContext(InputCheck);
+  const family = CTRequired.ctFamily(v);
+  const alfVal = v.alf ?? null;
+  const alfOpts = alfVal == null || CT_ALF_OPTS.includes(alfVal) ? CT_ALF_OPTS : [...CT_ALF_OPTS, alfVal].sort((a,b)=>a-b);
+  const isPxFamily = !!family && CTBaseClasses.isVkClass(family);
+  const ph = CTSI18n.t(lang, 'select_ph');
+  const famMark = chk?.fields.ct_class_family;
+  const alfMark = !isPxFamily && chk?.fields.alf;
   return (
-    <div style={{marginTop:10,padding:'8px 10px',background:'var(--surface-3)',borderRadius:6,
+    <div data-field="ct_class_family" data-missing={famMark || undefined}
+      style={{marginTop:10,padding:'8px 10px',background:'var(--surface-3)',borderRadius:6,
                   border:'1px solid var(--border)'}}>
       <div style={{fontSize:10,fontFamily:'var(--font-mono)',color:'var(--text-muted)',
                      textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:6}}>
         CT Class
+        {(famMark || alfMark) && <MissingMark reason={famMark === 'invalid' || alfMark === 'invalid' ? 'invalid' : 'missing'} lang={lang}/>}
       </div>
       <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
-        <select value={family} style={{...inputSt,width:'auto',minWidth:80}}
+        <select value={family ?? ''} style={{...inputSt,width:'auto',minWidth:80}}
           onChange={e=>{
             const fam = e.target.value;
-            onChange({...v, ct_class_family:fam, is_px:fam==='PX'});
+            onChange({...v, ct_class_family:fam, is_px:CTBaseClasses.isVkClass(fam)});
           }}>
+          {!family && <option value="" disabled>{ph}</option>}
           {CT_FAMILIES.map(f=><option key={f} value={f}>{f}</option>)}
         </select>
-        {!isPxFamily && (
-          <select value={alfVal} style={{...inputSt,width:'auto',minWidth:60}}
+        {family && !isPxFamily && (
+          <select value={alfVal ?? ''} style={{...inputSt,width:'auto',minWidth:60}}
             onChange={e=>{
               const a = parseInt(e.target.value);
               onChange({...v, ct_class_alf:a, alf:a});
             }}>
+            {alfVal == null && <option value="" disabled>ALF</option>}
             {alfOpts.map(a=><option key={a} value={a}>{a}</option>)}
           </select>
         )}
-        <span data-testid="ct-class-label" style={{fontFamily:'var(--font-mono)',fontSize:13,fontWeight:700,color:'var(--accent)'}}>
-          {isPxFamily ? family : `${family}${alfVal}`}
-        </span>
+        {family && (
+          <span data-testid="ct-class-label" style={{fontFamily:'var(--font-mono)',fontSize:13,fontWeight:700,color:'var(--accent)'}}>
+            {isPxFamily ? family : `${family}${alfVal ?? ''}`}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -283,10 +371,9 @@ function CTClassRow({ lang, v, onChange }) {
 // manufacturer, model, SR for the core's Isr and t_al; CoreInputPanel runs
 // CTRelayDB.apply on every change, so a new Isr brings its burden. Those
 // fields are then read-only; "Manual entry" (no relay_model) types them.
-// SR defaults per calc type are the module defaults the panels always showed.
+// No default values: the manufacturer and SR start blank (calc/required.js);
+// with auto-reclosure on, t_al is required too.
 const RELAY_MANUFACTURERS = ['Siemens','ABB','GE','SEL','Sprecher','Schweitzer','Areva','Other'];
-const RELAY_BURDEN_DEFAULT = { overcurrent:0.05, busbar:0.02 };
-const relayBurdenDefault = calcType => RELAY_BURDEN_DEFAULT[calcType] ?? 0.1;
 const RELAY_TAL_TEXT = {
   distance:  ['relay_tal_ph_distance', 'relay_tal_note_distance'],
   line_diff: ['relay_tal_ph_ar',       'relay_tal_note_line_diff'],
@@ -295,11 +382,11 @@ function RelaySection({ lang, v, set, onChange, calcType }) {
   const Tl = k => CTSI18n.t(lang, k);
   const fmt = (k, o) => Object.keys(o).reduce((t, x) => t.replace(`{${x}}`, o[x]), Tl(k));
   const setOpt = (k,x) => { const n={...v}; if (x==null) delete n[k]; else n[k]=x; onChange(n); };
-  const mfr = v.relay_manufacturer || 'Siemens';
-  const mfrs = [...new Set([...CTRelayDB.manufacturers(), ...RELAY_MANUFACTURERS])];
-  const ieds = CTRelayDB.list(mfr, calcType);
+  const mfr = v.relay_manufacturer || '';
+  const mfrs = [...new Set([...CTRelayDB.manufacturers(), ...RELAY_MANUFACTURERS, ...(mfr ? [mfr] : [])])];
+  const ieds = mfr ? CTRelayDB.list(mfr, calcType) : [];
   const hit = CTRelayDB.lookup(v.relay_model, v.Is);
-  const Is = Number(v.Is ?? 1);
+  const Is = v.Is ?? '\u2014';
   const [talPh, talNote] = RELAY_TAL_TEXT[calcType] || ['relay_tal_ph_other', 'relay_tal_note_other'];
   const pickMfr = m => { const n = { ...v, relay_manufacturer:m }; delete n.relay_model; onChange(n); };
   const pickIed = name => {
@@ -309,12 +396,12 @@ function RelaySection({ lang, v, set, onChange, calcType }) {
   };
   const note = { fontSize:11, color:'var(--text-muted)', fontFamily:'var(--font-mono)', marginTop:6 };
   return (
-    <SectionCard title={Tl('section_relay')} defaultOpen>
+    <SectionCard title={Tl('section_relay')} defaultOpen section="relay">
       <div style={{paddingTop:8}}>
-        <FormRow label={Tl('lbl_relay_manufacturer')}>
+        <FormRow label={Tl('lbl_relay_manufacturer')} field="relay_manufacturer">
           <SelectInput value={mfr} onChange={pickMfr} options={mfrs.map(m=>[m,m])}/>
         </FormRow>
-        {ieds.length > 0 ? (
+        {!mfr ? null : ieds.length > 0 ? (
           <FormRow label={Tl('lbl_relay_ied')} wide>
             <SelectInput value={hit ? v.relay_model : ''} onChange={pickIed}
               options={[['', Tl('relay_ied_manual')], ...ieds.map(r=>[r.name, r.name])]}/>
@@ -331,11 +418,11 @@ function RelaySection({ lang, v, set, onChange, calcType }) {
         <FormRow label={Tl('lbl_relay_tag')}>
           <TextInput value={v.relay_tag||''} onChange={x=>set('relay_tag',x)} placeholder="e.g. P1-21"/>
         </FormRow>
-        <FormRow label={Tl('lbl_relay_burden')} unit="VA">
-          <NumInput value={v.relay_burden ?? relayBurdenDefault(calcType)} onChange={x=>set('relay_burden',x)}
+        <FormRow label={Tl('lbl_relay_burden')} unit="VA" field="relay_burden">
+          <NumInput value={v.relay_burden} onChange={x=>set('relay_burden',x)}
             min={0} max={10} step={0.01} readOnly={!!hit && hit.burden_va != null}/>
         </FormRow>
-        <FormRow label={Tl('lbl_relay_tal')} unit="ms">
+        <FormRow label={Tl('lbl_relay_tal')} unit="ms" field="relay_tal">
           <OptNumInput value={v.relay_tal} onChange={x=>setOpt('relay_tal',x)} min={10} max={500} step={5}
             placeholder={Tl(talPh)} readOnly={!!hit}/>
         </FormRow>
@@ -352,26 +439,24 @@ function RelaySection({ lang, v, set, onChange, calcType }) {
   );
 }
 
-// ── Shared PX / ALF toggle ───────────────────────────────────────────────
-function PxAlfRow({ lang, v, set, onChange }) {
+// ── ALF or Vk, as the CT class row says ──────────────────────────────────
+// PX, TPX, TPY and TPZ are specified by their knee point voltage (ctvt_dim
+// data_io.py: the Vk field, no ALF); the other classes by ALF. There is no
+// separate "PX class CT" box: the class decides (PORTING_PLAN.md §10.6
+// F-TP-PX). The Vk of a Vk class is required like the ALF of the others
+// (calc/required.js); no class picked yet shows the ALF field.
+function AlfVkRow({ lang, v, set, onChange }) {
   const Tl = k => CTSI18n.t(lang, k);
+  const family = CTRequired.ctFamily(v);
+  if (!family || !CTBaseClasses.isVkClass(family)) return (
+    <FormRow label={Tl('lbl_alf')} field="alf">
+      <NumInput value={v.alf} onChange={x=>onChange(withAlf(v,x))} min={1} max={200} step={1}/>
+    </FormRow>
+  );
   return (
-    <>
-      <div style={{marginTop:11,display:'flex',alignItems:'center',gap:7}}>
-        <label style={{display:'flex',alignItems:'center',gap:5,cursor:'pointer'}}>
-          <input type="checkbox" checked={!!v.is_px} onChange={e=>set('is_px',e.target.checked)}/>
-          <span style={{fontSize:12,color:'var(--text-dim)'}}>{Tl('lbl_is_px')}</span>
-        </label>
-      </div>
-      {v.is_px
-        ? <FormRow label={Tl('lbl_vk')} unit="V">
-            <NumInput value={v.vk??200} onChange={x=>set('vk',x)} min={0} max={10000}/>
-          </FormRow>
-        : <FormRow label={Tl('lbl_alf')}>
-            <NumInput value={ctAlfUsed(v)} onChange={x=>onChange(withAlf(v,x))} min={1} max={200} step={1}/>
-          </FormRow>
-      }
-    </>
+    <FormRow label={Tl('lbl_vk')} unit="V" field="vk">
+      <NumInput value={v.vk} onChange={x=>set('vk',x)} min={0} max={10000}/>
+    </FormRow>
   );
 }
 
@@ -380,11 +465,11 @@ function PrimarySecondaryRow({ lang, v, set }) {
   const Tl = k => CTSI18n.t(lang, k);
   return (
     <div className="ctsizer-pair" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-      <FormRow label={Tl('lbl_Ip')} unit="A">
-        <NumInput value={v.Ip??2000} onChange={x=>set('Ip',x)} min={1} max={100000}/>
+      <FormRow label={Tl('lbl_Ip')} unit="A" field="Ip">
+        <NumInput value={v.Ip} onChange={x=>set('Ip',x)} min={1} max={100000}/>
       </FormRow>
-      <FormRow label={Tl('lbl_Is')} unit="A">
-        <SelectInput value={v.Is??1} onChange={x=>set('Is',parseFloat(x))} options={[['1','1 A'],['5','5 A']]}/>
+      <FormRow label={Tl('lbl_Is')} unit="A" field="Is">
+        <SelectInput value={v.Is} onChange={x=>set('Is',parseFloat(x))} options={[['1','1 A'],['5','5 A']]}/>
       </FormRow>
     </div>
   );
@@ -412,33 +497,27 @@ const AR_NOTE = {
   line_diff: 'EAL_AR = Kssc·Ktd(C-O-C-O)·(Rct+Rb)·Isr, Kssc = It,max / Ipn (through fault). '
     + 'Proposed Vk (EALF, or Vk for PX) < EAL_AR sets the core NOT OK. No ODE check.',
 };
-const AR_TS_PLACEHOLDER = {
-  distance: 'blank: 0.05 (Ktd) / 1.0 (ODE)',
-  line_diff: 'blank: 0.05 (Ktd)',
-};
 function ArSection({ lang, v, onChange, set, calcType, systemVals }) {
   const [showTsTable, setShowTsTable] = useState(false);
   const setOpt = (k,x) => { const n={...v}; if (x==null) delete n[k]; else n[k]=x; onChange(n); };
   const ar = !!v.auto_reclose_enabled;
-  const tsMode = v.ar_ts_mode === 'table' ? 'table' : 'manual';
-  const tsEst = CTAutoReclosure.estimateTs(v.ct_class_family || '5P', systemVals?.voltage);
-  // Enabling AR stores the AR inputs as ctvt_dim's GUI does: t' 0.1 s,
-  // tfr 0.4 s, Ktf preset iec_default, and Ts from the table (a core that
-  // already has an ar_ts keeps it, manual); values already stored are kept.
-  const toggleAr = on => onChange(on
-    ? { ar_t_prime:0.1, ar_tfr:0.4, ar_ktf_preset:'iec_default',
-        ar_ts_mode: v.ar_ts != null ? 'manual' : 'table', ...v, auto_reclose_enabled:true }
-    : { ...v, auto_reclose_enabled:false });
-  // Table → manual starts from the table value; manual → table drops ar_ts.
+  const tsMode = CTRequired.arTsMode(v);
+  const family = CTRequired.ctFamily(v);
+  const tsEst = family && systemVals?.voltage != null ? CTAutoReclosure.estimateTs(family, systemVals.voltage) : null;
+  // No defaults (calc/required.js): enabling AR stores nothing else; t', tfr,
+  // the Ts source and the Ktf preset are entered by the user (values already
+  // stored are kept).
+  const toggleAr = on => onChange({ ...v, auto_reclose_enabled:on });
+  // Manual → table drops the typed ar_ts; table → manual leaves Ts to type.
   const setTsMode = mode => {
     const n = { ...v, ar_ts_mode:mode };
-    if (mode === 'manual') n.ar_ts = tsEst.ts; else delete n.ar_ts;
+    if (mode === 'table') delete n.ar_ts;
     onChange(n);
   };
   const { BANDS, GROUPS } = CTAutoReclosure.TS_TABLE;
   const cell = { padding:'2px 5px', textAlign:'right', borderBottom:'1px solid var(--border)' };
   return (
-    <SectionCard title="C-O-C-O Auto-Reclosure (IEC 61869-100)" defaultOpen={false}>
+    <SectionCard title="C-O-C-O Auto-Reclosure (IEC 61869-100)" defaultOpen={false} section="ar">
       <div style={{paddingTop:8}}>
         <div style={{fontSize:11,color:'var(--text-muted)',fontFamily:'var(--font-mono)',marginBottom:8}}>
           {AR_NOTE[calcType]}
@@ -448,21 +527,24 @@ function ArSection({ lang, v, onChange, set, calcType, systemVals }) {
           <span style={{fontSize:12,color:'var(--text-dim)'}}>Enable auto-reclosure</span>
         </label>
         {ar && <>
-          <FormRow label="t' — Fault clearing time (1st fault)" unit="s">
-            <NumInput value={v.ar_t_prime??0.1} onChange={x=>set('ar_t_prime',x)} min={0} max={10} step={0.01}/>
+          <FormRow label="t' — Fault clearing time (1st fault)" unit="s" field="ar_t_prime">
+            <NumInput value={v.ar_t_prime} onChange={x=>set('ar_t_prime',x)} min={0} max={10} step={0.01}/>
           </FormRow>
-          <FormRow label="tfr — AR dead time" unit="s">
-            <NumInput value={v.ar_tfr??0.4} onChange={x=>set('ar_tfr',x)} min={0} max={60} step={0.05}/>
+          <FormRow label="tfr — AR dead time" unit="s" field="ar_tfr">
+            <NumInput value={v.ar_tfr} onChange={x=>set('ar_tfr',x)} min={0} max={60} step={0.05}/>
           </FormRow>
-          <FormRow label="Ts — Secondary time constant">
+          <FormRow label="Ts — Secondary time constant" field="ar_ts_mode">
             <SelectInput value={tsMode} onChange={setTsMode}
               options={[['table','From table (class, voltage)'],['manual','Manual']]}/>
           </FormRow>
-          {tsMode === 'manual' ? (
-            <FormRow label="Ts — manual value" unit="s">
-              <OptNumInput value={v.ar_ts} onChange={x=>setOpt('ar_ts',x)} min={0.01} max={30} step={0.1}
-                placeholder={AR_TS_PLACEHOLDER[calcType]}/>
+          {tsMode == null ? null : tsMode === 'manual' ? (
+            <FormRow label="Ts — manual value" unit="s" field="ar_ts">
+              <OptNumInput value={v.ar_ts} onChange={x=>setOpt('ar_ts',x)} min={0.01} max={30} step={0.1}/>
             </FormRow>
+          ) : !tsEst ? (
+            <div data-testid="ar-ts-table" style={{fontSize:11,fontFamily:'var(--font-mono)',color:'var(--text-muted)',margin:'2px 0 8px'}}>
+              {CTSI18n.t(lang,'ar_ts_table_needs')}
+            </div>
           ) : (
             <div data-testid="ar-ts-table" style={{fontSize:11,fontFamily:'var(--font-mono)',color:'var(--text-dim)',margin:'2px 0 8px'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
@@ -509,8 +591,8 @@ function ArSection({ lang, v, onChange, set, calcType, systemVals }) {
               )}
             </div>
           )}
-          <FormRow label="Ktf curve preset">
-            <SelectInput value={v.ar_ktf_preset??'iec_default'} onChange={x=>set('ar_ktf_preset',x)}
+          <FormRow label="Ktf curve preset" field="ar_ktf_preset">
+            <SelectInput value={v.ar_ktf_preset} onChange={x=>set('ar_ktf_preset',x)}
               options={KTF_PRESET_NAMES.map(n=>[n,n])}/>
           </FormRow>
         </>}
@@ -531,17 +613,17 @@ function DistanceInputs({ lang, v, set, onChange, systemVals }) {
   const setOpt = (k,x) => { const n={...v}; if (x==null) delete n[k]; else n[k]=x; onChange(n); };
   return (
     <>
-      <SectionCard title={`${Tl('section_ct')} — ${Tl('ct_type_distance')}`} defaultOpen accent>
+      <SectionCard title={`${Tl('section_ct')} — ${Tl('ct_type_distance')}`} defaultOpen accent section="ct">
         <div style={{paddingTop:8}}>
           <CTClassRow lang={lang} v={v} onChange={onChange}/>
           <PrimarySecondaryRow lang={lang} v={v} set={set}/>
-          <FormRow label={Tl('lbl_rct')} unit="Ω">
-            <NumInput value={v.rct??4} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
+          <FormRow label={Tl('lbl_rct')} unit="Ω" field="rct">
+            <NumInput value={v.rct} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
           </FormRow>
-          <FormRow label={Tl('lbl_burden')} unit="VA">
-            <NumInput value={v.burden??30} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
+          <FormRow label={Tl('lbl_burden')} unit="VA" field="burden">
+            <NumInput value={v.burden} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
           </FormRow>
-          <PxAlfRow lang={lang} v={v} set={set} onChange={onChange}/>
+          <AlfVkRow lang={lang} v={v} set={set} onChange={onChange}/>
         </div>
       </SectionCard>
       <RelaySection lang={lang} v={v} set={set} onChange={onChange} calcType="distance"/>
@@ -552,9 +634,8 @@ function DistanceInputs({ lang, v, set, onChange, systemVals }) {
   );
 } 
 // Line data of the protected line (issue #86), read by calc/distance/data.js:
-// R'L, X'L (primary Ω/km), lL (km) and the zone-1 factor Klim. A blank field
-// is not stored and the calculation uses its default (LINE_DEFAULTS), which
-// the placeholder shows and LineDataWarning flags.
+// R'L, X'L (primary Ω/km), lL (km) and the zone-1 factor Klim. No defaults:
+// each is required (calc/required.js) and marked until entered.
 const LINE_LIMITS = {
   r_per_km:      { min:0,    max:10,   step:0.0001 },
   x_per_km:      { min:0,    max:10,   step:0.001 },
@@ -565,15 +646,13 @@ function LineDataSection({ lang, v, setOpt, systemVals }) {
   const Tl = k => CTSI18n.t(lang, k);
   const fields = CTSReport.lineData(v, systemVals);
   return (
-    <SectionCard title={Tl('section_line_data')} defaultOpen>
+    <SectionCard title={Tl('section_line_data')} defaultOpen section="line">
       <div style={{paddingTop:8}}>
         {fields.map(f => (
-          <FormRow key={f.key} label={Tl(f.label)} unit={f.unit || undefined}>
-            <OptNumInput value={v[f.key]} onChange={x=>setOpt(f.key,x)} {...LINE_LIMITS[f.key]}
-              placeholder={Tl('line_default_ph').replace('{v}', CTDistance.data.LINE_DEFAULTS[f.key])}/>
+          <FormRow key={f.key} label={Tl(f.label)} unit={f.unit || undefined} field={f.key}>
+            <OptNumInput value={v[f.key]} onChange={x=>setOpt(f.key,x)} {...LINE_LIMITS[f.key]}/>
           </FormRow>
         ))}
-        <LineDataWarning lang={lang} v={v} systemVals={systemVals}/>
       </div>
     </SectionCard>
   );
@@ -600,44 +679,18 @@ function IedBadge({ ied }) {
   );
 }
 
-function LineDataWarning({ lang, v, systemVals }) {
-  const text = CTSReport.lineDataWarning(lang, v, systemVals);
-  if (!text) return null;
-  return (
-    <div data-testid="line-data-warning" style={{marginTop:8,padding:'6px 9px',borderRadius:5,fontSize:11,
-                  fontFamily:'var(--font-mono)',color:'var(--amber)',background:'var(--surface-3)',
-                  border:'1px solid var(--amber)'}}>
-      ⚠ {text}
-    </div>
-  );
-}
 
 // Isc,max,int — the internal (in-zone) fault current (issue #85). Entered in kA,
 // stored on the core as trafo_ik_max in A (the ctvt_dim key the calc reads).
-// Blank = not stored: the calc uses the project Ik max, which the placeholder
-// shows; with no project Ik max either, the core is not calculated and
-// IscIntWarning says so.
-function IscIntRow({ lang, v, setOpt, systemVals }) {
+// Required (calc/required.js): it is not taken from the project Ik max.
+function IscIntRow({ lang, v, setOpt }) {
   const Tl = k => CTSI18n.t(lang, k);
-  const proj = CTTransformerDiff.data.projectInternalFaultCurrent(systemVals || {});
   return (
-    <FormRow label={Tl('lbl_isc_int')} unit="kA">
+    <FormRow label={Tl('lbl_isc_int')} unit="kA" field="trafo_ik_max">
       <OptNumInput value={v.trafo_ik_max != null ? v.trafo_ik_max / 1000 : null}
         onChange={x=>setOpt('trafo_ik_max', x == null ? null : Math.round(x * 1000))}
-        min={0} max={200} step={0.1}
-        placeholder={proj != null ? Tl('isc_int_project_ph').replace('{v}', proj / 1000) : Tl('isc_int_required_ph')}/>
+        min={0} max={200} step={0.1}/>
     </FormRow>
-  );
-}
-function IscIntWarning({ lang, v, systemVals }) {
-  const text = CTSReport.iscIntWarning(lang, v, systemVals);
-  if (!text) return null;
-  return (
-    <div data-testid="isc-int-warning" style={{marginTop:8,padding:'6px 9px',borderRadius:5,fontSize:11,
-                  fontFamily:'var(--font-mono)',color:'var(--amber)',background:'var(--surface-3)',
-                  border:'1px solid var(--amber)'}}>
-      ⚠ {text}
-    </div>
   );
 }
 
@@ -646,42 +699,40 @@ function TransformerDiffInputs({ lang, v, set, onChange, systemVals }) {
   const setOpt = (k,x) => { const n={...v}; if (x==null) delete n[k]; else n[k]=x; onChange(n); };
   return (
     <>
-      <SectionCard title={`${Tl('section_ct')} — ${Tl('ct_type_transformer_diff')}`} defaultOpen accent>
+      <SectionCard title={`${Tl('section_ct')} — ${Tl('ct_type_transformer_diff')}`} defaultOpen accent section="ct">
         <div style={{paddingTop:8}}>
           <CTClassRow lang={lang} v={v} onChange={onChange}/>
           <PrimarySecondaryRow lang={lang} v={v} set={set}/>
-          <FormRow label={Tl('lbl_rct')} unit="Ω">
-            <NumInput value={v.rct??4} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
+          <FormRow label={Tl('lbl_rct')} unit="Ω" field="rct">
+            <NumInput value={v.rct} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
           </FormRow>
-          <FormRow label={Tl('lbl_burden')} unit="VA">
-            <NumInput value={v.burden??30} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
+          <FormRow label={Tl('lbl_burden')} unit="VA" field="burden">
+            <NumInput value={v.burden} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
           </FormRow>
-          <PxAlfRow lang={lang} v={v} set={set} onChange={onChange}/>
+          <AlfVkRow lang={lang} v={v} set={set} onChange={onChange}/>
         </div>
       </SectionCard>
-      {/* An unset field shows the value the calc uses for it
-          (transformer_diff/data.js applyBackwardsCompatibility, = ctvt_dim
-          data.py): 160 MVA, the project voltage, 14 %, inrush 8. */}
-      <SectionCard title="Transformer Data" defaultOpen>
+      {/* No defaults: every transformer value is entered (calc/required.js),
+          the winding voltage too (it is not the station voltage for an LV CT). */}
+      <SectionCard title="Transformer Data" defaultOpen section="trafo">
         <div style={{paddingTop:8}}>
-          <FormRow label="Rated power" unit="MVA">
-            <NumInput value={v.trafo_power_mva??160} onChange={x=>set('trafo_power_mva',x)} min={0.1} max={5000} step={1}/>
+          <FormRow label="Rated power" unit="MVA" field="trafo_power_mva">
+            <NumInput value={v.trafo_power_mva} onChange={x=>set('trafo_power_mva',x)} min={0.1} max={5000} step={1}/>
           </FormRow>
-          <FormRow label="Winding voltage (this CT)" unit="kV">
-            <NumInput value={v.trafo_voltage_kv??systemVals?.voltage??150} onChange={x=>set('trafo_voltage_kv',x)} min={0.1} max={1200} step={1}/>
+          <FormRow label="Winding voltage (this CT)" unit="kV" field="trafo_voltage_kv">
+            <NumInput value={v.trafo_voltage_kv} onChange={x=>set('trafo_voltage_kv',x)} min={0.1} max={1200} step={1}/>
           </FormRow>
-          <FormRow label="Short-circuit impedance" unit="%">
-            <NumInput value={v.trafo_z_percent??14} onChange={x=>set('trafo_z_percent',x)} min={1} max={50} step={0.1}/>
+          <FormRow label="Short-circuit impedance" unit="%" field="trafo_z_percent">
+            <NumInput value={v.trafo_z_percent} onChange={x=>set('trafo_z_percent',x)} min={1} max={50} step={0.1}/>
           </FormRow>
-          <FormRow label="Inrush factor k">
-            <NumInput value={v.inrush_factor??8} onChange={x=>set('inrush_factor',x)} min={1} max={20} step={0.5}/>
+          <FormRow label="Inrush factor k" field="inrush_factor">
+            <NumInput value={v.inrush_factor} onChange={x=>set('inrush_factor',x)} min={1} max={20} step={0.5}/>
           </FormRow>
-          <FormRow label="Linked winding">
-            <SelectInput value={v.linked_winding||'HV'} onChange={x=>set('linked_winding',x)}
+          <FormRow label="Linked winding" field="linked_winding">
+            <SelectInput value={v.linked_winding} onChange={x=>set('linked_winding',x)}
               options={[['HV','HV — High Voltage'],['LV','LV — Low Voltage'],['TV','TV — Tertiary']]}/>
           </FormRow>
-          <IscIntRow lang={lang} v={v} setOpt={setOpt} systemVals={systemVals}/>
-          <IscIntWarning lang={lang} v={v} systemVals={systemVals}/>
+          <IscIntRow lang={lang} v={v} setOpt={setOpt}/>
         </div>
       </SectionCard>
       <RelaySection lang={lang} v={v} set={set} onChange={onChange} calcType="transformer_diff"/>
@@ -695,17 +746,17 @@ function LineDiffInputs({ lang, v, set, onChange, systemVals }) {
   const Tl = k => CTSI18n.t(lang, k);
   return (
     <>
-      <SectionCard title={`${Tl('section_ct')} — ${Tl('ct_type_line_diff')}`} defaultOpen accent>
+      <SectionCard title={`${Tl('section_ct')} — ${Tl('ct_type_line_diff')}`} defaultOpen accent section="ct">
         <div style={{paddingTop:8}}>
           <CTClassRow lang={lang} v={v} onChange={onChange}/>
           <PrimarySecondaryRow lang={lang} v={v} set={set}/>
-          <FormRow label={Tl('lbl_rct')} unit="Ω">
-            <NumInput value={v.rct??4} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
+          <FormRow label={Tl('lbl_rct')} unit="Ω" field="rct">
+            <NumInput value={v.rct} onChange={x=>set('rct',x)} min={0} max={100} step={0.01}/>
           </FormRow>
-          <FormRow label={Tl('lbl_burden')} unit="VA">
-            <NumInput value={v.burden??30} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
+          <FormRow label={Tl('lbl_burden')} unit="VA" field="burden">
+            <NumInput value={v.burden} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
           </FormRow>
-          <PxAlfRow lang={lang} v={v} set={set} onChange={onChange}/>
+          <AlfVkRow lang={lang} v={v} set={set} onChange={onChange}/>
         </div>
       </SectionCard>
       <RelaySection lang={lang} v={v} set={set} onChange={onChange} calcType="line_diff"/>
@@ -715,33 +766,36 @@ function LineDiffInputs({ lang, v, set, onChange, systemVals }) {
   );
 }
 // ── VT core inputs (CTVT.calculate ← vt_calculations/calculator.py) ─────────
-function VtInputs({ lang, v, set }) {
+// Issue #125: the connected device is entered in VA in the Meter / Relay /
+// IED card; the attached resistor sits with the cable.
+function VtInputs({ lang, v, set, onChange }) {
   return (
     <>
-      <SectionCard title={Tp(lang,'section_vt')} defaultOpen accent>
+      <SectionCard title={Tp(lang,'section_vt')} defaultOpen accent section="vt">
         <div style={{paddingTop:8}}>
-          <FormRow label={Tp(lang,'lbl_vt_us')} unit="V">
-            <NumInput value={v.secondary_voltage??100} onChange={x=>set('secondary_voltage',x)} min={0} max={500} step={0.1}/>
+          <FormRow label={Tp(lang,'lbl_vt_us')} unit="V" field="secondary_voltage">
+            <NumInput value={v.secondary_voltage} onChange={x=>set('secondary_voltage',x)} min={0} max={500} step={0.1}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_vt_class')}>
-            <SelectInput value={v.vt_class??'0.2'} onChange={x=>set('vt_class',x)}
-              options={[['0.1','0.1'],['0.2','0.2'],['0.5','0.5'],['1.0','1.0'],['3P','3P']]}/>
+          <FormRow label={Tp(lang,'lbl_vt_class')} field="vt_class">
+            <SelectInput value={v.vt_class} onChange={x=>set('vt_class',x)}
+              options={CTRequired.VT_CLASSES.map(c=>[c,c])}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_vt_burden')} unit="VA">
-            <NumInput value={v.burden??10} onChange={x=>set('burden',x)} min={0} max={1000} step={0.1}/>
+          <FormRow label={Tp(lang,'lbl_vt_burden')} unit="VA" field="burden">
+            <NumInput value={v.burden} onChange={x=>set('burden',x)} min={0} max={1000} step={0.1}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_vt_thermal')} unit="VA">
-            <NumInput value={v.thermal_burden??50} onChange={x=>set('thermal_burden',x)} min={0} max={5000} step={0.1}/>
+          <FormRow label={Tp(lang,'lbl_vt_thermal')} unit="VA" field="thermal_burden">
+            <NumInput value={v.thermal_burden} onChange={x=>set('thermal_burden',x)} min={0} max={5000} step={0.1}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_vt_device_r')} unit="Ω">
-            <NumInput value={v.device_resistance??100} onChange={x=>set('device_resistance',x)} min={0} max={1000000} step={0.1}/>
+          <FormRow label={Tp(lang,'lbl_vt_range')} wide field="vt_burden_range">
+            <SelectInput value={v.vt_burden_range} onChange={x=>set('vt_burden_range',x)}
+              options={[['I', Tp(lang,'vt_range_I')], ['II', Tp(lang,'vt_range_II')]]}/>
           </FormRow>
-          <FormRow label={Tp(lang,'lbl_vt_attached_r')} unit="Ω">
-            <NumInput value={v.attached_resistor??0} onChange={x=>set('attached_resistor',x)} min={0} max={1000000} step={0.1}/>
-          </FormRow>
+          <div style={noteSt}>{Tp(lang,'vt_range_note')}</div>
         </div>
       </SectionCard>
-      <CableSection lang={lang} calcType="vt" v={{cable_length:150,...v}} set={set}/>
+      <MeterSection lang={lang} v={v} set={set} onChange={onChange} calcType="vt"/>
+      <CableSection lang={lang} calcType="vt" v={v} set={set}
+        attached={{ label:'lbl_vt_attached_r', max:1000000 }}/>
     </>
   );
 }
@@ -758,9 +812,12 @@ function CoreInputPanel({ lang, core, systemVals, onChange: store, onSaveCTTpl, 
   const [tplName, setTplName] = useState('');
   const ctTpls = typeof getTpls !== 'undefined' ? getTpls('ct') : [];
   const Tl = k => CTSI18n.t(lang, k);
+  // What is missing or invalid, for the marks on the inputs and cards
+  const chk = useMemo(() => ({ ...CTRequired.core(core), lang }), [core, lang]);
 
   return (
-    <div>
+    <InputCheck.Provider value={chk}>
+    <div data-testid="core-inputs" data-complete={chk.ok ? '1' : '0'}>
       {/* Read-only type badge — type is set by device, not editable here */}
       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
         <span style={{fontFamily:'var(--font-mono)',fontSize:11,fontWeight:700,
@@ -799,16 +856,17 @@ function CoreInputPanel({ lang, core, systemVals, onChange: store, onSaveCTTpl, 
         </div>
       )}
 
-      {core.kind === 'vt' ? <VtInputs lang={lang} v={v} set={set}/> : <>
+      {core.kind === 'vt' ? <VtInputs lang={lang} v={v} set={set} onChange={onChange}/> : <>
         {type === 'overcurrent'      && <OvercurrentInputs lang={lang} v={v} set={set} onChange={onChange}/>}
-        {type === 'metering'         && <MeteringInputs    lang={lang} v={v} set={set}/>}
+        {type === 'metering'         && <MeteringInputs    lang={lang} v={v} set={set} onChange={onChange}/>}
         {type === 'busbar'           && <BusbarInputs      lang={lang} v={v} set={set} onChange={onChange}/>}
         {type === 'distance'         && <DistanceInputs       lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals}/>}
         {type === 'transformer_diff' && <TransformerDiffInputs lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals}/>}
         {type === 'line_diff'        && <LineDiffInputs       lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals}/>}
-        {type === 'vt'               && <VtInputs lang={lang} v={v} set={set}/>}
+        {type === 'vt'               && <VtInputs lang={lang} v={v} set={set} onChange={onChange}/>}
       </>}
     </div>
+    </InputCheck.Provider>
   );
 }
 
@@ -938,6 +996,31 @@ function chartArDataLineDiff(core, result, systemVals) {
   return { arResult, canvasParams };
 }
 
+// No result because inputs are missing (CTRequired): what is missing, per card.
+const REQ_SECTIONS = ['station', 'ct', 'relay', 'line', 'trafo', 'meter', 'vt', 'cable', 'ar'];
+function IncompleteNotice({ lang, core, systemVals }) {
+  const Tl = k => CTSI18n.t(lang, k);
+  const sys = CTRequired.system(systemVals);
+  const cc = CTRequired.core(core);
+  const counts = { ...cc.sections, ...(sys.count ? { station: sys.count } : {}) };
+  const rows = REQ_SECTIONS.filter(k => counts[k]);
+  return (
+    <div data-testid="results-incomplete" style={{display:'flex',flexDirection:'column',gap:10,padding:'18px 20px',
+                  background:'var(--surface)',border:'1px dashed var(--amber)',borderRadius:10}}>
+      <div style={{display:'flex',alignItems:'center',gap:8,fontFamily:'var(--font-head)',fontSize:15,fontWeight:700,color:'var(--text)'}}>
+        <MissingMark lang={lang} count={sys.count + cc.count}/>
+        {Tl('res_incomplete_h')}
+      </div>
+      <p style={{fontFamily:'var(--font-body)',fontSize:13,lineHeight:1.5,color:'var(--text-dim)'}}>{Tl('res_incomplete')}</p>
+      <ul style={{margin:0,paddingLeft:18,fontFamily:'var(--font-mono)',fontSize:12,color:'var(--text-dim)'}}>
+        {rows.map(k => (
+          <li key={k} data-section={k}>{Tl(`req_sec_${k}`)}: {Tl('mark_section').replace('{n}', counts[k])}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function ResultsPanel({ lang, result, core, systemVals, theme }) {
   const [tab, setTab] = useState('summary');
   const Tl = k => CTSI18n.t(lang, k);
@@ -948,6 +1031,9 @@ function ResultsPanel({ lang, result, core, systemVals, theme }) {
   const arResult = ar?.arResult ?? null;
   const arCanvasParams = ar?.canvasParams ?? null;
 
+  if (!result && core && !CTRequired.ready(core, systemVals)) return (
+    <IncompleteNotice lang={lang} core={core} systemVals={systemVals}/>
+  );
   if (!result) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',
                   justifyContent:'center',height:280,gap:12,color:'var(--text-muted)'}}>
@@ -988,8 +1074,7 @@ function ResultsPanel({ lang, result, core, systemVals, theme }) {
         <IedBadge ied={result.ied_rating}/>
       </div>
 
-      {type === 'distance' && <LineDataWarning lang={lang} v={core?.inputs ?? {}} systemVals={systemVals}/>}
-      {type === 'transformer_diff' && <IscIntWarning lang={lang} v={core?.inputs ?? {}} systemVals={systemVals}/>}
+      {(type === 'metering' || type === 'vt') && <ResultRemarks lang={lang} result={result}/>}
 
       {/* Tab bar */}
       <div style={{display:'flex',gap:4}}>
@@ -1075,6 +1160,22 @@ function ResultsPanel({ lang, result, core, systemVals, theme }) {
 }
 
 
+// The module's remarks on a metering / VT core (issue #125): why it fails and
+// what to change (cond. 2 cannot be met, the burden missing, the burden range),
+// in the words of the report (CTSReport.warningText).
+function ResultRemarks({ lang, result }) {
+  const ws = Array.isArray(result?.warnings) ? result.warnings : [];
+  if (!ws.length) return null;
+  return (
+    <div data-testid="result-remarks" style={{padding:'6px 9px',borderRadius:5,fontSize:11,
+          fontFamily:'var(--font-mono)',background:'var(--surface-3)',border:'1px solid var(--border-2)',
+          color:'var(--text-dim)'}}>
+      <div style={{fontWeight:700,marginBottom:3}}>{Tp(lang,'res_remarks')}</div>
+      {ws.map((w, i) => <div key={i} style={{marginTop:2}}>• {CTSReport.warningText(lang, w)}</div>)}
+    </div>
+  );
+}
+
 // "Cable R method" summary row (PORTING_PLAN.md §9.4), read from the module's
 // `cable_res`. Placed right after the (last) Cable R row, or last where a type
 // has none. Shows "—" if the result has no cable_res.
@@ -1109,8 +1210,9 @@ function buildMetrics(type, r, lang) {
     { label: Tp(lang,'res_fmin'),   value: r.min_safety_factor != null ? String(r.min_safety_factor) : '—', highlight: true },
     { label: Tp(lang,'res_s_total'),value: r.S_total?.toFixed(4), unit: 'VA' },
     { label: Tp(lang,'res_cable_r'),value: r.Rc?.toFixed(4),      unit: 'Ω' },
-    { label: 'S min', value: r.S_min?.toFixed(4), unit: 'VA' },
+    { label: 'S min', value: r.S_min?.toFixed(4), unit: 'VA', ok: r.cond1 },
     { label: 'S in',  value: r.S_in?.toFixed(4),  unit: 'VA' },
+    { label: Tp(lang,'res_s_req'), value: Number.isFinite(r.S_req) ? r.S_req.toFixed(4) : undefined, unit: 'VA' },
   ];
   // PX busbar (busbar.js calculatePxClass): E.M.F.s and Vk, no ALF (§10.6 F-SUM)
   if (type === 'busbar' && r.is_px) return [
@@ -1143,6 +1245,16 @@ function buildMetrics(type, r, lang) {
     { label:'Isc,max,int', value:Tp(lang,'metric_isc_int_missing'), ok:false, compact:true },
     { label: Tp(lang,'res_cable_r'), value: r.Rc?.toFixed(4), unit: 'Ω' },
   ];
+  // A Vk core (PX, TPX, TPY, TPZ with a Vk) has no operating ALF: the IEC and
+  // Ziegler ALF methods do not apply (§10.6 F-TP-PX), so it shows the E.m.f.
+  // method's cards, as a PX busbar core
+  if (type === 'transformer_diff' && r.is_px) return [
+    { label:'Vk',           value:r.EALF?.toFixed(1),    unit:'V', ok:r.is_ok },
+    { label:'Vk required',  value:r.Vk_req?.toFixed(1),  unit:'V', highlight:true },
+    { label:'EMF check',    value:r.emf_ok?'PASS':'FAIL', ok:r.emf_ok },
+    { label: Tp(lang,'res_cable_r'), value: r.Rc?.toFixed(4), unit: 'Ω' },
+    { label: Tp(lang,'res_margin'),  value: (r.margin??0).toFixed(1), unit: '%', ok: r.is_ok },
+  ];
   if (type === 'transformer_diff') return [
     { label:'EALF offered', value:r.EALF?.toFixed(1),    unit:'V', ok:r.is_ok },
     { label:'Vk required',  value:r.Vk_req?.toFixed(1),  unit:'V', highlight:true },
@@ -1158,6 +1270,7 @@ function buildMetrics(type, r, lang) {
     { label: Tp(lang,'res_vt_actual_current'),value: r.actual_current != null ? (r.actual_current*1000).toFixed(2) : undefined, unit: 'mA' },
     { label: Tp(lang,'res_vt_voltage_drop'),  value: r.voltage_drop_percent?.toFixed(3), unit: '%', ok: r.vdrop_ok },
     { label: Tp(lang,'res_cable_r'),          value: r.Rc?.toFixed(4),                  unit: 'Ω' },
+    { label: Tp(lang,'res_vt_range'),         value: r.burden_range_label, ok: r.range_ok, compact: true },
   ];
   // Generic fallback (ct_generic.py): the ALF verdict ALF_act ≥ 1 — ALF eq
   // from Vk on the module's PX path — and the lead resistance (§10.6 F-GEN-UI)

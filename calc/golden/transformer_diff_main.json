@@ -1062,6 +1062,83 @@
         "trafo_ik_max": null,
         "linked_winding": "HV"
       }
+    },
+    {
+      "input": {
+        "common_data": {
+          "voltage_level": 132,
+          "short_circuit_ka": 40
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "cable_length": 150,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "trafo_rated_power": 100,
+          "trafo_uk_percent": 12,
+          "inrush_factor": 8,
+          "trafo_it_max": 8000,
+          "trafo_ik_max": 20000,
+          "is_px_class": true,
+          "vk_voltage": 400,
+          "relay_name": "ABB RET670"
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "warnings": [],
+        "failed_methods": [],
+        "step_keys": [
+          "cable_burden",
+          "total_burden",
+          "internal_burden",
+          "iec_61869_requirements",
+          "symmetrical_short_circuit_factor_internal",
+          "symmetrical_short_circuit_factor_external",
+          "required_alf_external_fault_ziegler",
+          "required_alf_siemens_combined",
+          "ziegler_requirement_check",
+          "relay_resistance",
+          "emf_internal_fault",
+          "emf_through_fault",
+          "emf_inrush_current",
+          "required_knee_point_voltage",
+          "specified_knee_point_voltage_px",
+          "conclusion_comparison"
+        ],
+        "cable_resistance": 1.57257316125,
+        "i_rated": 0.43738656756789834,
+        "trafo_it_max": 8000,
+        "trafo_ik_max": 20000,
+        "z_percent": 12,
+        "linked_winding": "HV",
+        "s_wire": 1.57257316125,
+        "rho_t": 0.02096764215,
+        "s_total": 1.67257316125,
+        "s_ct": 4,
+        "alf_o": null,
+        "iec_method_applicable": false,
+        "iec_ok": true,
+        "kssc_int": 10.0,
+        "kssc_ext": 4.0,
+        "siemens_alf_int_req": 4.0,
+        "siemens_alf_ext_req": 6.0,
+        "siemens_alf_required": 12.5,
+        "siemens_ok": true,
+        "r_relay": 0.1,
+        "e_internal": 56.7257316125,
+        "e_through": 45.38058529,
+        "e_inrush": 45.38058529,
+        "vk_required": 56.7257316125,
+        "ealf": 400,
+        "vk_label": "Vk",
+        "emf_ok": true
+      }
     }
   ],
   "by_method": [

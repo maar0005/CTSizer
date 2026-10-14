@@ -241,6 +241,7 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
                     onAddFeeder, removeFeeder, saveFeederTpl,
                     addDevice, removeDevice, addCore, removeCore,
                     renameFeeder, renameDevice, renameCore, results,
+                    coreChecks = {}, stationCheck,
                     mobile, open, onClose }) {
   const [expFeeders, setExpFeeders] = useState({});
   const [expDevices, setExpDevices] = useState({});
@@ -280,7 +281,8 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
       )}
       {/* Station Data */}
       <SNavItem item={{key:'station',icon:icons.station,label:Tl('nav_station')}}
-        active={navActive==='station'} onClick={()=>onNavSelect('station')}/>
+        active={navActive==='station'} onClick={()=>onNavSelect('station')}
+        mark={stationCheck && !stationCheck.ok && <MissingMark lang={lang} count={stationCheck.count} testId="station-mark"/>}/>
 
       {/* Feeders section */}
       <div style={sb3.secLabel}>
@@ -349,6 +351,7 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
                               const isActive = sel.coreId===core.id && sel.deviceId===dev.id;
                               const rkey = `${feeder.id}-${dev.id}-${core.id}`;
                               const res = results?.[rkey];
+                              const chk = coreChecks[rkey];
                               const dc = res ? (res.is_ok?'var(--green)':'var(--red)') : 'var(--border-2)';
                               return (
                                 <div key={core.id} style={{display:'flex',alignItems:'center'}}>
@@ -362,6 +365,7 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
                                      <InlineEdit value={core.name}
                                       onSave={name=>renameCore(feeder.id,dev.id,core.id,name)}
                                       style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:11,color:'inherit'}}/>
+                                    {chk && !chk.ok && <MissingMark lang={lang} count={chk.count} testId="core-mark"/>}
                                     <span style={sb3.coreKind}>{core.kind==='vt'?'VT Core':'CT Core'}</span>
                                   </button>
                                   <button style={sb3.iconBtn} onClick={()=>removeCore(feeder.id,dev.id,core.id)}>
@@ -486,20 +490,11 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
 }
 
 // ── New feeder: purpose first, then name and devices ──────────────────────
-// Each purpose lists its usual devices first (marked recommended); nothing is
-// pre-selected, so a feeder starts empty unless the user ticks a device.
+// Every device type is listed in the same order for each purpose, none marked
+// or pre-selected, so a feeder starts empty unless the user ticks a device.
 const FEEDER_PURPOSES = [
-  { id:'line',        devices:['distance','line_diff','overcurrent'] },
-  { id:'transformer', devices:['transformer_diff','overcurrent','metering'] },
-  { id:'cable',       devices:['line_diff','overcurrent','metering'] },
-  { id:'busbar',      devices:['busbar','metering'] },
+  { id:'line' }, { id:'transformer' }, { id:'cable' }, { id:'busbar' },
 ];
-
-function purposeDevices(purpose) {
-  const rec = FEEDER_PURPOSES.find(p => p.id===purpose)?.devices || [];
-  return [...rec.map(d => ({ type:d, rec:true })),
-          ...DEVICE_TYPE_LIST.filter(d => !rec.includes(d)).map(d => ({ type:d, rec:false }))];
-}
 
 function NewFeederDialog({ lang, feeders, onCreate, onCancel }) {
   const Tl = k => CTSI18n.t(lang, k);
@@ -520,7 +515,7 @@ function NewFeederDialog({ lang, feeders, onCreate, onCancel }) {
   };
   const toggle = dt => setPicked(p => p.includes(dt) ? p.filter(x=>x!==dt) : [...p, dt]);
   const create = () => onCreate({ feeder_type:purpose, name:name.trim() || Tl(`purpose_${purpose}`),
-    device_types: purposeDevices(purpose).map(d=>d.type).filter(dt => picked.includes(dt)) });
+    device_types: DEVICE_TYPE_LIST.filter(dt => picked.includes(dt)) });
 
   const lbl = { fontSize:10, fontFamily:'var(--font-mono)', color:'var(--text-muted)',
                 textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:8 };
@@ -606,15 +601,13 @@ function NewFeederDialog({ lang, feeders, onCreate, onCancel }) {
             <div>
               <div style={{fontSize:12,color:'var(--text-dim)',marginBottom:6}}>{Tl('nf_devices')}</div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:6}}>
-                {purposeDevices(purpose).map(({type, rec}) => (
+                {DEVICE_TYPE_LIST.map(type => (
                   <label key={type} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 10px',borderRadius:6,
                                             cursor:'pointer',fontSize:12,color:'var(--text)',
                                             background:picked.includes(type)?'var(--accent-glow)':'var(--surface-2)',
                                             border:`1px solid ${picked.includes(type)?'var(--accent)':'var(--border-2)'}`}}>
                     <input type="checkbox" checked={picked.includes(type)} onChange={()=>toggle(type)}/>
                     <span style={{flex:1}}>{Tl(`dev_${type}`)}</span>
-                    {rec && <span style={{fontSize:9,fontFamily:'var(--font-mono)',color:'var(--green)',
-                                          textTransform:'uppercase'}}>{Tl('nf_recommended')}</span>}
                   </label>
                 ))}
               </div>
@@ -633,7 +626,7 @@ function NewFeederDialog({ lang, feeders, onCreate, onCancel }) {
   );
 }
 
-function SNavItem({ item, active, onClick, disabled }) {
+function SNavItem({ item, active, onClick, disabled, mark }) {
   return (
     <button style={{ ...sb3.navItem, background: active?'var(--accent-glow)':'transparent',
       color: active?'var(--accent)':disabled?'var(--text-muted)':'var(--text-dim)',
@@ -642,6 +635,7 @@ function SNavItem({ item, active, onClick, disabled }) {
       onClick={!disabled?onClick:undefined}>
       <Icon d={item.icon} size={14} stroke={active?'var(--accent)':'currentColor'}/>
       <span style={{fontSize:12,fontWeight:active?600:400}}>{item.label}</span>
+      {mark}
     </button>
   );
 }
@@ -685,9 +679,34 @@ const sb3 = {
                  padding:'2px 6px',cursor:'pointer',fontSize:9,color:'var(--text-dim)',fontFamily:'var(--font-mono)' },
 };
 
+// ── Required-input marks (calc/required.js) ───────────────────────────────
+// CTSizer has no default values. A panel provides CTRequired's check of what
+// it shows ({ fields, sections, lang }); FormRow field="key" and SectionCard
+// section="id" read it and show a small mark on an input that is missing or
+// out of range and on the card that holds it. The core is calculated only
+// when nothing is marked (ctsizer-app.jsx).
+const InputCheck = React.createContext(null);
+
+function MissingMark({ reason = 'missing', lang, count, testId = 'missing-mark' }) {
+  const invalid = reason === 'invalid';
+  const title = count != null
+    ? T(lang, 'mark_section').replace('{n}', count)
+    : T(lang, invalid ? 'mark_invalid' : 'mark_missing');
+  return (
+    <span data-testid={testId} data-reason={reason} title={title} aria-label={title} role="img"
+      style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+               marginLeft: 5, verticalAlign: 'middle',
+               background: invalid ? 'var(--red)' : 'var(--amber)',
+               boxShadow: `0 0 0 2px ${invalid ? 'var(--red-bg)' : 'var(--surface-3)'}` }}/>
+  );
+}
+
 // ── SectionCard ────────────────────────────────────────────────────────────
-function SectionCard({ title, children, defaultOpen = true, accent = false }) {
+function SectionCard({ title, children, defaultOpen = true, accent = false, section }) {
   const [open, setOpen] = useState(defaultOpen);
+  const chk = React.useContext(InputCheck);
+  const missing = section && chk ? chk.sections[section] || 0 : 0;
+  const invalid = missing > 0 && !!chk.invalidSections?.[section];
   return (
     <div style={{ background: 'var(--surface)', borderRadius: 8, overflow: 'hidden',
                    boxShadow: '0 1px 6px rgba(0,0,0,0.1)', marginBottom: 12,
@@ -695,8 +714,12 @@ function SectionCard({ title, children, defaultOpen = true, accent = false }) {
       <button style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         padding: '10px 16px', background: 'transparent', border: 'none', cursor: 'pointer' }}
         onClick={() => setOpen(o => !o)}>
-        <span style={{ fontFamily: 'var(--font-head)', fontSize: 13, fontWeight: 600,
-                         color: accent ? 'var(--accent)' : 'var(--text)' }}>{title}</span>
+        <span style={{ fontFamily: 'var(--font-head)', fontSize: 13, fontWeight: 600, textAlign: 'left',
+                         color: accent ? 'var(--accent)' : 'var(--text)' }}>
+          {title}
+          {missing > 0 && <MissingMark lang={chk.lang} count={missing} reason={invalid ? 'invalid' : 'missing'}
+            testId="section-mark"/>}
+        </span>
         <span style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.18s',
                         color: 'var(--text-muted)', display: 'inline-flex' }}>
           <Icon d={icons.chevron} size={13} />
@@ -792,11 +815,16 @@ function WiringDiagram({ lang, topology, calcType }) {
 
 // ── FormRow ────────────────────────────────────────────────────────────────
 // `wide` gives the input column room for text options (e.g. the cable R method).
-function FormRow({ label, children, unit, wide }) {
+// `field`: the input's key in the panel's InputCheck; marked when missing / invalid.
+function FormRow({ label, children, unit, wide, field }) {
+  const chk = React.useContext(InputCheck);
+  const reason = field && chk ? chk.fields[field] : null;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: wide ? '1fr 220px' : '1fr 148px', alignItems: 'center', gap: 8, marginTop: 9 }}>
+    <div data-field={field} data-missing={reason || undefined}
+      style={{ display: 'grid', gridTemplateColumns: wide ? '1fr 220px' : '1fr 148px', alignItems: 'center', gap: 8, marginTop: 9 }}>
       <label style={{ fontSize: 12, color: 'var(--text-dim)', fontFamily: 'var(--font-body)', lineHeight: 1.3 }}>
         {label}
+        {reason && <MissingMark reason={reason} lang={chk.lang}/>}
       </label>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
         {children}
@@ -813,9 +841,13 @@ const inputSt = { background: 'var(--surface-2)', border: '1px solid var(--borde
 // readOnly: a value that comes from elsewhere (e.g. the relay database)
 const readOnlySt = { ...inputSt, background: 'var(--surface-3)', color: 'var(--text-dim)', cursor: 'default' };
 
-function NumInput({ value, onChange, min, max, step = 'any', readOnly }) {
-  return <input type="number" value={value} min={min} max={max} step={step} readOnly={readOnly}
-    onChange={e => onChange(parseFloat(e.target.value) || 0)} style={readOnly ? readOnlySt : inputSt} />;
+// No default: a blank field shows blank and gives null (the value is missing,
+// CTRequired marks it), never 0.
+function NumInput({ value, onChange, min, max, step = 'any', readOnly, placeholder }) {
+  return <input type="number" value={value ?? ''} min={min} max={max} step={step} readOnly={readOnly}
+    placeholder={placeholder}
+    onChange={e => { const x = parseFloat(e.target.value); onChange(Number.isFinite(x) ? x : null); }}
+    style={readOnly ? readOnlySt : inputSt} />;
 }
 
 // A number that may be left blank: blank shows `placeholder` and gives null
@@ -827,8 +859,14 @@ function OptNumInput({ value, onChange, min, max, step = 'any', placeholder, rea
     style={readOnly ? readOnlySt : inputSt} />;
 }
 
-function SelectInput({ value, onChange, options }) {
-  return <select value={value} onChange={e => onChange(e.target.value)} style={inputSt}>
+// Nothing is pre-selected: a value that is not one of the options (unset)
+// shows the placeholder, which cannot be picked back.
+function SelectInput({ value, onChange, options, placeholder }) {
+  const chk = React.useContext(InputCheck);
+  placeholder = placeholder ?? (chk ? T(chk.lang, 'select_ph') : '\u2014');
+  const has = value != null && options.some(([v]) => String(v) === String(value));
+  return <select value={has ? value : ''} onChange={e => onChange(e.target.value)} style={inputSt}>
+    {!has && <option value="" disabled>{placeholder}</option>}
     {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
   </select>;
 }
@@ -1048,8 +1086,8 @@ function SaturationChart({ result, lang }) {
 
 Object.assign(window, {
   Icon, icons, InlineEdit, useMobile,
-  TopBar, Sidebar3, SNavItem, NewFeederDialog, FEEDER_PURPOSES, purposeDevices,
-  SectionCard, FormRow, NumInput, OptNumInput, SelectInput, TextInput,
+  TopBar, Sidebar3, SNavItem, NewFeederDialog, FEEDER_PURPOSES, DEVICE_TYPE_LIST,
+  SectionCard, FormRow, NumInput, OptNumInput, SelectInput, TextInput, InputCheck, MissingMark,
   MetricCard, StatusBadge, FormulaStep,
   WaveformCanvas, ArWaveformCanvas, SaturationChart,
 });

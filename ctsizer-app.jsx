@@ -1,26 +1,17 @@
 // ctsizer-app.jsx — Station → Feeder → Device → Core hierarchy
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
-// ── Defaults ──────────────────────────────────────────────────────────────
+// ── No default values ─────────────────────────────────────────────────────
+// Every value is entered by the user: a new project's station data and a new
+// core's inputs start blank. The panels mark what is missing or invalid and a
+// core is calculated only when the station data and all its inputs are
+// complete (CTRequired, calc/required.js). The project-wide cable resistance
+// settings (PORTING_PLAN.md §9.4) are station data too.
 const DEFAULT_SYSTEM = {
-  station_name:'', station_abbr:'', voltage:132, freq:'50',
-  isc_sys:20, tp:100, tp_confirmed:false,
-  // Project-wide cable resistance settings (PORTING_PLAN.md §9.4): every core uses them.
-  cable_r_method:'iec60287', cable_temp:75,
+  station_name:'', station_abbr:'', voltage:null, freq:null,
+  isc_sys:null, tp:null, tp_confirmed:false,
+  cable_r_method:null, cable_temp:null,
 };
-const DEFAULT_OC = { Ip:2000,Is:1,rct:4,burden:30,relay_burden:0.05,alf:20,is_px:false,vk:null,
-  cable_length:100,cable_cross:4,cable_mat:'cu' };
-const DEFAULT_MT = { Ip:1000,Is:1,rct:2,burden:5,fs_factor:5,min_safety_factor:5,
-  min_burden_percent:25,device_burden:0,attached_resistor:0,
-  cable_length:100,cable_cross:4,cable_mat:'cu' };
-const DEFAULT_BB = { Ip:2000,Is:1,rct:4,burden:30,alf:20,relay_burden:0.02,
-  cable_length:100,cable_cross:4,cable_mat:'cu' };
-// VT defaults follow ctvt_dim's ui/vt_widget.py (class 0.2, 10 VA, 50 VA thermal, 150 m Cu 4 mm²);
-// the cable temperature is the project's (DEFAULT_SYSTEM.cable_temp).
-const DEFAULT_VT = { secondary_voltage:100, vt_class:'0.2', burden:10, thermal_burden:50,
-  device_resistance:100, attached_resistor:0,
-  cable_length:150, cable_cross:4, cable_mat:'cu' };
-const CALC_DEFAULTS = { overcurrent:DEFAULT_OC, metering:DEFAULT_MT, busbar:DEFAULT_BB, vt:DEFAULT_VT };
 const DEFAULT_SETTINGS = {
   full_name:'',initials:'',company_name:'',department:'',
   address:'',postal_code:'',city:'',country:'',
@@ -33,7 +24,10 @@ const DEVICE_DEFS = {
   transformer_diff: { cores:[{kind:'ct',calc_type:'transformer_diff',name:'CT Core HV'},{kind:'ct',calc_type:'transformer_diff',name:'CT Core LV'}] },
   line_diff:        { cores:[{kind:'ct',calc_type:'line_diff',name:'CT Core 1'}] },
   busbar:           { cores:[{kind:'ct',calc_type:'busbar',name:'CT Core 1'}] },
-  metering:         { cores:[{kind:'ct',calc_type:'metering',name:'CT Core 1'}] },
+  // A meter measures current and voltage: its CT core and its VT core, each
+  // with the meter entered in its Meter / Relay / IED card
+  metering:         { cores:[{kind:'ct',calc_type:'metering',name:'CT Core 1'},
+                             {kind:'vt',calc_type:'vt',name:'VT Core 1'}] },
   custom:           { cores:[] },
 };
 
@@ -43,13 +37,22 @@ const DEFAULT_THEME = 'light', DEFAULT_LANG = 'en';
 let _uid = 0;
 const uid = () => `id${++_uid}_${Date.now()}`;
 
-function defaultInputs(calc_type) {
-  return { ...(CALC_DEFAULTS[calc_type] || CALC_DEFAULTS.overcurrent) };
+// Saved cores from before issue #125: a VT's device resistance [Ω] becomes
+// its burden [VA/phase] (CTVT.migrateInputs, same results). The metering keys
+// (min_safety_factor, device_burden, attached_resistor) are unchanged.
+function migrateCore(c) {
+  if (!c || (c.kind !== 'vt' && c.calc_type !== 'vt')) return c;
+  const inputs = CTVT.migrateInputs(c.inputs);
+  return inputs === c.inputs ? c : { ...c, inputs };
+}
+
+// A new core has no inputs: nothing is filled in for the user.
+function defaultInputs() {
+  return {};
 }
 
 function makeCore(def) {
-  return { id:uid(), name:def.name, kind:def.kind, calc_type:def.calc_type,
-           inputs: defaultInputs(def.calc_type) };
+  return { id:uid(), name:def.name, kind:def.kind, calc_type:def.calc_type, inputs: defaultInputs(def.calc_type) };
 }
 
 function makeDevice(device_type, name) {
@@ -147,7 +150,7 @@ function App({ ctl }) {
             return { ...c, calc_type: expected,
                      inputs: { ...defaultInputs(expected), ...c.inputs } };
           }
-          return c;
+          return migrateCore(c);
         })
       }))
     }));
@@ -202,7 +205,7 @@ function App({ ctl }) {
   const addFeeder = spec => {
     const f = spec.tpl ? { ...spec.tpl.data, id:uid(), feeder_type: spec.tpl.data.feeder_type || 'line',
       devices: spec.tpl.data.devices.map(d=>({...d, id:uid(),
-        cores:d.cores.map(c=>({...c,id:uid()}))})) }
+        cores:d.cores.map(c=>migrateCore({...c,id:uid()}))})) }
       : makeFeeder(spec);
     setFeeders(fs=>[...fs,f]);
     setSel({ feederId:f.id, deviceId:f.devices[0]?.id, coreId:f.devices[0]?.cores[0]?.id });
@@ -290,9 +293,9 @@ function App({ ctl }) {
   const loadCTTpl = useCallback((fid, did, cid, tpl) => {
     setFeeders(fs=>fs.map(f=> f.id!==fid ? f : {
       ...f, devices:f.devices.map(d=> d.id!==did ? d : {
-        ...d, cores:d.cores.map(c=> c.id!==cid ? c : {
+        ...d, cores:d.cores.map(c=> c.id!==cid ? c : migrateCore({
           ...c, calc_type:tpl.data.calc_type, inputs:{...tpl.data.inputs}
-        })
+        }))
       })
     }));
   }, []);
@@ -306,14 +309,27 @@ function App({ ctl }) {
   const dFeeders = useDebounced(feeders);
   const dSystem  = useDebounced(system);
 
+  // A core is calculated only when the station data and all its inputs are
+  // entered and valid (CTRequired); otherwise it has no result.
   const results = useMemo(() => {
     const out={};
+    const sysOk = CTRequired.system(dSystem).ok;
     dFeeders.forEach(f=>f.devices.forEach(d=>d.cores.forEach(c=>{
       const key=`${f.id}-${d.id}-${c.id}`;
-      out[key] = CTCalc.calculate(c.calc_type, c.inputs, dSystem);
+      out[key] = sysOk && CTRequired.core(c).ok ? CTCalc.calculate(c.calc_type, c.inputs, dSystem) : null;
     })));
     return out;
   }, [dFeeders, dSystem]);
+
+  // The marks in the sidebar and the overviews follow the inputs as typed
+  const stationCheck = useMemo(() => CTRequired.system(system), [system]);
+  const coreChecks = useMemo(() => {
+    const out={};
+    feeders.forEach(f=>f.devices.forEach(d=>d.cores.forEach(c=>{
+      out[`${f.id}-${d.id}-${c.id}`] = CTRequired.core(c);
+    })));
+    return out;
+  }, [feeders]);
 
   const activeResult = activeCore
     ? results[`${sel.feederId}-${sel.deviceId}-${sel.coreId}`] : null;
@@ -389,7 +405,7 @@ function App({ ctl }) {
           addCore={addCore} removeCore={removeCore}
           renameFeeder={renameFeeder} renameDevice={renameDevice} renameCore={renameCore}
           setFeederType={setFeederType}
-          results={results}
+          results={results} coreChecks={coreChecks} stationCheck={stationCheck}
           mobile={mobile} open={navOpen} onClose={() => setNavOpen(false)}
         />
 
@@ -407,14 +423,14 @@ function App({ ctl }) {
           )}
 
           {showFeeder && (
-            <FeederOverview lang={lang} feeder={activeFeeder} results={results}
+            <FeederOverview lang={lang} feeder={activeFeeder} results={results} coreChecks={coreChecks}
               sel={sel} setSel={s=>{ setSel(s); setNavActive('ct'); }}
               setFeederType={setFeederType} addDevice={addDevice}/>
           )}
 
           {showDevice && (
             <DeviceOverview lang={lang} device={activeDevice} feeder={activeFeeder}
-              results={results} sel={sel} setSel={s=>{ setSel(s); setNavActive('ct'); }}/>
+              results={results} coreChecks={coreChecks} sel={sel} setSel={s=>{ setSel(s); setNavActive('ct'); }}/>
           )}
 
           {showCore && (
@@ -475,7 +491,12 @@ function App({ ctl }) {
 }
 
 // ── Feeder overview ────────────────────────────────────────────────────────
-function FeederOverview({ lang, feeder, results, sel, setSel, setFeederType, addDevice }) {
+// The status of a core without a result: '—', or 'incomplete' when inputs are missing.
+function noResultText(T, check) {
+  return check && !check.ok ? T('res_incomplete_core') : '—';
+}
+
+function FeederOverview({ lang, feeder, results, coreChecks = {}, sel, setSel, setFeederType, addDevice }) {
   const T = k => CTSI18n.t(lang, k);
   const mobile = useMobile();
   const FEEDER_TYPES = FEEDER_PURPOSES.map(p => p.id);
@@ -532,11 +553,10 @@ function FeederOverview({ lang, feeder, results, sel, setSel, setFeederType, add
           <div style={{background:'var(--surface)',border:'1px dashed var(--border-2)',borderRadius:8,padding:14}}>
             <div style={{fontSize:13,color:'var(--text-dim)',marginBottom:10}}>{T('empty_bay')}</div>
             <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-              {purposeDevices(ft).map(({type, rec}) => (
+              {DEVICE_TYPE_LIST.map(type => (
                 <button key={type} onClick={()=>addDevice(feeder.id, type)}
                   style={{padding:'5px 10px',borderRadius:5,cursor:'pointer',fontSize:11,fontFamily:'var(--font-mono)',
-                           background:rec?'var(--accent-glow)':'var(--surface-3)',color:rec?'var(--accent)':'var(--text-dim)',
-                           border:`1px solid ${rec?'var(--accent)':'var(--border-2)'}`}}>
+                           background:'var(--surface-3)',color:'var(--text-dim)',border:'1px solid var(--border-2)'}}>
                   + {T(`dev_${type}`)}
                 </button>
               ))}
@@ -584,8 +604,11 @@ function FeederOverview({ lang, feeder, results, sel, setSel, setFeederType, add
                         <div style={{fontFamily:'var(--font-mono)',fontSize:11,color:dc,fontWeight:600}}>{key_metric}</div>
                       )}
                       <div style={{fontFamily:'var(--font-mono)',fontSize:10,fontWeight:700,
-                                     color:dc,textTransform:'uppercase'}}>
-                        {c.res ? (c.res.is_ok ? T('res_ok') : T('res_fail')) : '—'}
+                                     color:c.res ? dc : 'var(--text-muted)',textTransform:'uppercase'}}>
+                        {c.res ? (c.res.is_ok ? T('res_ok') : T('res_fail'))
+                               : noResultText(T, coreChecks[`${sel.feederId}-${d.id}-${c.id}`])}
+                        {!c.res && coreChecks[`${sel.feederId}-${d.id}-${c.id}`]?.ok === false &&
+                          <MissingMark lang={lang} count={coreChecks[`${sel.feederId}-${d.id}-${c.id}`].count}/>}
                       </div>
                     </button>
                   );
@@ -640,7 +663,7 @@ function getCoreKeyMetric(calc_type, res, lang) {
 }
 
 // ── Device overview ────────────────────────────────────────────────────────
-function DeviceOverview({ lang, device, feeder, results, sel, setSel }) {
+function DeviceOverview({ lang, device, feeder, results, coreChecks = {}, sel, setSel }) {
   const T = k => CTSI18n.t(lang, k);
   const dCores = device.cores.map(c => ({...c, res: results[`${sel.feederId}-${device.id}-${c.id}`]}));
   const allOk = dCores.every(c => c.res?.is_ok);
@@ -678,8 +701,10 @@ function DeviceOverview({ lang, device, feeder, results, sel, setSel }) {
               </span>
               <span style={{fontFamily:'var(--font-head)',fontSize:15,fontWeight:600,color:'var(--text)'}}>{c.name}</span>
               {km && <span style={{fontFamily:'var(--font-mono)',fontSize:11,color:'var(--text-dim)'}}>{km}</span>}
-              <span style={{fontFamily:'var(--font-mono)',fontSize:11,fontWeight:700,color:dc,textTransform:'uppercase'}}>
-                {c.res?(c.res.is_ok?T('res_ok'):T('res_fail')):'—'}
+              <span style={{fontFamily:'var(--font-mono)',fontSize:11,fontWeight:700,color:c.res?dc:'var(--text-muted)',textTransform:'uppercase'}}>
+                {c.res?(c.res.is_ok?T('res_ok'):T('res_fail')):noResultText(T, coreChecks[`${sel.feederId}-${device.id}-${c.id}`])}
+                {!c.res && coreChecks[`${sel.feederId}-${device.id}-${c.id}`]?.ok === false &&
+                  <MissingMark lang={lang} count={coreChecks[`${sel.feederId}-${device.id}-${c.id}`].count}/>}
               </span>
             </button>
           );

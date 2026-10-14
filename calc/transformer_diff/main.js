@@ -36,6 +36,13 @@
  *   applicable, against the DB function's docstring "caller uses defaults"),
  *   and the IED's `min_alf` sets Krav 3 (main.py only passes it to the Krav 3
  *   warning; calculate_iec_requirements always used IEC_CONSTANTS.min_alf).
+ * - Deviation (PORTING_PLAN.md §10.6 F-TP-PX, decision A2): a Vk-specified
+ *   core (PX, TPX, TPY, TPZ with a Vk; is_px from getAlfOrVk) marks the IEC
+ *   ALF method not applicable, as an E.m.f.-only IED does: the IEC 61869 ALF
+ *   requirements need a rated ALF, which such a class does not have. main.py
+ *   runs the method with alf_o None, so check_all_iec_requirements returns
+ *   iec_ok False and the core is NOT_OK whatever its Vk. The E.m.f. method
+ *   (Vk) and the Ziegler PX row (not applicable, passes) are unchanged.
  * - Warnings are kept as Python's structured tuples ([key, ...args]).
  * - `conclusion` is the status key, as Python's `calculations["conclusion"]`;
  *   `failed_methods` is returned alongside.
@@ -108,9 +115,12 @@ CTTransformerDiff.calculate = (() => {
       warnings.push(['warning_z_percent_out_of_range', z_percent, Z_PERCENT_RANGE.min, Z_PERCENT_RANGE.max]);
     }
 
-    // Relay-specific IEC ALF parameters of the core's IED
+    // Relay-specific IEC ALF parameters of the core's IED. A Vk-specified core
+    // (PX, TPX, TPY, TPZ with a Vk) has no rated ALF, so the IEC ALF method
+    // does not apply to it either: it takes the E.m.f.-only IED's N/A path
+    // (see the header, deviation F-TP-PX).
     const relay_iec = CTRelayDB.trafoDiffParams(core);
-    const iec_method_applicable = relay_iec.applicable;
+    const iec_method_applicable = relay_iec.applicable && !is_px;
     const iec_params = { ...IEC_CONSTANTS, ...relay_iec.params };
 
     // ========== IEC 61869 ALF METHOD ==========

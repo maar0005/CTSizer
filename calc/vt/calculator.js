@@ -69,7 +69,10 @@ CTVT.calculator = (() => {
   };
 
   // ── _execute_core_calculation, returning the numeric intermediates as well ──
-  function executeWithValues(cable_resistance, core_data) {
+  // opts.burden_range ('I' | 'II', CTSizer only, issue #125): the VT's burden
+  // range decides the low end instead of the Python "Lav byrde" warning, and
+  // range II below 25 % fails. Without it (the Python API) nothing changes.
+  function executeWithValues(cable_resistance, core_data, opts = {}) {
     const F = CTVT.formatting;
     const result = F.createResultDict();
     const calcs = result.calculations;
@@ -127,7 +130,14 @@ CTVT.calculator = (() => {
 
     // Tjek byrde grænser
     const [burden_ok, burden_warnings] = CTVT.validation.checkBurdenLimits(burden_utilization);
-    result.warnings.push(...burden_warnings);
+    let range_check = null;
+    if (opts.burden_range) {
+      range_check = CTVT.validation.checkBurdenRange(opts.burden_range, burden_utilization, burden_va);
+      result.warnings.push(...burden_warnings.filter((w) => !w.startsWith('Lav byrde')), ...range_check.warnings);
+      if (!range_check.is_ok) result.status = 'IKKE OK';
+    } else {
+      result.warnings.push(...burden_warnings);
+    }
     if (!burden_ok) result.status = 'IKKE OK';
 
     // 7. Beregn spændingsfald i kabel
@@ -169,12 +179,27 @@ CTVT.calculator = (() => {
     const power_factor = 1.0;
     calcs['Effektfaktor (antaget)'] = pyFixed(power_factor, 2);
 
+    // CTSizer: the burden range row (range I 0–100 %, range II 25–100 %)
+    const range_ok = range_check ? range_check.is_ok : true;
+    if (range_check) {
+      const low = range_check.low_percent;
+      steps.push(CTStep.conclusion({
+        key: 'burden_range_check',
+        label_en: `Burden range ${range_check.range} (${low}–100 %)`,
+        label_da: `Byrdeområde ${range_check.range} (${low}–100 %)`,
+        latex: `${low}\\% \\leq \\frac{S_{actual}}{S_n} \\leq 100\\%`,
+        is_ok: range_ok && burden_ok,
+        comparison: `${low}% ≤ ${pyFixed(burden_utilization, 1)}% ≤ 100%`,
+      }));
+    }
+
     // 11. Final conclusion step
     const is_ok = result.status === 'OK';
     const issues = [];
+    if (!range_ok) issues.push(`Burden ${pyFixed(burden_utilization, 1)}% < 25% (range II)`);
     if (!burden_ok) issues.push(`Burden ${pyFixed(burden_utilization, 1)}% > 100%`);
     if (!thermal_ok) issues.push(`Thermal ${pyFixed(thermal_utilization, 1)}% > 100%`);
-    const summary = burden_ok && thermal_ok
+    const summary = burden_ok && thermal_ok && range_ok
       ? `Burden ${pyFixed(burden_utilization, 1)}% ≤ 100%, Thermal ${pyFixed(thermal_utilization, 1)}% ≤ 100%`
       : issues.join(', ');
     steps.push(CTStep.conclusion({
@@ -191,7 +216,7 @@ CTVT.calculator = (() => {
       rated_current, burden_impedance, total_impedance, load_resistance,
       actual_current, actual_burden_va, burden_utilization, burden_ok,
       voltage_drop, voltage_drop_percent, vdrop_ok,
-      thermal_utilization, thermal_ok, reserve_capacity, power_factor,
+      thermal_utilization, thermal_ok, reserve_capacity, power_factor, range_ok,
     };
     return [result, values];
   }
@@ -202,7 +227,7 @@ CTVT.calculator = (() => {
   }
 
   // ── calculate_single_core(common_data, core_data), with the intermediates ──
-  function singleCoreWithValues(common_data, core_data) {
+  function singleCoreWithValues(common_data, core_data, opts = {}) {
     // Udtræk kerne data
     const data = CTVT.data.extractVtCoreData(core_data);
 
@@ -212,7 +237,7 @@ CTVT.calculator = (() => {
     const core_number = data.core_number;
     const core_name = `${transformer_id} kerne ${core_number}`;
 
-    const [result, values] = executeWithValues(cable_resistance, data);
+    const [result, values] = executeWithValues(cable_resistance, data, opts);
 
     result.core_name = core_name;
     result.transformer_id = transformer_id;
@@ -290,22 +315,53 @@ CTVT.calculate = function calculate(core = {}, commonData = {}) {
     CTCableRes.resolveTopology(core, 'vt'), 'three_phase');
   const cable_resistance = cable.r_loop;
 
-  const [result, v, data] = C.singleCoreWithValues(commonData, { ...core, cable_resistance });
+  // The connected device is entered as its burden in VA/phase, as datasheets
+  // give it (issue #125). The series-circuit model still needs a resistance:
+  // R_device = Us² / S_device at the core's secondary voltage, shown as a
+  // step. A core with only the old device_resistance (Ω) — the Python API,
+  // an unmigrated project — uses that resistance as before.
+  const Us = core.secondary_voltage ?? 100;
+  const device_burden = core.device_burden != null ? Number(core.device_burden) : null;
+  let device_resistance = core.device_resistance;
+  const deviceSteps = [];
+  if (device_burden != null) {
+    device_resistance = device_burden > 0 ? (Us * Us) / device_burden : Infinity;
+    deviceSteps.push(CTStep.make({
+      key: 'device_resistance_from_burden',
+      label_en: 'Device resistance from its burden',
+      label_da: 'Enhedsmodstand fra byrde',
+      latex: 'R_{device} = \\frac{U_s^2}{S_{device}}',
+      variables: { Us, S_device: device_burden },
+      result: device_resistance, unit: 'Ω', precision: 2,
+    }));
+  }
+
+  // The VT's burden range (IEC 61869-3 5.6.301.3): I (0–100 %) or II (25–100 %)
+  const burden_range = CTVT.validation.resolveBurdenRange(core);
+
+  const [result, v, data] = C.singleCoreWithValues(commonData,
+    { ...core, device_resistance, cable_resistance }, { burden_range });
   result.warnings.push(...cable.warnings);
 
   const is_ok = result.status === 'OK';
-  // CTSizer-only headroom figure for the results panel: the smaller of the burden and
-  // thermal reserves in % points. It is >= 0 exactly when both checks pass.
-  const margin = Math.min(100 - v.burden_utilization, 100 - v.thermal_utilization);
+  // CTSizer-only headroom figure for the results panel: the smallest of the burden,
+  // thermal and (range II) low-burden reserves in % points. It is >= 0 exactly when
+  // all the checks pass.
+  const reserves = [100 - v.burden_utilization, 100 - v.thermal_utilization];
+  if (burden_range === 'II') reserves.push(v.burden_utilization - 25);
+  const margin = Math.min(...reserves);
 
   return {
     ...result,
     ...v,
     cable_resistance,
     vt_class: data.vt_class,
+    device_burden, device_resistance,
+    burden_range,
+    burden_range_label: CTVT.validation.burdenRangeLabel(burden_range, data.burden, data.vt_class),
     // Fields the results panel reads
     Rc: cable_resistance,
-    steps: [...cable.steps, ...result.intermediate_steps],
+    steps: [...cable.steps, ...deviceSteps, ...result.intermediate_steps],
     is_ok,
     margin,
     cable_res: {
@@ -313,4 +369,18 @@ CTVT.calculate = function calculate(core = {}, commonData = {}) {
       r_conductor: cable.r_conductor, r_loop: cable.r_loop, r20_per_km: cable.r20_per_km,
     },
   };
+};
+
+// ── Saved VT cores: device_resistance [Ω] → device_burden [VA/phase] ──────
+// Issue #125: a project from before the device burden was entered in VA keeps
+// its results: S_device = Us² / R_device at the core's secondary voltage (a
+// non-positive or infinite resistance draws nothing: 0 VA, as the series
+// model skips it). Inputs that already have device_burden are returned as is.
+CTVT.migrateInputs = function migrateInputs(inputs) {
+  if (!inputs || inputs.device_burden != null || inputs.device_resistance == null) return inputs;
+  const Us = inputs.secondary_voltage ?? 100;
+  const R = Number(inputs.device_resistance);
+  const out = { ...inputs, device_burden: R > 0 && Number.isFinite(R) ? (Us * Us) / R : 0 };
+  delete out.device_resistance;
+  return out;
 };

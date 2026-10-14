@@ -60,6 +60,20 @@ const CTCalc = (() => {
     busbar:                   'busbar',
   };
 
+  // ── The CT class a core's panel shows ───────────────────────────────
+  // The calc types whose panel has a CT class row (ctsizer-panels.jsx
+  // CTClassRow). There the class decides how the core is specified, as in
+  // ctvt_dim's GUI (ui/ct_widget/data_io.py): PX, TPX, TPY and TPZ by their
+  // knee point voltage Vk, the others by ALF (CTBaseClasses.isVkClass). A
+  // core with no ct_class_family (stored before the class row, or with only
+  // the former "PX class CT" box ticked) shows PX when is_px (or the ctvt_dim
+  // key is_px_class) is set, else 5P. PORTING_PLAN.md §10.6 F-TP-PX.
+  const CLASS_ROW_TYPES = ['overcurrent', 'distance', 'transformer_diff', 'line_diff'];
+  function ctClassFamily(core) {
+    if (core?.ct_class_family != null) return core.ct_class_family;
+    return core?.is_px === true || core?.is_px_class === true ? 'PX' : '5P';
+  }
+
   // ── The core a module gets ───────────────────────────────────────────
   // A shallow copy of the core: the distance port writes core.ar_tp when AR is
   // enabled (as main.py writes core_data["ar_tp"] into the dict ctvt_dim's GUI
@@ -71,10 +85,11 @@ const CTCalc = (() => {
   // 'TPY', …), and `ar_time_constant_class` = map_class_to_time_constant(class).
   // The IEC 61869-100 ODE check reads ct_class, the C-O-C-O Ktd the time
   // constant class. Keys already on the core (e.g. a converted ctvt_dim core)
-  // win. A distance PX core has no `alf` there (data_io.py stores None for a
-  // Vk-specified class), so its ODE check, which needs the rated ALF, does not
-  // run; CTSizer keeps the ALF typed before switching to PX, and the main
-  // calculation ignores it for PX (getAlfOrVk). PORTING_PLAN.md §10.6 F-AR-KEYS.
+  // win. A distance core of a Vk class (PX, TPX, TPY, TPZ) with a Vk has no
+  // `alf` there (data_io.py stores None for a Vk-specified class), so its ODE
+  // check, which needs the rated ALF, does not run; CTSizer keeps the ALF typed
+  // before switching to the class, and the main calculation ignores it
+  // (getAlfOrVk). PORTING_PLAN.md §10.6 F-AR-KEYS, F-TP-PX.
   // With ar_ts_mode 'table' (the AR card's default) `ar_ts` is the typical Ts
   // for the class the panel shows and the project voltage
   // (CTAutoReclosure.estimateTs); otherwise the stored ar_ts (blank → the
@@ -85,9 +100,17 @@ const CTCalc = (() => {
   // custom relay. In CTSizer t_al is the Relay Information card's relay_tal
   // (ms; blank → CTRelayDB.DEFAULT_TAL_MS), the one relay-time input, so it
   // overrides any stored ar_t_al.
+  // On a panel with a class row `is_px` follows the class (ctClassFamily), not
+  // a stored is_px that may disagree with it (the former "PX class CT" box). A
+  // Vk class with no Vk entered still falls back to its ALF (getAlfOrVk), and
+  // the panel says so (§10.6 F-TP-PX).
   function moduleCore(type, core, commonData) {
     if (core == null) return core;
     const m = { ...core };
+    if (CLASS_ROW_TYPES.includes(type)) {
+      m.is_px = CTBaseClasses.isVkClass(ctClassFamily(core));
+      if ('is_px_class' in m) m.is_px_class = m.is_px;
+    }
     const ar = type === 'distance' || type === 'line_diff';
     if (ar && core.ct_class_family != null) {
       if (m.ct_class === undefined) m.ct_class = core.ct_class_family;
@@ -96,14 +119,14 @@ const CTCalc = (() => {
       }
     }
     if (ar && core.ar_ts_mode === 'table') {
-      m.ar_ts = CTAutoReclosure.estimateTs(core.ct_class_family || '5P', commonData?.voltage).ts;
+      m.ar_ts = CTAutoReclosure.estimateTs(ctClassFamily(core), commonData?.voltage).ts;
     }
     if (ar && core.auto_reclose_enabled) {
       const tal = (core.relay_tal ?? CTRelayDB.DEFAULT_TAL_MS) / 1000;
       m.ar_t_al = tal;
       m.ar_t_double_al = tal;
     }
-    if (type === 'distance' && CTBase.getAlfOrVk(core).is_px) delete m.alf;
+    if (type === 'distance' && CTBase.getAlfOrVk(m).is_px) delete m.alf;
     return m;
   }
 
@@ -226,7 +249,7 @@ const CTCalc = (() => {
   }
 
   return {
-    calculate, moduleCore, satCurve, waveformData,
+    calculate, moduleCore, CLASS_ROW_TYPES, ctClassFamily, satCurve, waveformData,
     // ct_calculations.py CTCalculator
     calculateSingleCore, routeCore, coreMetadata, getAlfOrVk, SECURITY_FACTOR_C,
     // Expose submodules for direct access

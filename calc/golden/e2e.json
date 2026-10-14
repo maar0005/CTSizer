@@ -1959,6 +1959,263 @@
       }
     },
     {
+      "name": "distance E AR TPY",
+      "calc_type": "distance",
+      "inputs": {
+        "Ip": 2000,
+        "Is": 1,
+        "rct": 5,
+        "burden": 20,
+        "relay_burden": 0.1,
+        "alf": 20,
+        "is_px": true,
+        "vk": 900,
+        "ct_class_family": "TPY",
+        "relay_manufacturer": "Siemens",
+        "relay_type": "",
+        "auto_reclose_enabled": true,
+        "ar_t_prime": 0.1,
+        "ar_tfr": 0.4,
+        "ar_ts_mode": "table",
+        "ar_ktf_preset": "iec_default",
+        "cable_length": 100,
+        "cable_cross": 4,
+        "cable_mat": "cu"
+      },
+      "system": {
+        "station_name": "Testby",
+        "station_abbr": "TBY",
+        "voltage": 132,
+        "freq": "50",
+        "isc_sys": 31.5,
+        "tp": 80,
+        "tp_confirmed": true,
+        "cable_r_method": "iec60287",
+        "cable_temp": 75
+      },
+      "python": {
+        "common_data": {
+          "voltage_level": 132,
+          "frequency": 50.0,
+          "short_circuit_ka": 31.5,
+          "primary_time_constant": 80
+        },
+        "core_data": {
+          "transformer_id": "E2E",
+          "core_number": 1,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 100,
+          "cable_temp": 75,
+          "primary_current": 2000,
+          "secondary_current": 1,
+          "rct": 5,
+          "burden": 20,
+          "application": "protection",
+          "relay_type": "distance",
+          "relay_burden": 0.1,
+          "is_px_class": true,
+          "vk_voltage": 900,
+          "primary_time_constant": 80,
+          "auto_reclose_enabled": true,
+          "ar_t_prime": 0.1,
+          "ar_tfr": 0.4,
+          "ar_ktf_preset": "iec_default",
+          "ct_class": "TPY",
+          "ar_time_constant_class": "low",
+          "ar_t_al": 0.025,
+          "ar_t_double_al": 0.025,
+          "ar_ts": 1.0,
+          "cable_resistance": 1.0483821075
+        }
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.52419105375,
+          "factor": 2,
+          "r_loop": 1.0483821075
+        },
+        "derived": {
+          "omega_tp": 25.13274122871835
+        },
+        "status": "OK",
+        "warnings": [
+          "INFO: Bruger lookup-tabel K_td. Dette antager implicit t_al \u2248 13.3 ms (close-in) og 17.0 ms (zone-1). Verificer at dette matcher rel\u00e6-krav per IEC 61869-100."
+        ],
+        "calculations": {
+          "cable_resistance_at_max_temp": "5.6065 \u03a9/km",
+          "cable_resistance_r_lead": "1.0484 \u03a9",
+          "relay_rated_current_ir": "1 A",
+          "relay_resistance_r_relay": "0.1000 \u03a9",
+          "security_factor_c": "1.1",
+          "source_impedance_zs": "2.6613 \u03a9",
+          "source_resistance_rs": "0.1058 \u03a9",
+          "source_reactance_xs": "2.6592 \u03a9",
+          "zone1_line_resistance_rl": "0.2301 \u03a9",
+          "zone1_line_reactance_xl": "1.1043 \u03a9",
+          "zone1_short_circuit_resistance_rsc": "0.3359 \u03a9",
+          "zone1_short_circuit_reactance_xsc": "3.7635 \u03a9",
+          "zone1_short_circuit_impedance_zsc": "3.7785 \u03a9",
+          "zone1_short_circuit_current_isc_lim": "22186.46 A",
+          "K_td method": "lookup_table",
+          "t_al used": "13.3 ms",
+          "Ktd(a) - close-in": "4",
+          "Ktd(b) - zone-1 end": "5",
+          "K'ssc1 (close-in)": "63.0000",
+          "required_vk_close_in_fault_vka": "297.96 V",
+          "K'ssc2 (zone-1 end)": "55.4662",
+          "required_vk_zone1_end_fault_vkb": "341.03 V",
+          "required_knee_point_voltage_vk": "341.03 V",
+          "specified_knee_point_voltage_vk": "900.00 V",
+          "Konklusion": "ct_sufficient",
+          "EAL_AR": "874.53 V",
+          "Ktd_AR": "2.2210",
+          "Kssc_AR": "15.7500"
+        },
+        "steps": [
+          [
+            "cable_resistance_at_temp",
+            "5.6065 \u03a9/km",
+            "rho(75) = 4.61 x (1 + 0.00393 x (75 - 20))"
+          ],
+          [
+            "total_cable_resistance",
+            "1.0484 \u03a9",
+            "R100ead = 2 x 5.6065 x 100 / 1000"
+          ],
+          [
+            "relay_nominal_current",
+            "1 A",
+            "IR = 1"
+          ],
+          [
+            "relay_resistance",
+            "0.1000 \u03a9",
+            "Rrelay = 0.1 / 1^2"
+          ],
+          [
+            "safety_factor",
+            "1.1",
+            "c = 1.1"
+          ],
+          [
+            "source_impedance",
+            "2.6613 \u03a9",
+            "Zs = 1.1 x 132 x 1000 / (sqrt(3) x 31500)"
+          ],
+          [
+            "source_resistance_calculation",
+            "0.1058 \u03a9",
+            "Rs = 2.6613 / sqrt(1 + (2*pi*50*80)^2)"
+          ],
+          [
+            "source_reactance_calculation",
+            "2.6592 \u03a9",
+            "Xs = sqrt(2.6613^2 - 0.1058^2)"
+          ],
+          [
+            "source_impedance_complex",
+            "(0.106 + j2.659) \u03a9",
+            "Zs = 0.1058 + j2.6592"
+          ],
+          [
+            "zone1_line_resistance",
+            "0.2301 \u03a9",
+            "RL = 0.85 x 6.4 x 0.0423"
+          ],
+          [
+            "zone1_line_reactance",
+            "1.1043 \u03a9",
+            "XL = 0.85 x 6.4 x 0.203"
+          ],
+          [
+            "zone1_short_circuit_resistance",
+            "0.3359 \u03a9",
+            "0.1058c = 0.1058 + 0.2301"
+          ],
+          [
+            "zone1_short_circuit_reactance",
+            "3.7635 \u03a9",
+            "2.6592c = 2.6592 + 1.1043"
+          ],
+          [
+            "zone1_short_circuit_impedance",
+            "3.7785 \u03a9",
+            "Zsc = sqrt(0.3359^2 + 3.7635^2)"
+          ],
+          [
+            "zone1_short_circuit_current",
+            "22186.46 A",
+            "Is1.1_lim = 1.1 x 132 x 1000 / (sqrt(3) x 3.7785)"
+          ],
+          [
+            "total_secondary_resistance_sum",
+            "6.1484 \u03a9",
+            "R_total = 5 + 1.0484 + 0.1"
+          ],
+          [
+            "transient_dimensioning_factor_close_in",
+            "4",
+            "50 ms < 80 <= 100 ms \u2192 Ktd(a) = 4"
+          ],
+          [
+            "transient_dimensioning_factor_zone1",
+            "5",
+            "30 ms < 80 <= 200 ms \u2192 Ktd(b) = 5"
+          ],
+          [
+            "min_required_ssc_factor_close_in",
+            "63",
+            "K'ssc1 >= 4 x 31500 / 2000"
+          ],
+          [
+            "min_required_knee_point_close_in",
+            "297.96 V",
+            "Vka >= 63 x 6.1484 x 1 / 1.3"
+          ],
+          [
+            "min_required_ssc_factor_zone1",
+            "55.4662",
+            "K'ssc2 >= 5 x 22186.5 / 2000"
+          ],
+          [
+            "min_required_knee_point_zone1",
+            "341.03 V",
+            "Vkb >= 55.4662 x 6.1484 x 1"
+          ],
+          [
+            "required_knee_point_voltage",
+            "341.03 V",
+            "Vk = Max(297.9601, 341.0271)"
+          ],
+          [
+            "specified_knee_point_voltage_px",
+            "900.00 V",
+            "Vk = 900"
+          ],
+          [
+            "conclusion_comparison",
+            "OK",
+            "900.00 V \u2265 341.03 V"
+          ],
+          [
+            "auto_reclosure_transient_dimensioning",
+            "874.53 V",
+            "EAL = 15.75 x 2.221 x (5 + 20) x 1"
+          ],
+          [
+            "auto_reclosure_evaluation",
+            "EALF 900.00 V >= EAL_AR 874.53 V \u2014 CT h\u00e5ndterer C-O-C-O duty cycle",
+            ""
+          ]
+        ]
+      }
+    },
+    {
       "name": "line_diff A",
       "calc_type": "line_diff",
       "inputs": {
@@ -2890,6 +3147,196 @@
             "offered_knee_point_voltage_alf",
             "690.00 V",
             "EALF = 30 x 1 x (8 + 15.00)"
+          ],
+          [
+            "conclusion_comparison",
+            "OK",
+            "EMF: OK, IEC: OK, Ziegler: OK"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "transformer_diff C TPX",
+      "calc_type": "transformer_diff",
+      "inputs": {
+        "Ip": 1200,
+        "Is": 1,
+        "rct": 4,
+        "burden": 15,
+        "relay_burden": 0.1,
+        "alf": 20,
+        "is_px": true,
+        "vk": 500,
+        "ct_class_family": "TPX",
+        "trafo_power_mva": 100,
+        "trafo_voltage_kv": 150,
+        "trafo_z_percent": 12,
+        "inrush_factor": 8,
+        "linked_winding": "HV",
+        "cable_length": 120,
+        "cable_cross": 4,
+        "cable_mat": "cu"
+      },
+      "system": {
+        "station_name": "Testby",
+        "station_abbr": "TBY",
+        "voltage": 150,
+        "freq": "50",
+        "isc_sys": 25,
+        "tp": 120,
+        "tp_confirmed": true,
+        "cable_r_method": "table",
+        "cable_temp": 20
+      },
+      "python": {
+        "common_data": {
+          "voltage_level": 150,
+          "frequency": 50.0,
+          "short_circuit_ka": 25,
+          "primary_time_constant": 120
+        },
+        "core_data": {
+          "transformer_id": "E2E",
+          "core_number": 1,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 120,
+          "cable_temp": 20,
+          "primary_current": 1200,
+          "secondary_current": 1,
+          "rct": 4,
+          "burden": 15,
+          "application": "protection",
+          "relay_type": "transformer_differential",
+          "relay_burden": 0.1,
+          "is_px_class": true,
+          "vk_voltage": 500,
+          "trafo_rated_power": 100,
+          "trafo_uk_percent": 12,
+          "inrush_factor": 8,
+          "linked_winding": "HV",
+          "relay_name": "ABB RET670",
+          "cable_resistance": 1.1064
+        }
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "four_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.5532,
+          "factor": 2,
+          "r_loop": 1.1064,
+          "in_table": true
+        },
+        "status": "OK",
+        "warnings": [],
+        "calculations": {
+          "transformer_rated_current": "0.385 kA",
+          "transformer_impedance_z_percent": "12.00%",
+          "linked_winding": "HV",
+          "internal_fault_current_ik_max": "25.00 kA",
+          "through_fault_current_it_max": "3.21 kA",
+          "resistivity_at_cable_temp": "0.01844 \u03a9\u00b7mm^2/m",
+          "cable_burden_s_wire": "1.1064 VA",
+          "total_burden_s_total": "1.2064 VA",
+          "internal_ct_burden_s_ct": "4.0000 VA",
+          "iec_61869_method_result": "N/A",
+          "ziegler_kssc_internal": "20.83",
+          "ziegler_kssc_external": "2.67",
+          "ziegler_alf_requirement_internal": "8.33",
+          "ziegler_alf_requirement_external": "4.01",
+          "ziegler_alf_requirement_total": "12.50",
+          "transformer_primary_voltage": "150.0 kV",
+          "relay_resistance_r_relay": "0.1000 \u03a9",
+          "emf_internal_fault": "108.47 V",
+          "emf_through_fault": "27.83 V",
+          "emf_inrush_current": "41.65 V",
+          "required_knee_point_voltage_vk": "108.47 V",
+          "specified_knee_point_voltage_vk": "500.00 V",
+          "emf_method_result": "OK",
+          "emf_method_details": "Vk 500.00 V >= Vk 108.47 V",
+          "ziegler_method_result": "OK",
+          "conclusion": "OK",
+          "failed_methods": []
+        },
+        "steps": [
+          [
+            "cable_burden",
+            "1.1064 VA",
+            "Swire = (2 x 0.01844 x 120 / 4) x 1^2"
+          ],
+          [
+            "total_burden",
+            "1.2064 VA",
+            "Stotal = 0.1 + 0 + 1.1064"
+          ],
+          [
+            "internal_burden",
+            "4.0000 VA",
+            "Sct = 4 x 1^2"
+          ],
+          [
+            "iec_61869_requirements",
+            "N/A",
+            "iec_alf_method_not_applicable"
+          ],
+          [
+            "symmetrical_short_circuit_factor_internal",
+            "20.83",
+            "Kssc,int = 25000 / 1200"
+          ],
+          [
+            "symmetrical_short_circuit_factor_external",
+            "2.67",
+            "Kssc,ext = 3207.501495497921 / 1200"
+          ],
+          [
+            "required_alf_external_fault_ziegler",
+            "4.01",
+            "ALF_req,ext = 1.5 x 2.67"
+          ],
+          [
+            "required_alf_siemens_combined",
+            "12.50",
+            "ALF_req = max(0.4 x 20.83, 4.01, 12.5)"
+          ],
+          [
+            "ziegler_requirement_check",
+            "not_applicable_px",
+            ""
+          ],
+          [
+            "relay_resistance",
+            "0.1000 \u03a9",
+            "Rrelay = 0.1 / 1^2"
+          ],
+          [
+            "emf_internal_fault",
+            "108.47 V",
+            "E_int = 25000.0 A x (1/1200) x (4 + 1.1064 + 0.1000)"
+          ],
+          [
+            "emf_through_fault",
+            "27.83 V",
+            "E_through = 2 x 3207.5 A x (1/1200) x (4 + 1.1064 + 0.1000)"
+          ],
+          [
+            "emf_inrush_current",
+            "41.65 V",
+            "E_inrush = 8 x 1200 x (1/1200) x (4 + 1.1064 + 0.1000)"
+          ],
+          [
+            "required_knee_point_voltage",
+            "108.47 V",
+            "Vk = Max(108.47, 27.83, 41.65)"
+          ],
+          [
+            "specified_knee_point_voltage_px",
+            "500.00 V",
+            "Vk = 500"
           ],
           [
             "conclusion_comparison",

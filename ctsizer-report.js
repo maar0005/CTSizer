@@ -205,6 +205,13 @@ const CTSReport = (() => {
       warning_numerical_precision_reactance: 'Numerical precision limit in the source reactance (Zs = {0} \u03a9, Rs = {1} \u03a9, Xs\u00b2 = {2}).',
       warning_burden_condition_not_met: 'Burden condition not met: Sn = {0} VA, S = {1} VA, Smin = {2} VA.',
       warning_safety_factor_condition_not_met: 'Instrument security factor condition not met: Fmin = {0}, Fsa = {1}.',
+      warning_fs_not_below_fmin: 'Cond. 2 cannot be met with this CT and meter: FS = {0} is not below the meter\u2019s Fmin = {1} (it would need S \u2265 {2} VA, Sn = {3} VA). Choose a CT with a lower FS or a meter with a higher overcurrent withstand.',
+      hint_metering_add_burden: 'Cond. 2 needs a total burden of at least {1} VA: add {0} VA (e.g. a resistor in the secondary circuit) or choose a meter with a higher Fmin.',
+      hint_lead_burden_above_sn: 'The cable burden alone ({0} VA) exceeds Sn = {1} VA: use a larger cross-section, a shorter cable, a 1 A secondary or a higher rated output.',
+      hint_extended_burden_range: 'S = {0} VA is below Smin = {1} VA. A CT with the extended burden range (IEC 61869-2 5.6.201.4, 1 VA \u2013 Sn) meets cond. 1; otherwise add burden.',
+      warning_extended_range_sn_above_15: 'The extended burden range is only defined for Sn \u2264 {1} VA (IEC 61869-2 5.6.201.4); Sn = {0} VA uses the standard range.',
+      warning_vt_range_ii_below_25: 'Burden range II: the burden utilization {0} % is below 25 % of the rated burden (IEC 61869-3 5.6.301.3). Add burden or specify a range I VT.',
+      warning_vt_range_nonstandard: 'Rated burden {1} VA is not a standard value for burden range {0} (IEC 61869-3 5.5.301; allowed by NOTE 301).',
       warning_burden_inadequate: 'Burden inadequate: Sn = {0} VA, Sa = {1} VA.',
       warning_fault_current_ratio_exceeded: 'Fault current ratio not met: Fa = {0}, If,max / Ipr = {1}.',
       warning_manufacturer_fa_minimum: 'Manufacturer minimum not met: Fa = {0} < {1}.',
@@ -242,6 +249,13 @@ const CTSReport = (() => {
       warning_numerical_precision_reactance: 'Numerisk præcisionsgrænse i kildereaktansen (Zs = {0} \u03a9, Rs = {1} \u03a9, Xs\u00b2 = {2}).',
       warning_burden_condition_not_met: 'Byrdebetingelse ikke opfyldt: Sn = {0} VA, S = {1} VA, Smin = {2} VA.',
       warning_safety_factor_condition_not_met: 'Sikkerhedsfaktorbetingelse ikke opfyldt: Fmin = {0}, Fsa = {1}.',
+      warning_fs_not_below_fmin: 'Bet. 2 kan ikke opfyldes med denne CT og måler: FS = {0} er ikke under målerens Fmin = {1} (det kræver S \u2265 {2} VA, Sn = {3} VA). Vælg en CT med lavere FS eller en måler med højere overstrømsholdbarhed.',
+      hint_metering_add_burden: 'Bet. 2 kræver en samlet byrde på mindst {1} VA: tilføj {0} VA (f.eks. en modstand i sekundærkredsen) eller vælg en måler med højere Fmin.',
+      hint_lead_burden_above_sn: 'Kabelbyrden alene ({0} VA) overstiger Sn = {1} VA: brug et større tværsnit, et kortere kabel, 1 A sekundær eller en højere mærkebyrde.',
+      hint_extended_burden_range: 'S = {0} VA er under Smin = {1} VA. En CT med udvidet byrdeområde (IEC 61869-2 5.6.201.4, 1 VA \u2013 Sn) opfylder bet. 1; ellers tilføj byrde.',
+      warning_extended_range_sn_above_15: 'Det udvidede byrdeområde er kun defineret for Sn \u2264 {1} VA (IEC 61869-2 5.6.201.4); Sn = {0} VA bruger standardområdet.',
+      warning_vt_range_ii_below_25: 'Byrdeområde II: byrdeudnyttelsen {0} % er under 25 % af mærkebyrden (IEC 61869-3 5.6.301.3). Tilføj byrde eller specificér en VT med område I.',
+      warning_vt_range_nonstandard: 'Mærkebyrden {1} VA er ikke en standardværdi for byrdeområde {0} (IEC 61869-3 5.5.301; tilladt jf. NOTE 301).',
       warning_burden_inadequate: 'Utilstrækkelig byrde: Sn = {0} VA, Sa = {1} VA.',
       warning_fault_current_ratio_exceeded: 'Fejlstrømsforhold ikke opfyldt: Fa = {0}, If,max / Ipr = {1}.',
       warning_manufacturer_fa_minimum: 'Producentens minimum ikke opfyldt: Fa = {0} < {1}.',
@@ -605,10 +619,15 @@ const CTSReport = (() => {
 
   // The calc types whose panel has a CT class row, and the ALF / Vk the
   // calculation uses for a core (CTBase.getAlfOrVk; the core's own without it).
+  // On those the class decides Vk or ALF (CTCalc.ctClassFamily: PX, TPX, TPY,
+  // TPZ are Vk classes, PORTING_PLAN.md §10.6 F-TP-PX); elsewhere is_px.
   const CLASS_ROW_TYPES = ['overcurrent', 'distance', 'transformer_diff', 'line_diff'];
-  function alfUsed(v) {
-    if (typeof CTBase !== 'undefined' && CTBase.getAlfOrVk) return CTBase.getAlfOrVk(v);
-    return { alf: v.alf ?? null, vk: v.vk ?? null, is_px: !!v.is_px };
+  const VK_CLASSES = ['PX', 'TPX', 'TPY', 'TPZ'];
+  // The class the core's class row shows, or null when none is picked (no
+  // default class: calc/required.js CTRequired.ctFamily)
+  function classFamily(v) {
+    if (v.ct_class_family != null && v.ct_class_family !== '') return v.ct_class_family;
+    return v.is_px === true || v.is_px_class === true ? 'PX' : null;
   }
 
   // Distance line data (issue #86): the value the calculation uses for each
@@ -666,22 +685,39 @@ const CTSReport = (() => {
     const add = (label, value, unit = '') => { if (isFilled(value)) rows.push([label, String(value), unit]); };
     const ui = (k) => UI(lang, k);
 
+    // The Meter / Relay / IED card of a metering or VT core (ctsizer-panels.jsx
+    // MeterSection, issue #125) under its own sub-heading
+    const meterRows = (vals) => {
+      rows.push([ui('section_meter'), '', '', true]);
+      const preset = typeof CTMeterDB !== 'undefined' ? CTMeterDB.byId(vals.meter_model) : null;
+      add(ui('lbl_meter_manufacturer'), vals.meter_manufacturer);
+      add(ui('lbl_meter_model'), preset ? preset.model : vals.meter_type);
+      add(ui('lbl_meter_tag'), vals.meter_tag);
+      if (t === 'vt') add(ui('lbl_vt_supply'), ui(vals.vt_supply_mode === 'self' ? 'vt_supply_self' : 'vt_supply_aux'));
+      add(ui('lbl_meter_burden'), vals.device_burden, 'VA/ph');
+      if (t === 'metering') add(ui('lbl_meter_fmin'), vals.min_safety_factor);
+    };
+
     if (t === 'vt') {
       add(ui('lbl_vt_us'), v.secondary_voltage, 'V');
       add(ui('lbl_vt_class'), v.vt_class);
       add(ui('lbl_vt_burden'), v.burden, 'VA');
       add(ui('lbl_vt_thermal'), v.thermal_burden, 'VA');
-      add(ui('lbl_vt_device_r'), v.device_resistance, '\u03a9');
-      add(ui('lbl_vt_attached_r'), v.attached_resistor, '\u03a9');
+      // Only what the user entered: CTSizer has no default values (calc/required.js)
+      const range = v.vt_burden_range === 'I' || v.vt_burden_range === 'II' ? v.vt_burden_range : null;
+      if (range) add(ui('lbl_vt_range'), ui(`vt_range_${range}`));
+      // an unmigrated core (device_resistance in Ω) shows its burden in VA
+      meterRows(typeof CTVT !== 'undefined' ? CTVT.migrateInputs(v) : v);
     } else {
       // CT class for every type with a class row (ctsizer-panels.jsx
-      // CTClassRow, family default 5P), with the ALF the calculation uses
-      // (CTBase.getAlfOrVk), not ct_class_alf: issue #88.
-      const used = alfUsed(v);
-      if (CLASS_ROW_TYPES.includes(t)) {
-        const family = v.ct_class_family || '5P';
-        const px = ['PX', 'TPX', 'TPY', 'TPZ'].includes(family);
-        add(L(lang, 'ct_class'), px || used.is_px || used.alf == null ? family : `${family}${used.alf}`);
+      // CTClassRow), with the core's ALF, not ct_class_alf: issue #88. Only
+      // what the user entered: no class or ALF is assumed (calc/required.js).
+      const classRow = CLASS_ROW_TYPES.includes(t);
+      const family = classFamily(v);
+      const vkClass = classRow ? VK_CLASSES.includes(family) : !!v.is_px;
+      const used = { alf: v.alf ?? null, vk: v.vk ?? null };
+      if (classRow && family) {
+        add(L(lang, 'ct_class'), vkClass || used.alf == null ? family : `${family}${used.alf}`);
       }
       add(ui('lbl_Ip'), v.Ip, 'A');
       add(ui('lbl_Is'), v.Is, 'A');
@@ -689,20 +725,19 @@ const CTSReport = (() => {
       add(ui('lbl_rct'), v.rct, '\u03a9');
       add(ui('lbl_burden'), v.burden, 'VA');
       if (t === 'metering') {
+        if (v.mt_class !== 'custom') add(ui('lbl_mt_class'), v.mt_class);
         add(ui('lbl_fs'), v.fs_factor);
-        add(ui('lbl_fmin'), v.min_safety_factor);
-        add(ui('lbl_min_burden_pct'), v.min_burden_percent, '%');
-        add(ui('lbl_device_burden'), v.device_burden, 'VA');
-        add(ui('lbl_attached_r'), v.attached_resistor, '\u03a9');
+        if (v.extended_burden_range) add(ui('lbl_extended_range'), '\u2713');
+        else add(ui('lbl_min_burden_pct'), typeof CTMetering !== 'undefined' ? CTMetering.sminPercent(v) : v.min_burden_percent, '%');
+        meterRows(v);
       } else {
-        if (v.is_px) add(ui('lbl_vk'), v.vk, 'V');
-        else add(ui('lbl_alf'), used.alf ?? v.alf);
+        if (vkClass) add(ui('lbl_vk'), v.vk, 'V');
+        else add(ui('lbl_alf'), v.alf);
       }
       if (t === 'distance') {
         // Tp and the line data as calc/distance/data.js reads them
-        add(L(lang, 'tp'), v.tp ?? system?.tp ?? 100, 'ms');
-        lineData(v, system).forEach((f) =>
-          add(ui(f.label), f.defaulted ? `${f.value} (${ui('line_default')})` : f.value, f.unit));
+        add(L(lang, 'tp'), v.tp ?? system?.tp, 'ms');
+        lineData(v, system).forEach((f) => { if (!f.defaulted) add(ui(f.label), f.value, f.unit); });
       }
       if (t === 'transformer_diff') {
         add(L(lang, 'trafo_power'), v.trafo_power_mva, 'MVA');
@@ -710,12 +745,8 @@ const CTSReport = (() => {
         add(L(lang, 'trafo_z'), v.trafo_z_percent, '%');
         add(L(lang, 'inrush'), v.inrush_factor);
         add(L(lang, 'linked_winding'), v.linked_winding);
-        // Isc,max,int as the calculation uses it; none → the core is not calculated
-        const isc = iscInt(v, system);
-        if (isc) {
-          add(ui('lbl_isc_int'), isc.source === 'project' ? `${isc.ka} (${ui('isc_int_from_project')})`
-            : isc.source === 'core' ? isc.ka : '\u2014', 'kA');
-        }
+        // Isc,max,int as entered on the core (required, calc/required.js)
+        if (v.trafo_ik_max != null) add(ui('lbl_isc_int'), v.trafo_ik_max / 1000, 'kA');
       }
       // The Relay Information card (ctsizer-panels.jsx RelaySection), every
       // calc type with a relay: the IED from the relay database, SR and t_al
@@ -735,11 +766,14 @@ const CTSReport = (() => {
     if (isFilled(v.cable_mat)) add(ui('lbl_cable_mat'), v.cable_mat === 'al' ? ui('lbl_al') : ui('lbl_cu'));
     if (typeof CTCalc !== 'undefined' && CTCalc.cableRes?.resolveTopology) {
       try {
-        const topo = CTCalc.cableRes.resolveTopology(v, t);
+        const topo = v.cable_topology;
         const def = CTCalc.cableRes.listTopologies().find((x) => x.id === topo);
         if (def) add(ui('lbl_cable_topology'), lang === 'da' ? def.label_da : def.label_en);
       } catch { /* topology label is optional */ }
     }
+    // The attached resistor sits with the cable in the secondary circuit (issue #125)
+    if (t === 'metering') add(ui('lbl_attached_r'), v.attached_resistor, '\u03a9');
+    if (t === 'vt') add(ui('lbl_vt_attached_r'), v.attached_resistor, '\u03a9');
 
     // C-O-C-O auto-reclosure
     if ((t === 'distance' || t === 'line_diff') && v.auto_reclose_enabled) {
@@ -748,7 +782,8 @@ const CTSReport = (() => {
       add(L(lang, 'ar_tfr'), v.ar_tfr, 's');
       if (v.ar_ts_mode === 'table' && typeof CTAutoReclosure !== 'undefined' && CTAutoReclosure.estimateTs) {
         try {
-          const e = CTAutoReclosure.estimateTs(v.ct_class_family || '5P', system?.voltage);
+          if (!v.ct_class_family || system?.voltage == null) throw new Error('no class or voltage');
+          const e = CTAutoReclosure.estimateTs(v.ct_class_family, system.voltage);
           add(L(lang, 'ar_ts'), `${e.ts} (${L(lang, 'ar_ts_table')})`, 's');
         } catch { /* fall through */ }
       } else add(L(lang, 'ar_ts'), v.ar_ts, 's');
@@ -907,10 +942,11 @@ const CTSReport = (() => {
   function systemSection(ctx) {
     const { lang, system = {} } = ctx;
     const st = (k) => L(lang, k);
+    // only the method entered (no default method, calc/required.js)
     let method = system.cable_r_method;
-    if (typeof CTCalc !== 'undefined' && CTCalc.cableRes?.listMethods) {
+    if (isFilled(method) && typeof CTCalc !== 'undefined' && CTCalc.cableRes?.listMethods) {
       try {
-        const id = CTCalc.cableRes.resolveMethod(system);
+        const id = method;
         const m = CTCalc.cableRes.listMethods().find((x) => x.id === id);
         method = m ? (lang === 'da' ? m.label_da : m.label_en) : id;
       } catch { /* keep the raw id */ }
@@ -933,7 +969,9 @@ const CTSReport = (() => {
     const st = (k) => L(lang, k);
     return table([
       { header: true, cells: [esc(st('parameter')), { rtf: esc(st('value')), align: 'r' }, esc(st('unit'))] },
-      ...rows.map(([l, v, u]) => ({ cells: [esc(l), { rtf: esc(v), align: 'r' }, esc(u)] })),
+      // a row with a 4th element true is a sub-heading (e.g. the Meter / Relay / IED card)
+      ...rows.map(([l, v, u, sub]) => ({ cells: sub ? [{ rtf: esc(l), bold: true }, '', '']
+        : [esc(l), { rtf: esc(v), align: 'r' }, esc(u)] })),
     ], [TEXT_W - 2600 - 1200, 2600, 1200]);
   }
 

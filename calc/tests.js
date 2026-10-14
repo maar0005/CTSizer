@@ -49,6 +49,17 @@ const CTTests = (() => {
     return actual === expected;
   }
 
+  // The remarks CTSizer adds to a module's Python ones (issue #125): the
+  // parity checks compare the Python ones only.
+  const CTSIZER_ONLY_WARNINGS = [
+    ...((typeof CTMetering !== 'undefined' && CTMetering.EXTRA_WARNINGS) || []),
+    'warning_vt_range_ii_below_25', 'warning_vt_range_nonstandard',
+  ];
+  const pyWarnings = (ws) => (Array.isArray(ws)
+    ? ws.filter((w) => !(Array.isArray(w) && CTSIZER_ONLY_WARNINGS.includes(w[0]))) : ws);
+  // Steps CTSizer adds to a VT core (the CTVT.calculate entry, issue #125)
+  const CTSIZER_ONLY_VT_STEPS = ['burden_range_check'];
+
   // ── MATERIALS ─────────────────────────────────────────────────────────
   function testMaterials() {
     const results = [];
@@ -886,6 +897,7 @@ const CTTests = (() => {
         relay_burden: cd.relay_burden, Isc_max_override: cd.max_fault_current,
         cable_length: cp.length_m, cable_cross: cp.cross_mm2,
         cable_mat: cp.material.includes('(Al)') ? 'al' : 'cu',
+        smin_floor_va: 0,   // metering: the Python has no 1 VA floor on Smin (F-MT-125)
       };
       // Zero-diff gate (§9.6): native method, the case's temperature as the project's
       const got = CTOvercurrent.calculate(goldenCore, { cable_r_method: 'iec60287', cable_temp: cp.temp_c });
@@ -959,6 +971,7 @@ const CTTests = (() => {
         relay_burden: cd.relay_burden, Isc_max_override: cd.max_fault_current,
         cable_length: cp.length_m, cable_cross: cp.cross_mm2,
         cable_mat: cp.material.includes('(Al)') ? 'al' : 'cu',
+        smin_floor_va: 0,   // metering: the Python has no 1 VA floor on Smin (F-MT-125)
       };
       const result = CTOvercurrent.calculate(goldenCore, { cable_r_method: 'iec60287', cable_temp: cp.temp_c });
       const curve = CTOvercurrent.satCurve(result);
@@ -1037,9 +1050,76 @@ const CTTests = (() => {
     // Fmin, the Summary's "Fmin req" card (buildMetrics, PORTING_PLAN.md §10.6 F-SUM)
     results.push(assert('MT min_safety_factor (Fmin) in result', r.min_safety_factor === 5,
       r.min_safety_factor, 5));
-    results.push(assert('MT min_safety_factor default',
-      CTMetering.calculate({ ...core, min_safety_factor: undefined }, {}).min_safety_factor === 5,
-      CTMetering.calculate({ ...core, min_safety_factor: undefined }, {}).min_safety_factor, 5));
+    // Issue #125: the meter's defaults are Fmin 20 and Sdevice 0.1 VA (CEWE Prometer 100)
+    const dflt = CTMetering.calculate({ ...core, min_safety_factor: undefined, device_burden: undefined }, {});
+    results.push(assert('MT min_safety_factor default 20', dflt.min_safety_factor === 20,
+      dflt.min_safety_factor, 20));
+    results.push(assert('MT device_burden default 0.1 VA',
+      approx(dflt.S_total - dflt.S_lead - dflt.S_res, 0.1), dflt.S_total - dflt.S_lead - dflt.S_res, 0.1, ' VA'));
+
+    // ── Issue #125: inclusive bounds, Smin floor, extended range, cond. 2 hints ──
+    // No cable (S_lead = 0), so S = Sdevice exactly. 1 A, Rct 2 Ω: S_in = 2 VA.
+    const mt = (o) => CTMetering.calculate({ Is: 1, Ip: 1000, rct: 2, burden: 5, fs_factor: 5,
+      min_safety_factor: 20, min_burden_percent: 25, attached_resistor: 0, cable_length: 0, ...o }, {});
+    const keys = (r) => r.warnings.map((w) => (Array.isArray(w) ? w[0] : w));
+    // Fs = Fmin: cond. 2 cannot be met → the infeasibility warning
+    const eq = mt({ fs_factor: 5, min_safety_factor: 5, device_burden: 2 });
+    results.push(assert('MT #125 Fs = Fmin → warning_fs_not_below_fmin',
+      !eq.cond2 && !eq.cond2_feasible && keys(eq).includes('warning_fs_not_below_fmin'), keys(eq).join(','), 'warning_fs_not_below_fmin'));
+    // S_req = Fs·(S_in+Sn)/Fmin − S_in = 5·7/20 − 2 = −0.25 VA: any burden meets cond. 2
+    const d1 = mt({ device_burden: 1.25 });
+    results.push(assert('MT #125 S_req by hand (5·7/20 − 2 = −0.25 VA)', approx(d1.S_req, -0.25), d1.S_req, -0.25, ' VA'));
+    // Boundary S = Sn: Fsa = Fs; S = Smin = 1.25 VA → cond. 1 OK (inclusive)
+    const atSn = mt({ device_burden: 5 });
+    results.push(assert('MT #125 boundary S = Sn → OK', atSn.cond1 && atSn.is_ok, atSn.status, 'OK'));
+    results.push(assert('MT #125 boundary S = Smin → cond. 1 OK', approx(d1.S_min, 1.25) && d1.cond1, d1.cond1, true));
+    // Boundary Fsa = Fmin: Fs 10, Fmin 14 → S_req = 10·7/14 − 2 = 3 VA exactly; S = 3 VA
+    const atF = mt({ fs_factor: 10, min_safety_factor: 14, device_burden: 3 });
+    results.push(assert('MT #125 boundary Fsa = Fmin → OK', approx(atF.Fsa, 14) && atF.cond2 && atF.is_ok,
+      atF.Fsa, 14));
+    // Below it: S = 2 VA → ΔS = 3 − 2 = 1 VA (hint)
+    const miss = mt({ fs_factor: 10, min_safety_factor: 14, device_burden: 2 });
+    const hint = miss.warnings.find((w) => w[0] === 'hint_metering_add_burden');
+    results.push(assert('MT #125 ΔS = S_req − S = 1 VA (hint)', !miss.cond2 && hint && approx(hint[1], 1) && approx(hint[2], 3)
+      && approx(miss.delta_S, 1), hint && hint[1], 1, ' VA'));
+    // Fs > Fmin (Rct 0: S_req = 10·5/9.9 = 5.05 VA > Sn): cond. 2 cannot be met
+    const inf = mt({ rct: 0, burden: 5, fs_factor: 10, min_safety_factor: 9.9, device_burden: 4 });
+    results.push(assert('MT #125 Fs > Fmin → infeasible', !inf.cond2_feasible && inf.S_req > 5 && keys(inf).includes('warning_fs_not_below_fmin'),
+      keys(inf).join(','), 'warning_fs_not_below_fmin'));
+    // The 1 A default case (issue table): S 1.15 VA < 1.25 VA → cond. 1 fails, extended range hinted
+    const lowS = mt({ device_burden: 1.15 });
+    results.push(assert('MT #125 S 1.15 < Smin 1.25 → cond. 1 ✗, extended range hinted',
+      !lowS.cond1 && lowS.cond2 && keys(lowS).includes('hint_extended_burden_range'), keys(lowS).join(','), 'hint_extended_burden_range'));
+    // Extended burden range (IEC 61869-2 5.6.201.4): Smin = 1 VA → cond. 1 OK
+    const ext = mt({ device_burden: 1.15, extended_burden_range: true });
+    results.push(assert('MT #125 extended range S 1.15 VA, Sn 5 VA → OK', ext.extended_burden_range && ext.S_min === 1
+      && ext.cond1 && ext.is_ok && !keys(ext).includes('hint_extended_burden_range'), ext.status, 'OK'));
+    // Extended range with Sn > 15 VA: not applied, warned
+    const ext30 = mt({ burden: 30, device_burden: 10, extended_burden_range: true });
+    results.push(assert('MT #125 extended range Sn 30 VA → not applied, warned',
+      !ext30.extended_burden_range && approx(ext30.S_min, 7.5) && keys(ext30).includes('warning_extended_range_sn_above_15'),
+      keys(ext30).join(','), 'warning_extended_range_sn_above_15'));
+    // Hard 1 VA floor: Sn 2.5 VA, 25 % → 0.625 VA, raised to 1 VA
+    const floor = mt({ burden: 2.5, device_burden: 0.8 });
+    results.push(assert('MT #125 Smin floor 1 VA', floor.S_min === 1 && !floor.cond1, floor.S_min, 1, ' VA'));
+    // Smin% from the accuracy class: 50 % for classes 3 and 5, 25 % for 0.2S; typed % without a class
+    const c3 = mt({ mt_class: '3', min_burden_percent: 25, device_burden: 2 });
+    const c02 = mt({ mt_class: '0.2S', min_burden_percent: 50, device_burden: 2 });
+    results.push(assert('MT #125 Smin% from class (3 → 50 %, 0.2S → 25 %)',
+      approx(c3.S_min, 2.5) && !c3.cond1 && approx(c02.S_min, 1.25) && c02.cond1, `${c3.S_min} / ${c02.S_min}`, '2.5 / 1.25'));
+    // S_lead > Sn (5 A, default cable): the lead hint
+    const lead5 = CTMetering.calculate({ Is: 5, burden: 15, rct: 0.2, fs_factor: 5, min_safety_factor: 20,
+      device_burden: 0.1, cable_length: 100, cable_cross: 4, cable_mat: 'cu' }, {});
+    results.push(assert('MT #125 5 A default cable: S_lead > Sn hint', lead5.S_lead > 15 && keys(lead5).includes('hint_lead_burden_above_sn'),
+      lead5.S_lead, '> 15', ' VA'));
+    // 5 A, Sn 15 VA, 30 m × 6 mm² Cu (issue table): OK
+    const ok5 = CTMetering.calculate({ Is: 5, burden: 15, rct: 0.2, fs_factor: 5, min_safety_factor: 20,
+      device_burden: 0.1, cable_length: 30, cable_cross: 6, cable_mat: 'cu' }, {});
+    results.push(assert('MT #125 5 A, Sn 15 VA, 30 m × 6 mm² → OK', ok5.is_ok && !keys(ok5).includes('hint_lead_burden_above_sn'),
+      ok5.status, 'OK'));
+    // The Prometer 100 preset (calc/meters.js) with Fs 5 is feasible: Fs < Fmin
+    results.push(assert('MT #125 preset Fs 5 < Fmin 20', CTMeterDB.DEFAULT_FMIN === 20 && dflt.cond2_feasible,
+      dflt.cond2_feasible, true));
 
     // Cable resistance from CTCableRes (§9.6 9C): balanced 3-phase load (§9.8)
     results.push(...checkModuleCableRes('MT', CTMetering.calculate,
@@ -1060,6 +1140,7 @@ const CTTests = (() => {
         device_burden: cd.device_burden,
         cable_length: cp.length_m, cable_cross: cp.cross_mm2,
         cable_mat: cp.material.includes('(Al)') ? 'al' : 'cu',
+        smin_floor_va: 0,   // the Python has no 1 VA floor on Smin (F-MT-125)
       };
       // Zero-diff gate (§9.6): native method, the case's temperature as the project's
       const got = CTMetering.calculate(goldenCore, { cable_r_method: 'iec60287', cable_temp: cp.temp_c });
@@ -1078,7 +1159,7 @@ const CTTests = (() => {
         approx(got.Fsa, parseFloat(exp.calculations.effective_safety_factor_fsa)),
         got.Fsa, parseFloat(exp.calculations.effective_safety_factor_fsa)));
       results.push(assert(`MT golden #${i} warnings`,
-        matchesExpected(got.warnings, exp.warnings),
+        matchesExpected(pyWarnings(got.warnings), exp.warnings),
         JSON.stringify(got.warnings), JSON.stringify(exp.warnings)));
 
       // steps spot-check: cond1 step mirrors the burden-check verdict
@@ -1122,6 +1203,7 @@ const CTTests = (() => {
         min_safety_factor: k.min_safety_factor, attached_resistor: k.attached_resistor,
         device_burden: k.device_burden,
         cable_length: cp.length_m, cable_cross: cp.cross_mm2, cable_mat: cp.material,
+        smin_floor_va: 0,   // the Python has no 1 VA floor on Smin (F-MT-125)
         ...goldenWiring(c),
       }, cd);
       const e = c.expected;
@@ -1133,7 +1215,7 @@ const CTTests = (() => {
       results.push(assert(`${tag} CTMetering Fsa`,
         approx(m.Fsa, parseFloat(e.calculations.effective_safety_factor_fsa)),
         m.Fsa, parseFloat(e.calculations.effective_safety_factor_fsa)));
-      results.push(assert(`${tag} CTMetering warnings`, matchesExpected(m.warnings, e.warnings),
+      results.push(assert(`${tag} CTMetering warnings`, matchesExpected(pyWarnings(m.warnings), e.warnings),
         JSON.stringify(m.warnings), JSON.stringify(e.warnings)));
     };
     (G.by_method || []).forEach(checkCableCase('by_method'));
@@ -2235,8 +2317,12 @@ const CTTests = (() => {
     results.push(assert('moduleCore manual / no mode: stored ar_ts or none (older cores unchanged)',
       mc({ ...base, ar_ts_mode: 'manual', ar_ts: 0.7 }, 400).ar_ts === 0.7 && mc({ ...base, ar_ts: 0.7 }, 400).ar_ts === 0.7
         && !('ar_ts' in mc(base, 400)) && !('ar_ts' in mc({ ...base, ar_ts_mode: 'manual' }, 400)), 'changed', 'unchanged'));
+    // (overcurrent has a class row: is_px follows the class, F-TP-PX)
+    const { is_px: ocPx, ...ocRest } = mc({ ...base, ar_ts_mode: 'table' }, 132, 'overcurrent');
     results.push(assert('moduleCore: other calc types get no AR keys',
-      JSON.stringify(mc({ ...base, ar_ts_mode: 'table' }, 132, 'overcurrent')) === JSON.stringify({ ...base, ar_ts_mode: 'table' }), 'added', 'none'));
+      JSON.stringify(ocRest) === JSON.stringify({ ...base, ar_ts_mode: 'table' }) && ocPx === false
+        && JSON.stringify(mc({ ...base, ar_ts_mode: 'table' }, 132, 'busbar')) === JSON.stringify({ ...base, ar_ts_mode: 'table' }),
+      'added', 'none'));
     return results;
   }
 
@@ -2471,14 +2557,33 @@ const CTTests = (() => {
       return GT.find((o) => o !== c && JSON.stringify(o.input) === want) || 'missing';
     };
 
+    // Deviation (F-TP-PX, decision A2): a Vk-specified core (is_px_class with
+    // a Vk) has no rated ALF, so the IEC ALF method is not applicable, as for
+    // an E.m.f.-only IED (main.py runs it with alf_o None: iec_ok False,
+    // NOT_OK whatever the Vk). Such a core with no IED, or an IED that uses
+    // the IEC method, must match the same core with ABB RET670.
+    const EMF_ONLY_IED = 'ABB RET670';
+    const vkTwin = (c) => {
+      const cd = c.input.core_data;
+      if (!cd.is_px_class || cd.vk_voltage == null) return null;
+      if (cd.relay_name && !CTRelayDB.trafoDiffParams({ relay_name: cd.relay_name }).applicable) return null;
+      const want = JSON.stringify({ common_data: c.input.common_data, core_data: { ...cd, relay_name: EMF_ONLY_IED } });
+      return GT.find((o) => o !== c && JSON.stringify(o.input) === want) || 'missing';
+    };
+    results.push(assert('TDIFFMAIN golden has a Vk core with the IEC method and its E.m.f.-only twin (F-TP-PX)',
+      GT.some((c) => vkTwin(c) && vkTwin(c) !== 'missing'), 'none', 'a twin pair'));
+
     GT.forEach((c, i) => {
       const twin = customTwin(c);
-      if (twin === 'missing') {
-        results.push(assert(`TDIFFMAIN golden #${i} unknown IED has a no-IED twin`, false, 'none', 'a twin case'));
+      const vTwin = vkTwin(c);
+      if (twin === 'missing' || vTwin === 'missing') {
+        results.push(assert(`TDIFFMAIN golden #${i} ${vTwin === 'missing' ? `Vk core has an ${EMF_ONLY_IED}` : 'unknown IED has a no-IED'} twin`,
+          false, 'none', 'a twin case'));
         return;
       }
-      const got = checkCase(`TDIFFMAIN golden #${i}${twin ? ' (unknown IED = custom relay)' : ''}`,
-        twin ? { input: c.input, expected: twin.expected } : c);
+      const ref = vTwin || twin;
+      const why = vTwin ? ` (Vk core: IEC N/A as ${EMF_ONLY_IED})` : twin ? ' (unknown IED = custom relay)' : '';
+      const got = checkCase(`TDIFFMAIN golden #${i}${why}`, ref ? { input: c.input, expected: ref.expected } : c);
       if (c.expected.trafo_ik_max === null) return;  // not calculated (issue #85)
       results.push(assert(`TDIFFMAIN golden #${i} cable_res iec60287 / four_wire (default), k = 2`,
         got.cable_res.method === 'iec60287' && got.cable_res.topology === 'four_wire'
@@ -4116,6 +4221,80 @@ const CTTests = (() => {
       approx(uiAl.cable_res.r20_per_km, 4.61) && uiAl.cable_res.source === 'iec60228_table',
       uiAl.Rc, eAl.r_loop, 'Ω'));
 
+    // ── Issue #125: device burden in VA, burden range I / II, migration ──
+    // No cable: the device alone loads the VT.
+    const vt = (o) => CTVT.calculate({ secondary_voltage: 100, vt_class: '0.2', burden: 10, thermal_burden: 50,
+      attached_resistor: 0, cable_length: 0, ...o }, {});
+    const vkeys = (r) => r.warnings.map((w) => (Array.isArray(w) ? w[0] : w));
+    // VA input = the equivalent Ω input (R = Us²/S)
+    const va6 = vt({ device_burden: 6, cable_length: 150 });
+    const ohm6 = vt({ device_resistance: 100 * 100 / 6, cable_length: 150 });
+    results.push(assert('VTCALC #125 6 VA = Us²/6 Ω', approx(va6.actual_burden_va, ohm6.actual_burden_va)
+      && approx(va6.device_resistance, 10000 / 6) && va6.status === ohm6.status,
+      va6.actual_burden_va, ohm6.actual_burden_va, ' VA'));
+    results.push(assert('VTCALC #125 R_device step from the VA input',
+      va6.steps.some((x) => x.key === 'device_resistance_from_burden' && approx(x.result, 10000 / 6)),
+      va6.steps.map((x) => x.key).join(','), 'device_resistance_from_burden'));
+    // A class 0.2 10 VA VT with an aux-powered meter (0.1 VA, the Prometer 100 preset) → OK
+    const vtDef = CTVT.calculate({ secondary_voltage: 100, vt_class: '0.2', burden: 10, thermal_burden: 50,
+      device_burden: 0.1, vt_supply_mode: 'aux', attached_resistor: 0 }, {});
+    results.push(assert('VTCALC #125 defaults (0.1 VA, 150 m) → OK, range I', vtDef.is_ok && vtDef.burden_range === 'I'
+      && vtDef.burden_range_label === '0 VA-10 VA class 0.2', `${vtDef.status} ${vtDef.burden_range_label}`, 'OK 0 VA-10 VA class 0.2'));
+    // Self-powered meter 6 VA on 10 VA → 60 %
+    const self6 = vt({ device_burden: 6 });
+    results.push(assert('VTCALC #125 self-powered 6 VA → 60 % OK', approx(self6.burden_utilization, 60) && self6.is_ok,
+      self6.burden_utilization, 60, ' %'));
+    // Range I at 1 %: OK, no low-burden warning
+    const r1pct = vt({ device_burden: 0.1 });
+    results.push(assert('VTCALC #125 range I at 1 % → OK, no warning', r1pct.is_ok && r1pct.warnings.length === 0
+      && approx(r1pct.burden_utilization, 1), JSON.stringify(r1pct.warnings), '[]'));
+    // Range II at 20 %: NOT OK; at 25 %: OK (boundary)
+    const r20 = vt({ vt_burden_range: 'II', device_burden: 2 });
+    results.push(assert('VTCALC #125 range II at 20 % → NOT OK', !r20.is_ok && r20.status === 'IKKE OK' && r20.margin < 0
+      && vkeys(r20).includes('warning_vt_range_ii_below_25')
+      && r20.steps.some((x) => x.key === 'burden_range_check' && x.is_ok === false), r20.status, 'IKKE OK'));
+    const r25 = vt({ vt_burden_range: 'II', device_burden: 2.5 });
+    results.push(assert('VTCALC #125 range II at 25 % → OK (boundary)', r25.is_ok && approx(r25.burden_utilization, 25)
+      && r25.burden_range_label === '2.5 VA-10 VA class 0.2', `${r25.status} ${r25.burden_utilization}`, 'OK 25'));
+    // Default range: I for Sn ≤ 10 VA, II above; non-standard combinations warned
+    results.push(assert('VTCALC #125 default range: 10 VA → I, 25 VA → II',
+      CTVT.validation.resolveBurdenRange({ burden: 10 }) === 'I' && CTVT.validation.resolveBurdenRange({ burden: 25 }) === 'II',
+      `${CTVT.validation.resolveBurdenRange({ burden: 10 })}/${CTVT.validation.resolveBurdenRange({ burden: 25 })}`, 'I/II'));
+    const nsI = vt({ burden: 25, vt_burden_range: 'I', device_burden: 1 });
+    const nsII = vt({ burden: 5, vt_burden_range: 'II', device_burden: 2 });
+    results.push(assert('VTCALC #125 non-standard range warnings (I > 10 VA, II < 10 VA)',
+      nsI.is_ok && vkeys(nsI).includes('warning_vt_range_nonstandard') && nsII.is_ok && vkeys(nsII).includes('warning_vt_range_nonstandard'),
+      `${vkeys(nsI)} / ${vkeys(nsII)}`, 'warning_vt_range_nonstandard'));
+    // The old defaults (100 Ω ≈ 99 VA) are NOT OK — the reason the input is VA now
+    results.push(assert('VTCALC #125 old default 100 Ω → NOT OK', !vt({ device_resistance: 100, cable_length: 150 }).is_ok,
+      'OK', 'NOT OK'));
+    // Migration Ω → VA: same results, device_resistance dropped
+    const old = { secondary_voltage: 100, burden: 10, thermal_burden: 50, device_resistance: 2000, cable_length: 150 };
+    const mig = CTVT.migrateInputs(old);
+    results.push(assert('VTCALC #125 migration 2000 Ω @ 100 V → 5 VA', mig.device_burden === 5 && !('device_resistance' in mig)
+      && old.device_resistance === 2000, mig.device_burden, 5, ' VA'));
+    results.push(assert('VTCALC #125 migrated core gives the same burden',
+      approx(CTVT.calculate(mig, {}).actual_burden_va, CTVT.calculate(old, {}).actual_burden_va),
+      CTVT.calculate(mig, {}).actual_burden_va, CTVT.calculate(old, {}).actual_burden_va, ' VA'));
+    results.push(assert('VTCALC #125 migration: 0 Ω → 0 VA, a VA core untouched',
+      CTVT.migrateInputs({ device_resistance: 0 }).device_burden === 0
+        && CTVT.migrateInputs(mig) === mig && CTVT.migrateInputs({ device_burden: 1, device_resistance: 7 }).device_resistance === 7,
+      'ok', 'ok'));
+
+    // CTMeterDB (calc/meters.js): presets fill editable values
+    const M = CTMeterDB;
+    results.push(assert('METERDB Prometer 100: metering 0.1 VA / Fmin 20',
+      JSON.stringify(M.presetValues('cewe_prometer_100', 'metering')) === JSON.stringify({ device_burden: 0.1, min_safety_factor: 20 }),
+      JSON.stringify(M.presetValues('cewe_prometer_100', 'metering')), '{device_burden:0.1,min_safety_factor:20}'));
+    results.push(assert('METERDB VT supply mode aux 0.1 / self 6 VA (preset and custom)',
+      M.presetValues('cewe_prometer_100', 'vt', 'aux').device_burden === 0.1 && M.presetValues('cewe_prometer_100', 'vt', 'self').device_burden === 6
+        && M.presetValues('', 'vt', 'self').device_burden === 6 && M.presetValues('', 'vt', 'aux').device_burden === 0.1
+        && M.presetValues('', 'metering') === null, 'ok', 'ok'));
+    results.push(assert('METERDB modified from preset',
+      M.modifiedFields({ meter_model: 'cewe_prometer_100', device_burden: 0.2, min_safety_factor: 20 }, 'metering').join() === 'device_burden'
+        && M.modifiedFields({ meter_model: 'cewe_prometer_100', device_burden: 6, vt_supply_mode: 'self' }, 'vt').length === 0
+        && M.modifiedFields({ device_burden: 3 }, 'vt').length === 0, 'ok', 'ok'));
+
     // ── Golden-vector backed (calc/golden/vt_calculator.json <- vt_calculations/calculator.py) ──
     const G = (typeof CT_GOLDEN !== 'undefined' && CT_GOLDEN.vt_calculator) ? CT_GOLDEN.vt_calculator : null;
     if (!G) return results;
@@ -4129,7 +4308,9 @@ const CTTests = (() => {
       }
       return `${C.pyFixed(s.result, s.precision)} ${s.unit}`;
     };
-    const checkCore = (tag, r, e) => {
+    const checkCore = (tag, r0, e) => {
+      // CTVT.calculate adds the burden-range row (issue #125); the Python has none
+      const r = { ...r0, intermediate_steps: r0.intermediate_steps.filter((s) => !CTSIZER_ONLY_VT_STEPS.includes(s.key)) };
       results.push(assert(`${tag} status`, r.status === e.status, r.status, e.status));
       results.push(assert(`${tag} calculations`, JSON.stringify(r.calculations) === JSON.stringify(e.calculations),
         JSON.stringify(r.calculations), JSON.stringify(e.calculations)));
@@ -4343,6 +4524,7 @@ const CTTests = (() => {
         relay_burden: cd.relay_burden, Isc_max_override: cd.max_fault_current,
         cable_length: cp.length_m, cable_cross: cp.cross_mm2,
         cable_mat: cp.material.includes('(Al)') ? 'al' : 'cu',
+        smin_floor_va: 0,   // metering: the Python has no 1 VA floor on Smin (F-MT-125)
       };
       ['application', 'relay_type', 'transformer_id', 'core_number'].forEach((k) => {
         if (k in cd) core[k] = cd[k];
@@ -4355,7 +4537,7 @@ const CTTests = (() => {
 
       results.push(assert(`${tag} status`, got.status === e.status, got.status, e.status));
       results.push(assert(`${tag} conclusion`, got.conclusion === calc.conclusion, got.conclusion, calc.conclusion));
-      results.push(assert(`${tag} warnings`, matchesExpected(got.warnings, e.warnings),
+      results.push(assert(`${tag} warnings`, matchesExpected(pyWarnings(got.warnings), e.warnings),
         JSON.stringify(got.warnings), JSON.stringify(e.warnings)));
       META.forEach((k) => {
         results.push(assert(`${tag} ${k}`, got[k] === e[k], got[k], e[k]));
@@ -4482,6 +4664,117 @@ const CTTests = (() => {
   // (calculate_single_core, the toolbox lead resistance injected per §9.5):
   // status, the numbers the Summary panel shows (buildMetrics) and every
   // Formula Steps row the Python reports. Nothing is hand-written.
+  // ── CTRequired (calc/required.js): no default values ──────────────────
+  // Every input must be entered: a blank project, bay or core is incomplete,
+  // and only a complete core with complete station data is calculated.
+  function testRequired() {
+    const results = [];
+    const R = CTRequired;
+    const SYS = { station_name: 'Test', station_abbr: 'TST', voltage: 132, freq: '50', isc_sys: 20, tp: 100,
+      cable_r_method: 'iec60287', cable_temp: 75 };
+    const CT = { Ip: 2000, Is: 1, rct: 4, burden: 30 };
+    const RELAY = { relay_manufacturer: 'Other', relay_burden: 0.05 };
+    const CABLE = { cable_length: 100, cable_cross: 4, cable_mat: 'cu', cable_topology: 'six_wire' };
+    const keys = (r) => Object.keys(r.fields).sort().join(',');
+
+    // Station data
+    const s0 = R.system({});
+    results.push(assert('REQ empty station: all 8 fields missing', !s0.ok && s0.count === 8
+      && Object.values(s0.fields).every((x) => x === 'missing') && s0.sections.station === 8, s0.count, 8));
+    results.push(assert('REQ station complete → ok', R.system(SYS).ok, keys(R.system(SYS)), ''));
+    const sBad = R.system({ ...SYS, voltage: 0, freq: '55', tp: 0, station_name: '  ' });
+    results.push(assert('REQ station: 0 kV, 55 Hz, Tp 0 invalid; blank name missing',
+      sBad.fields.voltage === 'invalid' && sBad.fields.freq === 'invalid' && sBad.fields.tp === 'invalid'
+      && sBad.fields.station_name === 'missing' && sBad.count === 4, JSON.stringify(sBad.fields), 'voltage,freq,tp,name'));
+
+    // A new core of every type is blank and incomplete
+    for (const t of ['overcurrent', 'metering', 'busbar', 'distance', 'transformer_diff', 'line_diff', 'vt']) {
+      const r = R.core({ kind: t === 'vt' ? 'vt' : 'ct', calc_type: t, inputs: {} });
+      results.push(assert(`REQ blank ${t} core → incomplete, cable section marked`, !r.ok && r.count > 0
+        && r.sections.cable > 0 && Object.values(r.fields).every((x) => x === 'missing'), r.count, '> 0'));
+    }
+
+    // Overcurrent: complete → ok; the class decides ALF or Vk
+    const oc = { ...CT, ...RELAY, ...CABLE, ct_class_family: '5P', alf: 20 };
+    results.push(assert('REQ overcurrent complete → ok', R.core({ kind: 'ct', calc_type: 'overcurrent', inputs: oc }).ok,
+      keys(R.core({ kind: 'ct', calc_type: 'overcurrent', inputs: oc })), ''));
+    const ocPx = R.core({ kind: 'ct', calc_type: 'overcurrent', inputs: { ...oc, ct_class_family: 'PX' } });
+    results.push(assert('REQ PX class needs Vk, not ALF', keys(ocPx) === 'vk', keys(ocPx), 'vk'));
+    const ocLegacy = R.core({ kind: 'ct', calc_type: 'overcurrent', inputs: { ...oc, ct_class_family: undefined, is_px: true, vk: 400 } });
+    results.push(assert('REQ legacy is_px core counts as PX with its Vk', ocLegacy.ok, keys(ocLegacy), ''));
+    const ocBad = R.core({ kind: 'ct', calc_type: 'overcurrent', inputs: { ...oc, Ip: 0, Is: 2, cable_cross: 3, relay_tal: 5 } });
+    results.push(assert('REQ out of range / not an option → invalid (optional t_al too)',
+      keys(ocBad) === 'Ip,Is,cable_cross,relay_tal' && Object.values(ocBad.fields).every((x) => x === 'invalid')
+      && ocBad.sections.ct === 2 && ocBad.sections.cable === 1 && ocBad.sections.relay === 1, keys(ocBad), 'Ip,Is,cable_cross,relay_tal'));
+
+    // Metering: Smin% only for a custom class without the extended range
+    const mt = { ...CT, burden: 5, fs_factor: 5, meter_manufacturer: 'CEWE', device_burden: 0.1, min_safety_factor: 20,
+      ...CABLE, attached_resistor: 0 };
+    const mtCustom = R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, mt_class: 'custom' } });
+    results.push(assert('REQ metering custom class needs Smin%', keys(mtCustom) === 'min_burden_percent', keys(mtCustom), 'min_burden_percent'));
+    results.push(assert('REQ metering class 0.2S: Smin% from the class → ok',
+      R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, mt_class: '0.2S' } }).ok, '', ''));
+    results.push(assert('REQ metering extended range: no Smin% → ok',
+      R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, mt_class: 'custom', extended_burden_range: true } }).ok, '', ''));
+    const mtNoClass = R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, min_burden_percent: 25 } });
+    results.push(assert('REQ metering: the accuracy class must be picked', keys(mtNoClass) === 'mt_class', keys(mtNoClass), 'mt_class'));
+    const mtNoR = R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, mt_class: '0.2', attached_resistor: undefined } });
+    results.push(assert('REQ metering: the attached resistor must be entered (0 is a value)',
+      keys(mtNoR) === 'attached_resistor', keys(mtNoR), 'attached_resistor'));
+
+    // Distance: line data and, with AR, t_al and the AR card
+    const dist = { ...CT, ...RELAY, ...CABLE, ct_class_family: '5P', alf: 20,
+      r_per_km: 0.04, x_per_km: 0.2, line_length: 10, zone1_setting: 0.85 };
+    const dNoLine = R.core({ kind: 'ct', calc_type: 'distance', inputs: { ...dist, line_length: undefined } });
+    results.push(assert('REQ distance: line data required', keys(dNoLine) === 'line_length' && dNoLine.sections.line === 1,
+      keys(dNoLine), 'line_length'));
+    const dAr = R.core({ kind: 'ct', calc_type: 'distance', inputs: { ...dist, auto_reclose_enabled: true } });
+    results.push(assert('REQ distance AR on: t_al and the AR inputs required',
+      keys(dAr) === 'ar_ktf_preset,ar_t_prime,ar_tfr,ar_ts_mode,relay_tal' && dAr.sections.ar === 4, keys(dAr), 'AR + t_al'));
+    const dArManual = R.core({ kind: 'ct', calc_type: 'distance', inputs: { ...dist, auto_reclose_enabled: true, relay_tal: 25,
+      ar_t_prime: 0.1, ar_tfr: 0.4, ar_ts_mode: 'manual', ar_ktf_preset: 'iec_default' } });
+    results.push(assert('REQ distance AR manual Ts needs Ts', keys(dArManual) === 'ar_ts', keys(dArManual), 'ar_ts'));
+    results.push(assert('REQ distance AR off: AR inputs not required, t_al optional',
+      R.core({ kind: 'ct', calc_type: 'distance', inputs: dist }).ok, '', ''));
+
+    // Transformer differential: the transformer data, the winding voltage and Isc,max,int too
+    const td = R.core({ kind: 'ct', calc_type: 'transformer_diff', inputs: { ...CT, ...RELAY, ...CABLE, ct_class_family: '5P', alf: 20 } });
+    results.push(assert('REQ transformer diff: 6 transformer fields', td.sections.trafo === 6
+      && keys(td) === 'inrush_factor,linked_winding,trafo_ik_max,trafo_power_mva,trafo_voltage_kv,trafo_z_percent', keys(td), 'trafo'));
+
+    // VT core: the kind decides
+    const vt = { secondary_voltage: 100, vt_class: '0.2', burden: 10, thermal_burden: 50, vt_burden_range: 'I',
+      meter_manufacturer: 'CEWE', vt_supply_mode: 'aux', device_burden: 0.1, ...CABLE, attached_resistor: 0 };
+    results.push(assert('REQ VT complete → ok', R.core({ kind: 'vt', calc_type: 'vt', inputs: vt }).ok, '', ''));
+    const vtNoRange = R.core({ kind: 'vt', calc_type: 'overcurrent', inputs: { ...vt, vt_burden_range: undefined } });
+    results.push(assert('REQ VT core (kind vt): the burden range must be picked', keys(vtNoRange) === 'vt_burden_range',
+      keys(vtNoRange), 'vt_burden_range'));
+
+    // ready(): station and core both complete
+    const ocCore = { kind: 'ct', calc_type: 'overcurrent', inputs: oc };
+    results.push(assert('REQ ready needs the station data too', R.ready(ocCore, SYS) && !R.ready(ocCore, { ...SYS, tp: null }),
+      '', ''));
+
+    // A complete core of every type calculates (no module default is needed)
+    const full = {
+      overcurrent: oc,
+      busbar: { ...CT, ...RELAY, ...CABLE, alf: 20 },
+      metering: { ...mt, mt_class: '0.2' },
+      distance: dist,
+      transformer_diff: { ...CT, ...RELAY, ...CABLE, ct_class_family: '5P', alf: 20, trafo_power_mva: 160, trafo_voltage_kv: 132,
+        trafo_z_percent: 14, inrush_factor: 8, linked_winding: 'HV', trafo_ik_max: 20000 },
+      line_diff: { ...CT, ...RELAY, ...CABLE, ct_class_family: '5P', alf: 20 },
+      vt,
+    };
+    for (const [t, inputs] of Object.entries(full)) {
+      const c = { kind: t === 'vt' ? 'vt' : 'ct', calc_type: t, inputs };
+      const r = R.ready(c, SYS) ? CTCalc.calculate(t, inputs, SYS) : null;
+      results.push(assert(`REQ complete ${t} core is ready and calculates`, r != null && typeof r.is_ok === 'boolean',
+        r ? r.status : keys(R.core(c)), 'a result'));
+    }
+    return results;
+  }
+
   function testEndToEnd() {
     const results = [];
     const G = (typeof CT_GOLDEN !== 'undefined' && CT_GOLDEN.e2e) ? CT_GOLDEN.e2e : null;
@@ -4550,7 +4843,8 @@ const CTTests = (() => {
         Vkb: st.min_required_knee_point_zone1, Ktd_a: st.transient_dimensioning_factor_close_in,
         omega_Tp: e.derived.omega_tp, Rc: e.cable_res.r_loop }),
       transformer_diff: (e, st) => ({ EALF: st.offered_knee_point_voltage_alf ?? st.specified_knee_point_voltage_px,
-        Vk_req: st.required_knee_point_voltage, alf_o: st.operational_alf,
+        // a Vk core has no operating ALF row (alf_o None): null
+        Vk_req: st.required_knee_point_voltage, alf_o: st.operational_alf ?? null,
         ALF_ziegler: st.required_alf_siemens_combined, Rc: e.cable_res.r_loop,
         emf_ok: ok(e.calculations.emf_method_result), ziegler_ok: ok(e.calculations.ziegler_method_result) }),
       // E internal / E through: the larger of the 3-phase and 1-phase E.M.F. (§10.6 F-SUM)
@@ -4569,6 +4863,9 @@ const CTTests = (() => {
         : ['f_a', 'check2', 'fault_ratio', 'S_in', 'S_a', 'Rc', 'margin']),
       line_diff: () => ['EALF', 'Vk_req', 'E_internal', 'E_through', 'Rc_3ph', 'Rc_1ph'],
       generic: () => ['alf_actual', 'Rc'],
+      // a Vk core: the E.m.f. cards, no ALF ones (F-TP-PX)
+      transformer_diff: (r) => (r.is_px ? ['EALF', 'Vk_req', 'emf_ok', 'Rc', 'margin']
+        : ['EALF', 'Vk_req', 'emf_ok', 'ziegler_ok', 'alf_o', 'ALF_ziegler']),
     };
 
     const types = new Set();
@@ -4588,8 +4885,8 @@ const CTTests = (() => {
         `${r.status} / ${r.is_ok}`, e.status));
       // Warnings: same count; same content where the Python keeps structured
       // tuples or verbatim text (distance renders some via Translator, §7)
-      results.push(assert(`${tag} warnings`, r.warnings.length === e.warnings.length
-        && (c.calc_type === 'distance' || matchesExpected(r.warnings, e.warnings)),
+      results.push(assert(`${tag} warnings`, pyWarnings(r.warnings).length === e.warnings.length
+        && (c.calc_type === 'distance' || matchesExpected(pyWarnings(r.warnings), e.warnings)),
         JSON.stringify(r.warnings), JSON.stringify(e.warnings)));
       // Conclusion key (line_diff keeps the conclusion key where Python stores
       // the status string, §7 Phase 4; distance's Python key is presentation-only)
@@ -4621,7 +4918,7 @@ const CTTests = (() => {
       const want = SUMMARY[c.calc_type](e, st);
       Object.entries(want).forEach(([k, v]) => {
         const got = r[k];
-        const pass = typeof v === 'boolean' ? got === v
+        const pass = v === null ? got === null : typeof v === 'boolean' ? got === v
           : typeof v === 'string' ? near(got, v) : approx(got, v);
         results.push(assert(`${tag} Summary ${k}`, pass, got, v));
       });
@@ -4647,8 +4944,11 @@ const CTTests = (() => {
       r.steps.forEach((s) => {
         // Every row has a LaTeX string; only the IEC "Krav" text rows have an
         // empty one, as their Python rows (FormulaStep then shows the text only);
-        // so does distance's analytical-Ktd methodology note
-        if (typeof s.latex !== 'string' || (!s.latex && !/^iec_requirement_|^ktd_methodology_description$/.test(s.key))) bad.push(`${s.key}: no latex`);
+        // so does distance's analytical-Ktd methodology note, and the text rows of
+        // a method that does not apply (IEC N/A, Ziegler for a Vk core: F-TP-PX)
+        const textRow = /^iec_requirement_|^ktd_methodology_description$/.test(s.key)
+          || s.result === 'N/A' || s.status === 'not_applicable_px';
+        if (typeof s.latex !== 'string' || (!s.latex && !textRow)) bad.push(`${s.key}: no latex`);
         if (CABLE_ROWS.includes(s.key)) {
           const L = c.inputs.cable_length;
           const ref = {
@@ -4677,7 +4977,8 @@ const CTTests = (() => {
           if (!near(s.result, v)) bad.push(`${s.key}: ${s.result} ≠ ${v}`);
         } else {
           const text = [s.result, s.unit].filter(Boolean).join(' ');
-          if (!(s.result === sub || text === v || s.result === v)) bad.push(`${s.key}: ${JSON.stringify(s.result)} ≠ ${JSON.stringify(v || sub)}`);
+          // (a not-applicable row keeps the Python result token in `status`)
+          if (!(s.result === sub || text === v || s.result === v || s.status === v)) bad.push(`${s.key}: ${JSON.stringify(s.result)} ≠ ${JSON.stringify(v || sub)}`);
         }
       });
       const keys = r.steps.map((s) => s.key);
@@ -4709,6 +5010,29 @@ const CTTests = (() => {
                        ar_t_al: cd.ar_t_al, ar_t_double_al: cd.ar_t_double_al };
         results.push(assert(`${tag} module core: CT class keys, alf, ar_ts and AR windows as the Python core_data`,
           JSON.stringify(got) === JSON.stringify(want), JSON.stringify(got), JSON.stringify(want)));
+      }
+      if (CTCalc.CLASS_ROW_TYPES.includes(c.calc_type)) {
+        // F-TP-PX (PORTING_PLAN.md §10.6): the class decides Vk or ALF, as
+        // ctvt_dim's data_io.py (is_px_class for PX / TPX / TPY / TPZ)
+        const vkc = !!CTCalc.moduleCore(c.calc_type, c.inputs, c.system).is_px;
+        results.push(assert(`${tag} module core is_px = Python is_px_class (class ${CTCalc.ctClassFamily(c.inputs)})`,
+          vkc === !!c.python.core_data.is_px_class, vkc, !!c.python.core_data.is_px_class));
+        if (c.inputs.ct_class_family != null) {
+          // A stored is_px that disagrees with the class (the former "PX class
+          // CT" box, or a TP core saved before F-TP-PX) changes nothing
+          const same = (x) => JSON.stringify(CTCalc.calculate(c.calc_type, x, { ...c.system })) === JSON.stringify(r);
+          results.push(assert(`${tag} stored is_px ${!vkc} or none gives the same result (the class decides)`,
+            same({ ...c.inputs, is_px: !vkc }) && same((({ is_px, ...x }) => x)(c.inputs)), 'differs', 'identical'));
+        }
+      }
+      if (c.calc_type === 'transformer_diff') {
+        // F-TP-PX decision A2: no IED, but a Vk core: the IEC ALF method is not
+        // applicable (the Python reference ran with an E.m.f.-only IED)
+        const vkCore = !!c.python.core_data.is_px_class;
+        results.push(assert(`${tag} IEC ALF method ${vkCore ? 'N/A (Vk core, A2)' : 'applies'}`,
+          !c.inputs.relay_model && r.iec_method_applicable === !vkCore
+            && (c.python.core_data.relay_name === (vkCore ? 'ABB RET670' : undefined)),
+          r.iec_method_applicable, !vkCore));
       }
       if (c.calc_type === 'distance') {
         // F-DIST-UI (PORTING_PLAN.md §10.6): relay_tal selects the analytical
@@ -4799,6 +5123,11 @@ const CTTests = (() => {
       G.cases.some((c) => c.calc_type === 'distance' && c.inputs.auto_reclose_enabled && /PR$/.test(c.inputs.ct_class_family || ''))
         && G.cases.some((c) => c.calc_type === 'distance' && c.inputs.auto_reclose_enabled && c.inputs.ct_class_family === 'PX' && c.inputs.is_px),
       G.cases.filter((c) => c.calc_type === 'distance' && c.inputs.auto_reclose_enabled).map((c) => c.inputs.ct_class_family).join(','), 'PR + PX'));
+    // F-TP-PX: a TPY distance AR core and a TPX core of another type
+    results.push(assert('E2E covers a TPY distance AR core and a TPX core of another calc type',
+      G.cases.some((c) => c.calc_type === 'distance' && c.inputs.auto_reclose_enabled && c.inputs.ct_class_family === 'TPY')
+        && G.cases.some((c) => c.calc_type !== 'distance' && c.inputs.ct_class_family === 'TPX'),
+      G.cases.filter((c) => /^TP/.test(c.inputs.ct_class_family || '')).map((c) => c.name).join(','), 'TPY distance AR + TPX'));
     results.push(assert('E2E covers Ts from the table on both AR types and a manual Ts',
       ['distance', 'line_diff'].every((t) => G.cases.some((c) => c.calc_type === t && c.inputs.auto_reclose_enabled && c.inputs.ar_ts_mode === 'table'))
         && G.cases.some((c) => c.inputs.auto_reclose_enabled && c.inputs.ar_ts_mode === 'manual' && c.inputs.ar_ts != null),
@@ -5098,6 +5427,7 @@ const CTTests = (() => {
       { name: 'RelayDb',        fn: testRelayDb        },
       { name: 'RelayCalcParams', fn: testRelayCalcParams },
       { name: 'IedRating',      fn: testIedRating      },
+      { name: 'Required',       fn: testRequired       },
       { name: 'EndToEnd',       fn: testEndToEnd       },
     ];
 
@@ -5135,5 +5465,5 @@ const CTTests = (() => {
            testGeneric, testDistanceMain, testDistanceData, testAutoReclosure, testAutoReclosurePresets, testAutoReclosureComputation,
            testAutoReclosureWaveform, testTransformerDiffMain, testTransformerDiffPresets, testTransformerDiffData, testTransformerDiffBurden, testLineDiffMain, testLineDiffData,
            testLineDiffEmfCalculation, testLineDiffKneePoint, testVtData, testVtPresets, testVtImpedance,
-           testCtCalculations, testCableResConsistency, testIedRating };
+           testCtCalculations, testCableResConsistency, testIedRating, testRequired };
 })();

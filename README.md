@@ -1,6 +1,6 @@
 # CTSizer
 
-![Tests: 5,840 passed](https://img.shields.io/badge/tests-5840%20passed-brightgreen)
+![Tests: 5,989 passed](https://img.shields.io/badge/tests-5989%20passed-brightgreen)
 
 CTSizer is a free web application for dimensioning current transformers (CT)
 and voltage transformers (VT) for protection and metering. It runs at
@@ -16,8 +16,9 @@ a JavaScript expert, so suggestions for the code are very welcome.
 ## This repository
 
 This repository holds the source code of the website exactly as it is
-published: each commit is a release of ctsizer.com, and its message names the
-version and build shown in the app.
+published: it is updated once in the evening (Danish time) when there is a
+new release, each commit is the release ctsizer.com serves at that time, and
+its message names the version and build shown in the app.
 
 - `index.html` — the page; it loads every script in order.
 - `ctsizer-*.jsx`, `ctsizer-*.js` — the user interface, report export and texts (EN/DA).
@@ -57,16 +58,16 @@ and open <http://127.0.0.1:8000/>.
 ## Tests
 
 Every release of ctsizer.com passes the whole test suite before it is
-published: **5,840 checks in 53 test groups**, all passing
+published: **5,989 checks in 54 test groups**, all passing
 on this commit. **[TESTS.md](TESTS.md)** lists every test group, what it
 checks and how many checks it has, with links to the test code.
 
-5,162 of the checks are golden tests. The 42 files in
+5,245 of the checks are golden tests. The 42 files in
 `calc/golden/` hold inputs and the expected results, produced by running the
 Python reference implementation that the CTSizer calculations were ported
 from. The JavaScript calculation engine is checked against those numbers, so
 each result is pinned to the reference instead of to hand-derived values. The
-other 678 checks are worked out by hand.
+other 744 checks are worked out by hand.
 
 Run the suite yourself with Node.js 18 or newer:
 
