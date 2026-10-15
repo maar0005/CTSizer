@@ -14,6 +14,11 @@ const inputSt = { background:'var(--surface-2)', border:'1px solid var(--border-
 // every field starts blank (calc/required.js).
 function CableSection({ lang, v, set, calcType, attached }) {
   const topology = v.cable_topology;
+  // The attached resistor in the wiring picture, once entered (and, on a VT,
+  // once its place is picked)
+  const rAt = !attached || !(Number(v.attached_resistor) > 0) ? null
+    : attached.placement ? (v.vt_resistor_location === 'vt' || v.vt_resistor_location === 'meter' ? v.vt_resistor_location : null)
+      : 'series';
   return (
     <SectionCard title={Tp(lang,'section_cable')} defaultOpen={false} section="cable">
       <div style={{ paddingTop: 8 }}>
@@ -32,12 +37,21 @@ function CableSection({ lang, v, set, calcType, attached }) {
           <SelectInput value={topology} onChange={x=>set('cable_topology',x)}
             options={CTCalc.cableRes.listTopologies().map(t=>[t.id, lang==='da'?t.label_da:t.label_en])}/>
         </FormRow>
-        {topology && <WiringDiagram lang={lang} topology={topology} calcType={calcType}/>}
+        {topology && <WiringDiagram lang={lang} topology={topology} calcType={calcType} resistor={rAt}/>}
         {attached && (
           <FormRow label={Tp(lang,attached.label)} unit="Ω" field="attached_resistor">
             <NumInput value={v.attached_resistor} onChange={x=>set('attached_resistor',x)} min={0} max={attached.max} step={0.01}/>
           </FormRow>
         )}
+        {/* VT: where the resistor sits decides the current in the lead (CTVT.calculate) */}
+        {attached && attached.placement && Number(v.attached_resistor) > 0 && <>
+          <FormRow label={Tp(lang,'lbl_vt_resistor_at')} wide field="vt_resistor_location">
+            <SelectInput value={v.vt_resistor_location} onChange={x=>set('vt_resistor_location',x)}
+              options={[['vt', Tp(lang,'vt_resistor_at_vt')], ['meter', Tp(lang,'vt_resistor_at_meter')]]}/>
+          </FormRow>
+          <div style={noteSt}>{Tp(lang,'vt_resistor_at_note')}</div>
+        </>}
+        {attached && attached.note && <div style={noteSt}>{Tp(lang,attached.note)}</div>}
       </div>
     </SectionCard>
   );
@@ -122,6 +136,13 @@ function SystemPanel({ lang, v, onChange }) {
         <FormRow label={Tp(lang,'lbl_project_cable_temp')} unit="°C" field="cable_temp">
           <NumInput value={v.cable_temp} onChange={x=>set('cable_temp',x)} min={-20} max={90} step={1}/>
         </FormRow>
+        {/* Optional: national metering rules (calc/local_rules/); blank is none */}
+        <FormRow label={Tp(lang,'lbl_local_rules')} wide field="local_rules">
+          <SelectInput value={v.local_rules || ''} onChange={x=>set('local_rules',x || null)}
+            options={[['', Tp(lang,'local_rules_none')],
+              ...CTLocalRules.list().map(r=>[r.id, CTLocalRules.label(r, lang)])]}/>
+        </FormRow>
+        <div style={noteSt}>{Tp(lang,'local_rules_note')}</div>
       </div>
     </SectionCard>
     </InputCheck.Provider>
@@ -158,7 +179,7 @@ function OvercurrentInputs({ lang, v, set, onChange }) {
 // Meter / Relay / IED card, the attached resistor with the cable.
 const MT_CLASSES = CTRequired.MT_CLASSES;
 const noteSt = { fontSize:11, color:'var(--text-muted)', fontFamily:'var(--font-mono)', marginTop:6 };
-function MeteringInputs({ lang, v, set, onChange }) {
+function MeteringInputs({ lang, v, set, onChange, localRules }) {
   const fromClass = MT_CLASSES.includes(v.mt_class);
   return (
     <>
@@ -196,9 +217,9 @@ function MeteringInputs({ lang, v, set, onChange }) {
           </>}
         </div>
       </SectionCard>
-      <MeterSection lang={lang} v={v} set={set} onChange={onChange} calcType="metering"/>
+      <MeterSection lang={lang} v={v} set={set} onChange={onChange} calcType="metering" localRules={localRules}/>
       <CableSection lang={lang} calcType="metering" v={v} set={(k,x)=>set(k,x)}
-        attached={{ label:'lbl_attached_r', max:100 }}/>
+        attached={{ label:'lbl_attached_r', max:100, note:'attached_r_ct_note' }}/>
     </>
   );
 }
@@ -213,7 +234,7 @@ function MeteringInputs({ lang, v, set, onChange }) {
 // No default values (calc/required.js): nothing is pre-picked. A picked
 // preset fills the burden and Fmin (on a VT core for the supply mode, once
 // that is picked); a meter without a preset is typed.
-function MeterSection({ lang, v, set, onChange, calcType }) {
+function MeterSection({ lang, v, set, onChange, calcType, localRules }) {
   const Tl = k => CTSI18n.t(lang, k);
   const fmt = (k, o) => Object.keys(o).reduce((t, x) => t.replace(`{${x}}`, o[x]), Tl(k));
   const isVt = calcType === 'vt';
@@ -267,6 +288,7 @@ function MeterSection({ lang, v, set, onChange, calcType }) {
           </FormRow>
           <div style={noteSt}>{Tl('meter_fmin_note')}</div>
         </>}
+        {!isVt && CTLocalRules.byId(localRules) && <MeterClassRows lang={lang} v={v} set={set} onChange={onChange}/>}
         {isVt && <div style={noteSt}>{Tl('vt_supply_note')}</div>}
         {preset && (
           <div data-testid={modified.length ? 'meter-modified' : 'meter-from-preset'} style={noteSt}>
@@ -765,6 +787,31 @@ function LineDiffInputs({ lang, v, set, onChange, systemVals }) {
     </>
   );
 }
+// The meter's standard and class, read by a local rule set's meter-class
+// check (e.g. Elmåling / TR 353 table 5.1). Shown on a metering core only
+// when the project has local rules (Station Data); optional, with the class
+// cleared when it does not belong to a newly picked standard.
+function MeterClassRows({ lang, v, set, onChange }) {
+  const Tl = k => CTSI18n.t(lang, k);
+  const classes = CTRequired.METER_CLASSES[v.meter_standard] || [];
+  const pickStd = x => {
+    const n = { ...v, meter_standard: x };
+    if (!(CTRequired.METER_CLASSES[x] || []).includes(n.meter_class)) delete n.meter_class;
+    onChange(n);
+  };
+  return <>
+    <FormRow label={Tl('lbl_meter_standard')} wide field="meter_standard">
+      <SelectInput value={v.meter_standard} onChange={pickStd}
+        options={CTRequired.METER_STANDARDS.map(x=>[x, Tl(`meter_std_${x}`)])}/>
+    </FormRow>
+    <FormRow label={Tl('lbl_meter_class')} field="meter_class">
+      <SelectInput value={v.meter_class} onChange={x=>set('meter_class',x)}
+        options={classes.map(c=>[c,c])}/>
+    </FormRow>
+    <div style={noteSt}>{Tl('meter_class_note')}</div>
+  </>;
+}
+
 // ── VT core inputs (CTVT.calculate ← vt_calculations/calculator.py) ─────────
 // Issue #125: the connected device is entered in VA in the Meter / Relay /
 // IED card; the attached resistor sits with the cable.
@@ -795,7 +842,7 @@ function VtInputs({ lang, v, set, onChange }) {
       </SectionCard>
       <MeterSection lang={lang} v={v} set={set} onChange={onChange} calcType="vt"/>
       <CableSection lang={lang} calcType="vt" v={v} set={set}
-        attached={{ label:'lbl_vt_attached_r', max:1000000 }}/>
+        attached={{ label:'lbl_vt_attached_r', max:1000000, placement:true }}/>
     </>
   );
 }
@@ -858,7 +905,7 @@ function CoreInputPanel({ lang, core, systemVals, onChange: store, onSaveCTTpl, 
 
       {core.kind === 'vt' ? <VtInputs lang={lang} v={v} set={set} onChange={onChange}/> : <>
         {type === 'overcurrent'      && <OvercurrentInputs lang={lang} v={v} set={set} onChange={onChange}/>}
-        {type === 'metering'         && <MeteringInputs    lang={lang} v={v} set={set} onChange={onChange}/>}
+        {type === 'metering'         && <MeteringInputs    lang={lang} v={v} set={set} onChange={onChange} localRules={systemVals?.local_rules}/>}
         {type === 'busbar'           && <BusbarInputs      lang={lang} v={v} set={set} onChange={onChange}/>}
         {type === 'distance'         && <DistanceInputs       lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals}/>}
         {type === 'transformer_diff' && <TransformerDiffInputs lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals}/>}
@@ -1030,6 +1077,9 @@ function ResultsPanel({ lang, result, core, systemVals, theme }) {
   const ar = useMemo(() => chartArData(type, core, result, systemVals), [type, core?.inputs, result, systemVals]);
   const arResult = ar?.arResult ?? null;
   const arCanvasParams = ar?.canvasParams ?? null;
+  // The project's national metering rules on this core (null: none / n.a.)
+  const local = useMemo(() => CTLocalRules.evaluate(systemVals?.local_rules, core, result, systemVals),
+    [systemVals, core, result]);
 
   if (!result && core && !CTRequired.ready(core, systemVals)) return (
     <IncompleteNotice lang={lang} core={core} systemVals={systemVals}/>
@@ -1072,9 +1122,11 @@ function ResultsPanel({ lang, result, core, systemVals, theme }) {
           </span>
         )}
         <IedBadge ied={result.ied_rating}/>
+        {local && <LocalBadge lang={lang} local={local}/>}
       </div>
 
-      {(type === 'metering' || type === 'vt') && <ResultRemarks lang={lang} result={result}/>}
+      {(type === 'metering' || type === 'vt') && <ResultRemarks lang={lang} result={result} core={core} systemVals={systemVals}/>}
+      {local && <LocalRulesCard lang={lang} local={local}/>}
 
       {/* Tab bar */}
       <div style={{display:'flex',gap:4}}>
@@ -1162,9 +1214,10 @@ function ResultsPanel({ lang, result, core, systemVals, theme }) {
 
 // The module's remarks on a metering / VT core (issue #125): why it fails and
 // what to change (cond. 2 cannot be met, the burden missing, the burden range),
-// in the words of the report (CTSReport.warningText).
-function ResultRemarks({ lang, result }) {
-  const ws = Array.isArray(result?.warnings) ? result.warnings : [];
+// in the words of the report (CTSReport.warningText). With local metering
+// rules picked, as the rule set words them (no advice its rules forbid).
+function ResultRemarks({ lang, result, core, systemVals }) {
+  const ws = CTLocalRules.remarks(systemVals?.local_rules, core, result, systemVals);
   if (!ws.length) return null;
   return (
     <div data-testid="result-remarks" style={{padding:'6px 9px',borderRadius:5,fontSize:11,
@@ -1172,6 +1225,69 @@ function ResultRemarks({ lang, result }) {
           color:'var(--text-dim)'}}>
       <div style={{fontWeight:700,marginBottom:3}}>{Tp(lang,'res_remarks')}</div>
       {ws.map((w, i) => <div key={i} style={{marginTop:2}}>• {CTSReport.warningText(lang, w)}</div>)}
+    </div>
+  );
+}
+
+// ── Local metering rules (calc/local_rules/) ─────────────────────────────
+// The project's national rule set on a metering CT / VT core: each check with
+// its clause and status, then what the rules require that CTSizer cannot
+// check. Kept apart from the IEC verdict (StatusBadge), which it never changes.
+const LOCAL_COLORS = {
+  ok:      ['var(--green)', 'var(--green-bg)'],
+  fail:    ['var(--red)',   'var(--red-bg)'],
+  advice:  ['var(--amber)', 'var(--amber-bg)'],
+  missing: ['var(--text-muted)', 'var(--surface-3)'],
+};
+const LOCAL_VERDICT = { ok: 'ok', fail: 'fail', incomplete: 'missing' };
+
+function LocalBadge({ lang, local }) {
+  const [fg, bg] = LOCAL_COLORS[LOCAL_VERDICT[local.verdict]];
+  return (
+    <span data-testid="local-badge" data-verdict={local.verdict}
+      style={{fontFamily:'var(--font-mono)',fontSize:10,padding:'2px 8px',borderRadius:4,
+              background:bg,color:fg,border:`1px solid ${fg}`}}>
+      {local.set.country} {Tp(lang,'res_local')}: {Tp(lang,`res_local_${local.verdict}`)}
+    </span>
+  );
+}
+
+function LocalRulesCard({ lang, local }) {
+  const { set, items, manual } = local;
+  const txt = x => (lang === 'da' ? x.da : x.en);
+  return (
+    <div data-testid="local-rules" data-verdict={local.verdict}>
+      <SectionCard title={`${Tp(lang,'res_local')} \u2014 ${CTLocalRules.label(set, lang)}`} defaultOpen>
+        <div style={{paddingTop:6,display:'flex',flexDirection:'column',gap:5}}>
+          {items.map(it => {
+            const [fg, bg] = LOCAL_COLORS[it.status];
+            return (
+              <div key={it.id} data-rule={it.id} data-status={it.status}
+                style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',gap:8,alignItems:'start',
+                        padding:'6px 9px',borderRadius:5,background:'var(--surface-2)',borderLeft:`3px solid ${fg}`}}>
+                <div style={{fontSize:12,lineHeight:1.4,color:'var(--text)',fontFamily:'var(--font-body)'}}>
+                  {txt(it)}
+                  <div style={{fontSize:10,color:'var(--text-muted)',fontFamily:'var(--font-mono)',marginTop:2}}>{CTLocalRules.refText(it, lang)}</div>
+                </div>
+                <span style={{fontFamily:'var(--font-mono)',fontSize:10,fontWeight:700,padding:'2px 6px',borderRadius:4,
+                              whiteSpace:'nowrap',color:fg,background:bg,border:`1px solid ${fg}`}}>
+                  {Tp(lang,`local_status_${it.status}`)}
+                </span>
+              </div>
+            );
+          })}
+          {manual.length > 0 && (
+            <div style={{marginTop:6}}>
+              <div style={{fontSize:11,fontWeight:700,color:'var(--text-dim)',fontFamily:'var(--font-body)'}}>{Tp(lang,'local_manual_h')}</div>
+              <ul style={{margin:'4px 0 0',paddingLeft:18,fontSize:11,lineHeight:1.45,color:'var(--text-dim)',fontFamily:'var(--font-body)'}}>
+                {manual.map((x, i) => <li key={i}>{txt(x)} <span style={{color:'var(--text-muted)',fontFamily:'var(--font-mono)',fontSize:10}}>({CTLocalRules.refText(x, lang)})</span></li>)}
+              </ul>
+            </div>
+          )}
+          <div style={noteSt}>{Tp(lang,'local_note')}</div>
+          <div style={{...noteSt,marginTop:2}}>{Tp(lang,'local_source')}: {lang === 'da' ? set.source_da : set.source_en}</div>
+        </div>
+      </SectionCard>
     </div>
   );
 }

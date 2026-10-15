@@ -1,8 +1,8 @@
 # CTSizer tests
 
-This release passed **5,989 checks in 54 test groups**
+This release passed **6,068 checks in 56 test groups**
 before it was published. 5,245 of them are golden checks against the
-42 fixture files in `calc/golden/`; the other 744 are
+42 fixture files in `calc/golden/`; the other 823 are
 hand-derived checks.
 
 All the test code is in [`calc/tests.js`](calc/tests.js). Each test group
@@ -73,8 +73,8 @@ hand-derived.
 | [Busbar](calc/tests.js#L1245) | Complete busbar protection core calculation (P class: operating ALF; PX class: E.M.F. and knee-point voltage for high-impedance schemes) against the reference, for each cable-resistance method and wiring topology. | 133 | 110 | [busbar.json](calc/golden/busbar.json) |
 | [Generic](calc/tests.js#L1382) | The generic protection core, for a relay type without its own module (ALF or Vk against the connected burden), against the reference, for each cable-resistance method and wiring topology. | 102 | 78 | [generic.json](calc/golden/generic.json) |
 | [CtCalculations](calc/tests.js#L4440) | The dispatcher the app uses (`CTCalc`): which module each core type is routed to, the single-core calculation and the security factor constant. | 122 | 112 | [ct_calculations.json](calc/golden/ct_calculations.json) |
-| [IedRating](calc/tests.js#L5298) | IED input rating: peak factor, thermal withstand current, the requirements, and that a failed IED check fails the core. | 33 | 33 | [ied_rating.json](calc/golden/ied_rating.json) |
-| [RelayDb](calc/tests.js#L5151) | The relay database (23 relays): manufacturers, IEDs per application, burden and t_al per rated current, filling in SR and t_al, and t_al reaching the C-O-C-O check. | 10 | 0 | — |
+| [IedRating](calc/tests.js#L5529) | IED input rating: peak factor, thermal withstand current, the requirements, and that a failed IED check fails the core. | 33 | 33 | [ied_rating.json](calc/golden/ied_rating.json) |
+| [RelayDb](calc/tests.js#L5382) | The relay database (23 relays): manufacturers, IEDs per application, burden and t_al per rated current, filling in SR and t_al, and t_al reaching the C-O-C-O check. | 10 | 0 | — |
 
 ### Distance protection (465 checks)
 
@@ -142,16 +142,18 @@ hand-derived.
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [Required](calc/tests.js#L4670) | CTSizer has no default values: a blank station or core is incomplete, every missing or out-of-range input is named with its card, the inputs that depend on a choice (ALF or Vk by class, Smin% by accuracy class, the auto-reclosure inputs) are required only when they apply, and a complete core of every type calculates. | 34 | 0 | — |
+| [Required](calc/tests.js#L4901) | CTSizer has no default values: a blank station or core is incomplete, every missing or out-of-range input is named with its card, the inputs that depend on a choice (ALF or Vk by class, Smin% by accuracy class, the auto-reclosure inputs) are required only when they apply, and a complete core of every type calculates. | 34 | 0 | — |
 
 ### End to end (316 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [EndToEnd](calc/tests.js#L4778) | 19 realistic cores of every type, stored as the app stores them, through `CTCalc.calculate` exactly as the app calls it: status, the numbers in the Summary panel and every formula-step row compared with the reference. Nothing is hand-written. | 316 | 316 | [e2e.json](calc/golden/e2e.json) |
+| [EndToEnd](calc/tests.js#L5009) | 19 realistic cores of every type, stored as the app stores them, through `CTCalc.calculate` exactly as the app calls it: status, the numbers in the Summary panel and every formula-step row compared with the reference. Nothing is hand-written. | 316 | 316 | [e2e.json](calc/golden/e2e.json) |
 
-### Other (14 checks)
+### Other (93 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [RelayCalcParams](calc/tests.js#L5199) | — | 14 | 0 | — |
+| [RelayCalcParams](calc/tests.js#L5430) | — | 14 | 0 | — |
+| [LocalRules](calc/tests.js#L4740) | — | 64 | 0 | — |
+| [VtResistorLocation](calc/tests.js#L4674) | — | 15 | 0 | — |

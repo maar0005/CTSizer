@@ -26,7 +26,7 @@
 
 const CTRequired = (() => {
   const num = (min, max, o = {}) => ({ kind: 'num', min, max, ...o });
-  const sel = (values) => ({ kind: 'sel', values });
+  const sel = (values, o = {}) => ({ kind: 'sel', values, ...o });
   const text = () => ({ kind: 'text' });
 
   const isBlank = (x) => x === undefined || x === null || (typeof x === 'string' && x.trim() === '');
@@ -65,6 +65,10 @@ const CTRequired = (() => {
   const CT_FAMILIES = ['5P', '5PR', '10P', '10PR', 'PX', 'TPX', 'TPY', 'TPZ'];
   const MT_CLASSES = ['0.1', '0.2', '0.2S', '0.5', '0.5S', '1', '3', '5'];
   const VT_CLASSES = ['0.1', '0.2', '0.5', '1.0', '3P'];
+  // The meter's own standard and class (a local rule set's meter-class check,
+  // calc/local_rules/): MID class A / B / C, DS/EN class 2 / 1 / 0.5S / 0.2S
+  const METER_STANDARDS = ['mid', 'dsen'];
+  const METER_CLASSES = { mid: ['A', 'B', 'C'], dsen: ['2', '1', '0.5S', '0.2S'] };
   const CABLE_CROSS = [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
   const FREQS = ['50', '60'];
   const methods = () => CTCableRes.listMethods().map((m) => m.id);
@@ -95,6 +99,9 @@ const CTRequired = (() => {
     ['tp', num(1, 500), 'station'],
     ['cable_r_method', sel(methods), 'station'],
     ['cable_temp', num(-20, 90), 'station'],
+    // Optional: the national metering rules the project is also checked
+    // against (CTLocalRules); blank is none
+    ['local_rules', sel(() => CTLocalRules.ids(), { optional: true }), 'station'],
   ];
 
   function system(s) {
@@ -183,7 +190,11 @@ const CTRequired = (() => {
                  ['device_burden', num(0, 1000), 'meter']);
     } else {
       rules.push(['device_burden', num(0, 100), 'meter'],
-                 ['min_safety_factor', num(1, 100), 'meter']);
+                 ['min_safety_factor', num(1, 100), 'meter'],
+                 // Optional: only a local rule set reads them (it reports
+                 // them as not entered); a class must fit the standard
+                 ['meter_standard', sel(METER_STANDARDS, { optional: true }), 'meter'],
+                 ['meter_class', sel(METER_CLASSES[v.meter_standard] || [], { optional: true }), 'meter']);
     }
     return rules;
   }
@@ -219,6 +230,9 @@ const CTRequired = (() => {
           ['thermal_burden', num(0, 5000, { gt: true }), 'vt'],
           ['vt_burden_range', sel(['I', 'II']), 'vt'],
           ...meter(v, type), ...cable(1000000),
+          // where an attached resistor sits: at the VT or at the meter (it
+          // decides the current in the lead and so its voltage drop)
+          ...(Number(v.attached_resistor) > 0 ? [['vt_resistor_location', sel(['vt', 'meter']), 'cable']] : []),
         ];
       default:
         return [];
@@ -242,5 +256,6 @@ const CTRequired = (() => {
   return {
     system, core, ready, check, test, ctFamily, arTsMode, coreType,
     CT_FAMILIES, MT_CLASSES, VT_CLASSES, CABLE_CROSS, FREQS, SYSTEM_RULES,
+    METER_STANDARDS, METER_CLASSES,
   };
 })();

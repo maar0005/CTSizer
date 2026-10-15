@@ -4667,6 +4667,237 @@ const CTTests = (() => {
   // ── CTRequired (calc/required.js): no default values ──────────────────
   // Every input must be entered: a blank project, bay or core is incomplete,
   // and only a complete core with complete station data is calculated.
+  // ── VT: where the attached resistor sits (CTVT.calculate resistor_location) ──
+  // At the meter (the Python model) its current flows in the lead; at the VT
+  // only the meter's current does. Hand-derived: Us 100 V, R_cable 2 Ω,
+  // R_device 5000 Ω (2 VA), R_attached 1000 Ω.
+  function testVtResistorLocation() {
+    const results = [];
+    const C = CTVT.calculator;
+    const core = { burden: 10, thermal_burden: 50, secondary_voltage: 100, attached_resistor: 1000,
+      device_resistance: 5000, vt_class: '0.2' };
+    const [, atMeter] = C.executeWithValues(2, core, { resistor_location: 'meter' });
+    const [, py] = C.executeWithValues(2, core);
+    const [rVt, atVt] = C.executeWithValues(2, core, { resistor_location: 'vt' });
+    // at the meter: Z = 2 + 1000∥5000 = 835.333 Ω, I = 0.119713 A, ΔU = 0.239425 V
+    results.push(assert('VTLOC at the meter = the Python model', atMeter.total_impedance === py.total_impedance
+      && atMeter.voltage_drop === py.voltage_drop, atMeter.voltage_drop, py.voltage_drop, ' V'));
+    results.push(assert('VTLOC at the meter: Z_total', approx(atMeter.total_impedance, 2 + 1000 * 5000 / 6000), atMeter.total_impedance, 835.3333, ' Ω'));
+    results.push(assert('VTLOC at the meter: ΔU = R_cable · I_s', approx(atMeter.voltage_drop, 2 * 100 / 835.3333), atMeter.voltage_drop, 0.239425, ' V'));
+    // at the VT: Z = 1000∥5002 = 833.389 Ω, I_VT = 0.119992 A, I_meter = 100/5002, ΔU = 0.039984 V
+    results.push(assert('VTLOC at the VT: Z_total = R_att ∥ (R_cable + R_device)', approx(atVt.total_impedance, 1000 * 5002 / 6002),
+      atVt.total_impedance, 833.3889, ' Ω'));
+    results.push(assert('VTLOC at the VT: the VT supplies both (S = Us·I)', approx(atVt.actual_burden_va, 100 * 100 / (1000 * 5002 / 6002)),
+      atVt.actual_burden_va, 11.9992, ' VA'));
+    results.push(assert('VTLOC at the VT: the lead carries the meter current only', approx(atVt.lead_current, 100 / 5002),
+      atVt.lead_current, 0.019992, ' A'));
+    results.push(assert('VTLOC at the VT: ΔU = R_cable · I_meter', approx(atVt.voltage_drop, 2 * 100 / 5002) && approx(atVt.voltage_drop_percent, 2 * 100 / 5002),
+      atVt.voltage_drop, 0.039984, ' V'));
+    results.push(assert('VTLOC at the VT: lead current and voltage-drop steps', rVt.intermediate_steps.some((s) => s.key === 'lead_current')
+      && rVt.intermediate_steps.find((s) => s.key === 'voltage_drop_in_cable').latex.includes('I_{meter}'), '', 'steps'));
+    // no resistor: the place does not matter
+    const [, n1] = C.executeWithValues(2, { ...core, attached_resistor: 0 }, { resistor_location: 'vt' });
+    const [, n2] = C.executeWithValues(2, { ...core, attached_resistor: 0 }, { resistor_location: 'meter' });
+    results.push(assert('VTLOC no resistor: VT and meter the same', n1.voltage_drop === n2.voltage_drop && n1.total_impedance === n2.total_impedance,
+      n1.voltage_drop, n2.voltage_drop, ' V'));
+
+    // Through CTVT.calculate: vt_resistor_location, blank = at the meter
+    const sys = { cable_r_method: 'iec60287', cable_temp: 20 };
+    const VT = { secondary_voltage: 57.735, vt_class: '0.2', burden: 10, thermal_burden: 50, vt_burden_range: 'I',
+      vt_supply_mode: 'aux', device_burden: 0.1, cable_length: 100, cable_cross: 1.5, cable_mat: 'cu', cable_topology: 'six_wire',
+      attached_resistor: 400 };
+    const blank = CTVT.calculate(VT, sys), m = CTVT.calculate({ ...VT, vt_resistor_location: 'meter' }, sys);
+    const v = CTVT.calculate({ ...VT, vt_resistor_location: 'vt' }, sys);
+    results.push(assert('VTLOC calculate: blank = at the meter', blank.resistor_location === 'meter' && blank.voltage_drop === m.voltage_drop,
+      blank.resistor_location, 'meter'));
+    results.push(assert('VTLOC calculate: at the VT the drop is far lower, the burden about the same',
+      v.resistor_location === 'vt' && v.voltage_drop_percent < m.voltage_drop_percent / 10
+        && Math.abs(v.actual_burden_va - m.actual_burden_va) / m.actual_burden_va < 0.05,
+      [v.voltage_drop_percent, m.voltage_drop_percent], 'vt ≪ meter'));
+    // Elmåling §7.4.2 (lead drop < 0.1 %) follows the place
+    if (typeof CTLocalRules !== 'undefined') {
+      const s = { ...sys, voltage: 10, local_rules: 'dk_elmaaling_9' };
+      const lead = (inp) => CTLocalRules.evaluate('dk_elmaaling_9', { kind: 'vt', calc_type: 'vt', inputs: inp },
+        CTVT.calculate(inp, s), s).items.find((x) => x.id === 'vt_lead_drop').status;
+      results.push(assert('VTLOC Elmåling lead drop: at the meter fails, at the VT passes',
+        lead({ ...VT, vt_resistor_location: 'meter' }) === 'fail' && lead({ ...VT, vt_resistor_location: 'vt' }) === 'ok',
+        [lead({ ...VT, vt_resistor_location: 'meter' }), lead({ ...VT, vt_resistor_location: 'vt' })], ['fail', 'ok']));
+    }
+
+    // Required: the place only when a resistor is entered
+    const req = (inp) => CTRequired.core({ kind: 'vt', calc_type: 'vt', inputs: { ...VT, meter_manufacturer: 'Other', ...inp } });
+    results.push(assert('VTLOC required with a resistor', req({}).fields.vt_resistor_location === 'missing' && req({}).sections.cable === 1,
+      JSON.stringify(req({}).fields), 'vt_resistor_location:missing'));
+    results.push(assert('VTLOC not asked without a resistor', req({ attached_resistor: 0 }).ok, JSON.stringify(req({ attached_resistor: 0 }).fields), ''));
+    results.push(assert('VTLOC a picked place → ok; another value invalid', req({ vt_resistor_location: 'vt' }).ok
+      && req({ vt_resistor_location: 'x' }).fields.vt_resistor_location === 'invalid', '', 'ok / invalid'));
+    return results;
+  }
+
+  // ── LOCAL METERING RULES (calc/local_rules/) ─────────────────────────
+  // Denmark: Elmåling 9th ed., section 3 (TR 353, 9th ed.), on cores
+  // calculated by CTCalc as the app does.
+  function testLocalRules() {
+    const results = [];
+    const LR = CTLocalRules;
+    const ID = 'dk_elmaaling_9';
+    const sys = (kV) => ({ station_name: 'Test', station_abbr: 'TST', voltage: kV, freq: '50', isc_sys: 20, tp: 100,
+      cable_r_method: 'iec60287', cable_temp: 20, local_rules: ID });
+    const MT = { Ip: 100, Is: 5, rct: 0.1, burden: 5, mt_class: '0.2S', fs_factor: 5, extended_burden_range: true,
+      meter_manufacturer: 'Other', device_burden: 0.1, min_safety_factor: 20,
+      meter_standard: 'dsen', meter_class: '0.5S',
+      cable_length: 10, cable_cross: 2.5, cable_mat: 'cu', cable_topology: 'six_wire', attached_resistor: 0 };
+    const VT = { secondary_voltage: 100 / Math.sqrt(3), vt_class: '0.2', burden: 10, thermal_burden: 50, vt_burden_range: 'I',
+      meter_manufacturer: 'Other', vt_supply_mode: 'aux', device_burden: 0.1,
+      cable_length: 30, cable_cross: 2.5, cable_mat: 'cu', cable_topology: 'four_wire', attached_resistor: 0 };
+    const run = (kind, type, inputs, s) => {
+      const core = { kind, calc_type: type, inputs };
+      return LR.evaluate(ID, core, CTCalc.calculate(type, inputs, s), s);
+    };
+    const mt = (over, kV = 10) => run('ct', 'metering', { ...MT, ...over }, sys(kV));
+    const vt = (over, kV = 10) => run('vt', 'vt', { ...VT, ...over }, sys(kV));
+    const st = (r, id) => { const it = r && r.items.find((x) => x.id === id); return it ? it.status : 'absent'; };
+    const allOk = (r) => r.items.every((x) => x.status === 'ok');
+
+    // Registry
+    results.push(assert('LR registry has the Danish set', LR.ids().includes(ID) && LR.byId(ID).country === 'DK', LR.ids().join(','), ID));
+    const s10 = sys(10);
+    const mtRes = CTCalc.calculate('metering', MT, s10);
+    results.push(assert('LR no set picked → null', LR.evaluate(null, { kind: 'ct', calc_type: 'metering', inputs: MT }, mtRes, s10) === null, 'obj', 'null'));
+    results.push(assert('LR unknown set → null', LR.evaluate('xx', { kind: 'ct', calc_type: 'metering', inputs: MT }, mtRes, s10) === null, 'obj', 'null'));
+    results.push(assert('LR protection core not covered → null',
+      LR.evaluate(ID, { kind: 'ct', calc_type: 'overcurrent', inputs: {} }, { is_ok: true }, s10) === null, 'obj', 'null'));
+    results.push(assert('LR core without result → null',
+      LR.evaluate(ID, { kind: 'ct', calc_type: 'metering', inputs: MT }, null, s10) === null, 'obj', 'null'));
+
+    // Metering CT: a compliant 10 kV core
+    const ok10 = mt({});
+    results.push(assert('LR DK 10 kV compliant metering core → ok, every item ok', ok10.verdict === 'ok' && allOk(ok10),
+      ok10.items.map((x) => `${x.id}:${x.status}`).join(' '), 'all ok'));
+    results.push(assert('LR DK every item cites TR 353', ok10.items.every((x) => /^TR 353 /.test(x.ref) && x.en && x.da), '', ''));
+    const t51 = ok10.items.find((x) => x.id === 'ct_class');
+    results.push(assert('LR DK refs: "table" in English, "tabel" in Danish', LR.refText(t51, 'en') === 'TR 353 §6.2, table 5.1'
+      && LR.refText(t51, 'da') === 'TR 353 §6.2, tabel 5.1', LR.refText(t51, 'da'), 'TR 353 §6.2, tabel 5.1'));
+    results.push(assert('LR DK class 0.5S → fail (§6.2: 0.2S)', st(mt({ mt_class: '0.5S' }), 'ct_class') === 'fail'
+      && mt({ mt_class: '0.5S' }).verdict === 'fail', st(mt({ mt_class: '0.5S' }), 'ct_class'), 'fail'));
+    results.push(assert('LR DK class 0.2 (not S) → fail', st(mt({ mt_class: '0.2' }), 'ct_class') === 'fail', '', 'fail'));
+    results.push(assert('LR DK no extended range → fail (§6.2)', st(mt({ extended_burden_range: false }), 'ct_extended_range') === 'fail', '', 'fail'));
+    results.push(assert('LR DK extended range asked with Sn 30 VA (> 15) → fail', st(mt({ burden: 30 }), 'ct_extended_range') === 'fail', '', 'fail'));
+    const big = mt({ cable_length: 200, cable_cross: 1.5 });
+    results.push(assert('LR DK S above Sn → burden fail (§7.4.1)', st(big, 'ct_burden') === 'fail', st(big, 'ct_burden'), 'fail'));
+    results.push(assert('LR DK S below 1 VA → burden fail', st(mt({ cable_length: 0, Is: 1 }), 'ct_burden') === 'fail', '', 'fail'));
+    results.push(assert('LR DK lead 2.5 mm² ≥ 1.5 → ok', st(ok10, 'ct_cross') === 'ok', '', 'ok'));
+    const ip = mt({ Ip: 120 });
+    results.push(assert('LR DK 10 kV Ip 120 A → advice, verdict still ok', st(ip, 'ct_primary') === 'advice' && ip.verdict === 'ok', ip.verdict, 'ok'));
+    results.push(assert('LR DK 10 kV Ip 1500 A (15 × 100) → ok', st(mt({ Ip: 1500 }), 'ct_primary') === 'ok', '', 'ok'));
+    results.push(assert('LR DK 0.4 kV: no primary-current advice', st(mt({ meter_class: '1' }, 0.4), 'ct_primary') === 'absent', '', 'absent'));
+    const lvR = mt({ attached_resistor: 0.1, meter_class: '1' }, 0.4);
+    results.push(assert('LR DK ≤ 1 kV attached resistor → fail (§6.2)', st(lvR, 'ct_no_extra_burden') === 'fail', st(lvR, 'ct_no_extra_burden'), 'fail'));
+    results.push(assert('LR DK ≤ 1 kV no resistor → ok', st(mt({ meter_class: '1' }, 0.4), 'ct_no_extra_burden') === 'ok', '', 'ok'));
+    const hvR = mt({ attached_resistor: 0.05 });
+    results.push(assert('LR DK > 1 kV attached resistor → advice', st(hvR, 'ct_extra_burden_hv') === 'advice'
+      && st(hvR, 'ct_no_extra_burden') === 'absent', st(hvR, 'ct_extra_burden_hv'), 'advice'));
+
+    // Table 5.1: the meter class per level (exclusive lower bounds)
+    const lvl = LR.byId(ID).level;
+    results.push(assert('LR DK levels 0.4 / 0.69 / 1 / 10 / 100 / 132 kV',
+      [0.4, 0.69, 1, 10, 100, 132].map((u) => lvl({ voltage: u })).join(' ') === '0.4 0.4-1 0.4-1 1-100 1-100 100+',
+      [0.4, 0.69, 1, 10, 100, 132].map((u) => lvl({ voltage: u })).join(' '), '0.4 0.4-1 0.4-1 1-100 1-100 100+'));
+    const mc = (std, cls, kV) => st(mt({ meter_standard: std, meter_class: cls }, kV), 'meter_class');
+    const cases = [
+      ['dsen', '1', 0.4, 'ok'], ['dsen', '2', 0.4, 'fail'], ['dsen', '1', 0.69, 'ok'],
+      ['dsen', '1', 10, 'fail'], ['dsen', '0.5S', 10, 'ok'], ['dsen', '0.2S', 10, 'ok'],
+      ['dsen', '0.5S', 132, 'fail'], ['dsen', '0.2S', 132, 'ok'],
+      ['mid', 'A', 0.4, 'fail'], ['mid', 'B', 0.4, 'ok'], ['mid', 'B', 10, 'fail'], ['mid', 'C', 10, 'ok'],
+      ['mid', 'C', 132, 'fail'],
+    ];
+    for (const [std, cls, kV, exp] of cases) {
+      const got = mc(std, cls, kV);
+      results.push(assert(`LR DK table 5.1: ${std} ${cls} at ${kV} kV → ${exp}`, got === exp, got, exp));
+    }
+    const mid069 = mt({ meter_standard: 'mid', meter_class: 'B' }, 0.69);
+    results.push(assert('LR DK MID B at 0.4–1 kV: note 4 advice (class C with VTs)',
+      st(mid069, 'meter_class') === 'ok' && st(mid069, 'meter_class_bek582') === 'advice', st(mid069, 'meter_class_bek582'), 'advice'));
+    const noMeter = mt({ meter_standard: undefined, meter_class: undefined });
+    results.push(assert('LR DK meter class not entered → missing, verdict incomplete',
+      st(noMeter, 'meter_class') === 'missing' && noMeter.verdict === 'incomplete', noMeter.verdict, 'incomplete'));
+    results.push(assert('LR DK class of another standard → missing', st(mt({ meter_standard: 'mid', meter_class: '0.5S' }), 'meter_class') === 'missing', '', 'missing'));
+    results.push(assert('LR verdict: fail beats incomplete', LR.verdict([{ status: 'missing' }, { status: 'fail' }, { status: 'advice' }]) === 'fail', '', 'fail'));
+
+    // VT core
+    const vok = vt({});
+    results.push(assert('LR DK 10 kV compliant VT core → ok, every item ok', vok.verdict === 'ok' && allOk(vok),
+      vok.items.map((x) => `${x.id}:${x.status}`).join(' '), 'all ok'));
+    results.push(assert('LR DK VT class 0.5 → fail (§6.3)', st(vt({ vt_class: '0.5' }), 'vt_class') === 'fail', '', 'fail'));
+    results.push(assert('LR DK VT class 0.1 → ok', st(vt({ vt_class: '0.1' }), 'vt_class') === 'ok', '', 'ok'));
+    results.push(assert('LR DK VT burden series II → fail', st(vt({ vt_burden_range: 'II' }), 'vt_series') === 'fail', '', 'fail'));
+    const v15 = vt({ burden: 15 });
+    results.push(assert('LR DK VT 15 VA → advice (series I values)', st(v15, 'vt_rated_burden') === 'advice' && v15.verdict === 'ok', st(v15, 'vt_rated_burden'), 'advice'));
+    const vfar = vt({ vt_supply_mode: 'self', device_burden: 6, cable_length: 500, cable_cross: 1.5, cable_topology: 'six_wire' });
+    const vfarRes = CTCalc.calculate('vt', { ...VT, vt_supply_mode: 'self', device_burden: 6, cable_length: 500, cable_cross: 1.5, cable_topology: 'six_wire' }, sys(10));
+    results.push(assert('LR DK VT lead drop ≥ 0.1 % → fail (§7.4.2)', st(vfar, 'vt_lead_drop') === 'fail'
+      && vfarRes.voltage_drop_percent >= 0.1, vfarRes.voltage_drop_percent, '≥ 0.1'));
+    results.push(assert('LR DK VT Us 110/√3 V → ok', st(vt({ secondary_voltage: 63.51 }), 'vt_us') === 'ok', '', 'ok'));
+    results.push(assert('LR DK VT Us 110 V → ok', st(vt({ secondary_voltage: 110 }), 'vt_us') === 'ok', '', 'ok'));
+    results.push(assert('LR DK VT Us 230 V at 10 kV → advice', st(vt({ secondary_voltage: 230 }), 'vt_us') === 'advice', '', 'advice'));
+    results.push(assert('LR DK VT at 0.69 kV: no Us advice', st(vt({}, 0.69), 'vt_us') === 'absent', '', 'absent'));
+
+    // Manual items
+    const hasRef = (r, ref) => r.manual.some((x) => x.ref === `TR 353 ${ref}`);
+    results.push(assert('LR DK manual: > 1 kV main + check meter cores', hasRef(ok10, '§6.2, §7.1'), '', 'present'));
+    const lv = mt({ meter_class: '1' }, 0.4);
+    results.push(assert('LR DK manual: ≤ 1 kV no check-meter core item, LV rating item',
+      !hasRef(lv, '§6.2, §7.1') && lv.manual.some((x) => /Fællesregulativet/.test(x.en)), '', ''));
+    results.push(assert('LR DK manual VT: no primary fuses, MCB', hasRef(vok, '§6.3') && hasRef(vok, '§6.3, §7.4.2'), '', 'present'));
+
+    // Remarks: no "add burden" advice TR 353 does not allow, only with the set picked
+    const keysOf = (ws) => ws.map((w) => (Array.isArray(w) ? w[0] : w));
+    const rem = (type, kind, inp, kV, id = ID) => {
+      const s = { ...sys(kV), local_rules: id };
+      const r = CTCalc.calculate(type, inp, s);
+      return { r, ws: LR.remarks(id, { kind, calc_type: type, inputs: inp }, r, s) };
+    };
+    const fmin6 = { ...MT, min_safety_factor: 6, meter_class: '1' };   // S 3.55 < S_req 3.75: add 0.2 VA
+    const none = rem('metering', 'ct', fmin6, 0.4, null);
+    results.push(assert('LR remarks: no set picked → the calculation\'s own, unchanged',
+      none.ws === none.r.warnings && keysOf(none.ws).includes('hint_metering_add_burden'), keysOf(none.ws).join(), 'hint_metering_add_burden'));
+    const lvRem = rem('metering', 'ct', fmin6, 0.4);
+    results.push(assert('LR remarks DK ≤ 1 kV: add-burden hint → no extra burden allowed',
+      keysOf(lvRem.ws).includes('hint_metering_add_burden_dk_lv') && !keysOf(lvRem.ws).includes('hint_metering_add_burden')
+        && lvRem.r.warnings.some((w) => w[0] === 'hint_metering_add_burden'), keysOf(lvRem.ws).join(), 'hint_metering_add_burden_dk_lv'));
+    const lvArgs = lvRem.ws.find((w) => w[0] === 'hint_metering_add_burden_dk_lv');
+    const calcArgs = lvRem.r.warnings.find((w) => w[0] === 'hint_metering_add_burden');
+    results.push(assert('LR remarks DK keep ΔS and S_req', JSON.stringify(lvArgs.slice(1)) === JSON.stringify(calcArgs.slice(1)),
+      JSON.stringify(lvArgs.slice(1)), JSON.stringify(calcArgs.slice(1))));
+    const hvRem = rem('metering', 'ct', { ...fmin6, meter_class: '0.5S' }, 10);
+    results.push(assert('LR remarks DK > 1 kV: add-burden hint → leads / cross-section, no resistor',
+      keysOf(hvRem.ws).includes('hint_metering_add_burden_dk_hv'), keysOf(hvRem.ws).join(), 'hint_metering_add_burden_dk_hv'));
+    const extInp = { ...MT, burden: 15, extended_burden_range: false };   // S 3.55 < Smin 3.75
+    const extNone = rem('metering', 'ct', extInp, 10, null), extDk = rem('metering', 'ct', extInp, 10);
+    results.push(assert('LR remarks DK: S < Smin → the extended range, not "add burden"',
+      keysOf(extNone.ws).includes('hint_extended_burden_range') && keysOf(extDk.ws).includes('hint_extended_burden_range_dk')
+        && !keysOf(extDk.ws).includes('hint_extended_burden_range'), keysOf(extDk.ws).join(), 'hint_extended_burden_range_dk'));
+    const vtII = { ...VT, vt_burden_range: 'II' };
+    const vtNone = rem('vt', 'vt', vtII, 10, null), vtDk = rem('vt', 'vt', vtII, 10);
+    results.push(assert('LR remarks DK: VT range II below 25 % → series I, not "add burden"',
+      keysOf(vtNone.ws).includes('warning_vt_range_ii_below_25') && keysOf(vtDk.ws).includes('warning_vt_range_ii_below_25_dk')
+        && !keysOf(vtDk.ws).includes('warning_vt_range_ii_below_25'), keysOf(vtDk.ws).join(), 'warning_vt_range_ii_below_25_dk'));
+    results.push(assert('LR remarks: a protection core is never touched',
+      LR.remarks(ID, { kind: 'ct', calc_type: 'overcurrent', inputs: {} }, { warnings: [['hint_metering_add_burden', 1, 2]] }, sys(0.4))[0][0]
+        === 'hint_metering_add_burden', '', 'unchanged'));
+
+    // CTRequired: the rule set and the meter's class are optional, but valid
+    const R = CTRequired;
+    results.push(assert('LR REQ local_rules blank → station ok', R.system({ ...sys(10), local_rules: null }).ok, '', 'ok'));
+    results.push(assert('LR REQ local_rules unknown → invalid', R.system({ ...sys(10), local_rules: 'xx' }).fields.local_rules === 'invalid', '', 'invalid'));
+    const mcore = (o) => R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...MT, ...o } });
+    results.push(assert('LR REQ meter standard / class blank → ok', mcore({ meter_standard: undefined, meter_class: undefined }).ok, '', 'ok'));
+    results.push(assert('LR REQ MID class 0.5S → invalid', mcore({ meter_standard: 'mid', meter_class: '0.5S' }).fields.meter_class === 'invalid', '', 'invalid'));
+    results.push(assert('LR REQ meter classes match the rule set', JSON.stringify(R.METER_CLASSES) === JSON.stringify(LR.byId(ID).METER_CLASSES),
+      JSON.stringify(R.METER_CLASSES), JSON.stringify(LR.byId(ID).METER_CLASSES)));
+    return results;
+  }
+
   function testRequired() {
     const results = [];
     const R = CTRequired;
@@ -5428,6 +5659,8 @@ const CTTests = (() => {
       { name: 'RelayCalcParams', fn: testRelayCalcParams },
       { name: 'IedRating',      fn: testIedRating      },
       { name: 'Required',       fn: testRequired       },
+      { name: 'LocalRules',     fn: testLocalRules     },
+      { name: 'VtResistorLocation', fn: testVtResistorLocation },
       { name: 'EndToEnd',       fn: testEndToEnd       },
     ];
 

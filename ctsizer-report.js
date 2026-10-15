@@ -211,6 +211,11 @@ const CTSReport = (() => {
       hint_extended_burden_range: 'S = {0} VA is below Smin = {1} VA. A CT with the extended burden range (IEC 61869-2 5.6.201.4, 1 VA \u2013 Sn) meets cond. 1; otherwise add burden.',
       warning_extended_range_sn_above_15: 'The extended burden range is only defined for Sn \u2264 {1} VA (IEC 61869-2 5.6.201.4); Sn = {0} VA uses the standard range.',
       warning_vt_range_ii_below_25: 'Burden range II: the burden utilization {0} % is below 25 % of the rated burden (IEC 61869-3 5.6.301.3). Add burden or specify a range I VT.',
+      // The same remarks under Elmåling / TR 353 (calc/local_rules/dk_elmaaling.js), without the "add burden" advice it does not allow
+      hint_metering_add_burden_dk_lv: 'Cond. 2 needs a total burden of at least {1} VA ({0} VA more), but Elmåling (TR 353 \u00a76.2) allows no extra burden in the metering circuit at \u2264 1 kV: choose a meter with a higher Fmin, a CT with a lower FS or a lower rated burden Sn (not below S).',
+      hint_metering_add_burden_dk_hv: 'Cond. 2 needs a total burden of at least {1} VA: add {0} VA with longer leads or a smaller cross-section (not below 1.5 mm\u00b2, Elmåling TR 353 \u00a76.2; not with a resistor), or choose a meter with a higher Fmin.',
+      hint_extended_burden_range_dk: 'S = {0} VA is below Smin = {1} VA. Elmåling (TR 353 \u00a76.2) requires the extended burden range (IEC 61869-2 5.6.201.4, 1 VA \u2013 Sn): specify it for the CT.',
+      warning_vt_range_ii_below_25_dk: 'Burden range II: the burden utilization {0} % is below 25 % of the rated burden (IEC 61869-3 5.6.301.3). Elmåling (TR 353 \u00a76.3) requires burden series I: specify a series I VT.',
       warning_vt_range_nonstandard: 'Rated burden {1} VA is not a standard value for burden range {0} (IEC 61869-3 5.5.301; allowed by NOTE 301).',
       warning_burden_inadequate: 'Burden inadequate: Sn = {0} VA, Sa = {1} VA.',
       warning_fault_current_ratio_exceeded: 'Fault current ratio not met: Fa = {0}, If,max / Ipr = {1}.',
@@ -255,6 +260,10 @@ const CTSReport = (() => {
       hint_extended_burden_range: 'S = {0} VA er under Smin = {1} VA. En CT med udvidet byrdeområde (IEC 61869-2 5.6.201.4, 1 VA \u2013 Sn) opfylder bet. 1; ellers tilføj byrde.',
       warning_extended_range_sn_above_15: 'Det udvidede byrdeområde er kun defineret for Sn \u2264 {1} VA (IEC 61869-2 5.6.201.4); Sn = {0} VA bruger standardområdet.',
       warning_vt_range_ii_below_25: 'Byrdeområde II: byrdeudnyttelsen {0} % er under 25 % af mærkebyrden (IEC 61869-3 5.6.301.3). Tilføj byrde eller specificér en VT med område I.',
+      hint_metering_add_burden_dk_lv: 'Bet. 2 kræver en samlet byrde på mindst {1} VA ({0} VA mere), men Elmåling (TR 353 \u00a76.2) tillader ikke ekstra byrde i målekredsen ved \u2264 1 kV: vælg en måler med højere Fmin, en CT med lavere FS eller en lavere mærkebyrde Sn (ikke under S).',
+      hint_metering_add_burden_dk_hv: 'Bet. 2 kræver en samlet byrde på mindst {1} VA: tilføj {0} VA med længere tilledninger eller et mindre tværsnit (ikke under 1,5 mm\u00b2, Elmåling TR 353 \u00a76.2; ikke med en modstand), eller vælg en måler med højere Fmin.',
+      hint_extended_burden_range_dk: 'S = {0} VA er under Smin = {1} VA. Elmåling (TR 353 \u00a76.2) kræver udvidet byrdeområde (IEC 61869-2 5.6.201.4, 1 VA \u2013 Sn): specificér det for CT\u2019en.',
+      warning_vt_range_ii_below_25_dk: 'Byrdeområde II: byrdeudnyttelsen {0} % er under 25 % af mærkebyrden (IEC 61869-3 5.6.301.3). Elmåling (TR 353 \u00a76.3) kræver byrdeserie I: specificér en VT med byrdeserie I.',
       warning_vt_range_nonstandard: 'Mærkebyrden {1} VA er ikke en standardværdi for byrdeområde {0} (IEC 61869-3 5.5.301; tilladt jf. NOTE 301).',
       warning_burden_inadequate: 'Utilstrækkelig byrde: Sn = {0} VA, Sa = {1} VA.',
       warning_fault_current_ratio_exceeded: 'Fejlstrømsforhold ikke opfyldt: Fa = {0}, If,max / Ipr = {1}.',
@@ -511,11 +520,11 @@ const CTSReport = (() => {
   const PAGE_W = 11906, PAGE_H = 16838, MARGIN = 1134;   // A4, 2 cm margins
   const TEXT_W = PAGE_W - 2 * MARGIN;                   // 9638
   // Colour table indices
-  const C = { text: 1, muted: 2, green: 3, red: 4, headFill: 5, border: 6, greenFill: 7, redFill: 8, accent: 9, lightFill: 10, watermark: 11 };
+  const C = { text: 1, muted: 2, green: 3, red: 4, headFill: 5, border: 6, greenFill: 7, redFill: 8, accent: 9, lightFill: 10, watermark: 11, amber: 12 };
   const COLORTBL = '{\\colortbl;' + [
     [33, 37, 41], [100, 110, 120], [30, 123, 52], [180, 35, 24], [233, 236, 239],
     [191, 197, 204], [212, 237, 218], [248, 215, 218], [2, 100, 160], [245, 247, 250],
-    [214, 219, 225],
+    [214, 219, 225], [176, 112, 0],
   ].map(([r, g, b]) => `\\red${r}\\green${g}\\blue${b};`).join('') + '}';
 
   const FONTTBL = '{\\fonttbl{\\f0\\fswiss\\fcharset0 Calibri{\\*\\falt Arial};}' +
@@ -696,6 +705,9 @@ const CTSReport = (() => {
       if (t === 'vt') add(ui('lbl_vt_supply'), ui(vals.vt_supply_mode === 'self' ? 'vt_supply_self' : 'vt_supply_aux'));
       add(ui('lbl_meter_burden'), vals.device_burden, 'VA/ph');
       if (t === 'metering') add(ui('lbl_meter_fmin'), vals.min_safety_factor);
+      // the meter's standard and class (local metering rules), when entered
+      if (t === 'metering' && isFilled(vals.meter_standard)) add(ui('lbl_meter_standard'), ui(`meter_std_${vals.meter_standard}`));
+      if (t === 'metering') add(ui('lbl_meter_class'), vals.meter_class);
     };
 
     if (t === 'vt') {
@@ -774,6 +786,9 @@ const CTSReport = (() => {
     // The attached resistor sits with the cable in the secondary circuit (issue #125)
     if (t === 'metering') add(ui('lbl_attached_r'), v.attached_resistor, '\u03a9');
     if (t === 'vt') add(ui('lbl_vt_attached_r'), v.attached_resistor, '\u03a9');
+    if (t === 'vt' && Number(v.attached_resistor) > 0 && isFilled(v.vt_resistor_location)) {
+      add(ui('lbl_vt_resistor_at'), ui(v.vt_resistor_location === 'vt' ? 'vt_resistor_at_vt' : 'vt_resistor_at_meter'));
+    }
 
     // C-O-C-O auto-reclosure
     if ((t === 'distance' || t === 'line_diff') && v.auto_reclose_enabled) {
@@ -939,6 +954,39 @@ const CTSReport = (() => {
     } catch { return ''; }
   }
 
+  // The project's national metering rule set (calc/local_rules/), if picked
+  function localRulesSet(system) {
+    return typeof CTLocalRules !== 'undefined' && system ? CTLocalRules.byId(system.local_rules) : null;
+  }
+
+  // Local metering rules on a core: each check with its clause and status,
+  // what the rules require that CTSizer cannot check, and the source. Kept
+  // apart from the IEC verdict, which it never changes.
+  const LOCAL_COLOR = { ok: C.green, fail: C.red, advice: C.amber, missing: C.muted };
+  function localRulesSection(ctx, c) {
+    const { lang, system } = ctx;
+    if (!localRulesSet(system)) return '';
+    const local = CTLocalRules.evaluate(system.local_rules, c.core, c.result, system);
+    if (!local) return '';
+    const txt = (x) => (lang === 'da' ? x.da : x.en);
+    const ui = (k) => UI(lang, k);
+    let out = spacer(120) + para(`{\\b ${esc(`${ui('res_local')} — ${CTLocalRules.label(local.set, lang)}`)}}`, '\\keepn\\sb120');
+    out += table([
+      { header: true, cells: [esc(L(lang, 'requirement')), esc('Ref.'), { rtf: esc(L(lang, 'status')), align: 'c' }] },
+      ...local.items.map((it) => ({ cells: [esc(txt(it)), esc(CTLocalRules.refText(it, lang)),
+        { rtf: esc(ui(`local_status_${it.status}`)), align: 'c', bold: true, color: LOCAL_COLOR[it.status] }] })),
+    ], [TEXT_W - 2000 - 1700, 2000, 1700], { fontSize: 17 });
+    if (local.manual.length) {
+      out += para(`{\\b ${esc(ui('local_manual_h'))}}`, '\\keepn\\sb120');
+      local.manual.forEach((x) => {
+        out += `\\pard\\plain\\s0\\ql\\sa60\\fi-240\\li240${BASE}\\fs18 \\u8226?\\tab ${esc(`${txt(x)} (${CTLocalRules.refText(x, lang)})`)}\\par\n`;
+      });
+    }
+    out += para(`{\\i ${esc(ui('local_note'))}}`, `\\sb60\\fs17\\cf${C.muted}`);
+    out += para(`{\\i ${esc(`${ui('local_source')}: ${lang === 'da' ? local.set.source_da : local.set.source_en}`)}}`, `\\fs17\\cf${C.muted}`);
+    return out;
+  }
+
   function systemSection(ctx) {
     const { lang, system = {} } = ctx;
     const st = (k) => L(lang, k);
@@ -961,6 +1009,7 @@ const CTSReport = (() => {
       [st('tp_confirmed'), system.tp_confirmed ? st('yes') : st('no'), ''],
       [st('cable_method'), method, ''],
       [st('cable_temp'), system.cable_temp, '\u00b0C'],
+      [UI(lang, 'lbl_local_rules'), localRulesSet(system) ? CTLocalRules.label(localRulesSet(system), lang) : '', ''],
     ].filter((r) => isFilled(r[1]));
     return heading(1, st('system_data')) + kvTable(lang, rows);
   }
@@ -1100,8 +1149,11 @@ const CTSReport = (() => {
       ], [3600, TEXT_W - 3600 - 1300, 1300], { fontSize: 17 });
     }
 
-    // Remarks
-    const warns = Array.isArray(r.warnings) ? [...r.warnings] : [];
+    // Remarks, as the project's local metering rules word them (unchanged
+    // when none is picked)
+    const warns = typeof CTLocalRules !== 'undefined'
+      ? [...CTLocalRules.remarks(system && system.local_rules, core, r, system)]
+      : (Array.isArray(r.warnings) ? [...r.warnings] : []);
     if (c.core.calc_type === 'distance') {
       const lw = lineDataWarning(lang, c.core.inputs, ctx.system);
       if (lw) warns.unshift(lw);
@@ -1112,6 +1164,9 @@ const CTSReport = (() => {
         out += `\\pard\\plain\\s0\\ql\\sa60\\fi-240\\li240${BASE}\\fs18 \\u8226?\\tab ${esc(warningText(lang, w))}\\par\n`;
       });
     }
+
+    // Local metering rules (calc/local_rules/), apart from the IEC verdict
+    out += localRulesSection(ctx, c);
 
     // Verdict
     out += spacer(160);

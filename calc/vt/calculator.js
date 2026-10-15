@@ -72,6 +72,15 @@ CTVT.calculator = (() => {
   // opts.burden_range ('I' | 'II', CTSizer only, issue #125): the VT's burden
   // range decides the low end instead of the Python "Lav byrde" warning, and
   // range II below 25 % fails. Without it (the Python API) nothing changes.
+  // opts.resistor_location ('meter' | 'vt', CTSizer only): where the attached
+  // resistor sits. 'meter' (and without it, the Python model): at the meter,
+  // after the lead, so its current flows in the lead,
+  //   Z_total = R_cable + (R_device ∥ R_attached), ΔU = R_cable · I_s.
+  // 'vt': across the VT terminals, before the lead; it loads the VT but only
+  // the meter's current flows in the lead,
+  //   Z_total = R_attached ∥ (R_cable + R_device),
+  //   I_meter = Us / (R_cable + R_device), ΔU = R_cable · I_meter.
+  // With no resistor both are the same.
   function executeWithValues(cable_resistance, core_data, opts = {}) {
     const F = CTVT.formatting;
     const result = F.createResultDict();
@@ -101,9 +110,23 @@ CTVT.calculator = (() => {
     steps.push(step2);
 
     // 3. Beregn total ekstern belastning
-    const [total_impedance, load_resistance, step3] = CTVT.impedance.calculateTotalImpedance(
+    const atVt = opts.resistor_location === 'vt' && attached_resistor > 0;
+    let [total_impedance, load_resistance, step3] = CTVT.impedance.calculateTotalImpedance(
       cable_resistance, device_resistance, attached_resistor
     );
+    if (atVt) {
+      // CTSizer: the resistor across the VT terminals, the meter behind the lead
+      load_resistance = device_resistance;
+      total_impedance = CTVT.impedance.calculateParallelResistance([attached_resistor, cable_resistance + device_resistance]);
+      step3 = CTStep.make({
+        key: 'total_load_impedance',
+        label_en: 'Total load impedance (resistor at the VT)',
+        label_da: 'Total belastningsimpedans (modstand ved VT)',
+        latex: 'Z_{total} = R_{attached} \\parallel (R_{cable} + R_{device})',
+        variables: { R_attached: attached_resistor, R_cable: cable_resistance, R_device: device_resistance },
+        result: total_impedance, unit: 'Ω', precision: 2,
+      });
+    }
     calcs['Total belastningsimpedans'] = `${pyFixed(total_impedance, 2)} Ω`;
     steps.push(step3);
 
@@ -140,10 +163,37 @@ CTVT.calculator = (() => {
     }
     if (!burden_ok) result.status = 'IKKE OK';
 
-    // 7. Beregn spændingsfald i kabel
-    const [voltage_drop, voltage_drop_percent, step7] = CTVT.voltageAnalysis.calculateVoltageDrop(
-      cable_resistance, actual_current, secondary_voltage
-    );
+    // 7. Beregn spændingsfald i kabel. With the resistor at the VT only the
+    // meter's current flows in the lead (CTSizer).
+    let voltage_drop, voltage_drop_percent, step7;
+    let lead_current = actual_current;
+    if (atVt) {
+      const branch = cable_resistance + device_resistance;
+      lead_current = branch > 0 && branch !== Infinity ? secondary_voltage / branch : 0;
+      steps.push(CTStep.make({
+        key: 'lead_current',
+        label_en: 'Current in the lead (meter only)',
+        label_da: 'Strøm i måleledningen (kun måleren)',
+        latex: 'I_{meter} = \\frac{U_s}{R_{cable} + R_{device}}',
+        variables: { Us: secondary_voltage, R_cable: cable_resistance, R_device: device_resistance },
+        result: lead_current * 1000, unit: 'mA', precision: 2,
+      }));
+      voltage_drop = cable_resistance * lead_current;
+      voltage_drop_percent = secondary_voltage > 0 ? (voltage_drop / secondary_voltage) * 100 : 0;
+      step7 = CTStep.make({
+        key: 'voltage_drop_in_cable',
+        label_en: 'Voltage drop in cable',
+        label_da: 'Spændingsfald i kabel',
+        latex: '\\Delta U = R_{cable} \\cdot I_{meter}',
+        variables: { R_cable: cable_resistance, I_meter: lead_current, Us: secondary_voltage },
+        result: voltage_drop, unit: 'V', precision: 4,
+        percent: voltage_drop_percent, percent_precision: 3,
+      });
+    } else {
+      [voltage_drop, voltage_drop_percent, step7] = CTVT.voltageAnalysis.calculateVoltageDrop(
+        cable_resistance, actual_current, secondary_voltage
+      );
+    }
     calcs['Spændingsfald i kabel'] =
       `${pyFixed(voltage_drop, 4)} V (${pyFixed(voltage_drop_percent, 3)}%)`;
     steps.push(step7);
@@ -215,7 +265,7 @@ CTVT.calculator = (() => {
     const values = {
       rated_current, burden_impedance, total_impedance, load_resistance,
       actual_current, actual_burden_va, burden_utilization, burden_ok,
-      voltage_drop, voltage_drop_percent, vdrop_ok,
+      voltage_drop, voltage_drop_percent, vdrop_ok, lead_current,
       thermal_utilization, thermal_ok, reserve_capacity, power_factor, range_ok,
     };
     return [result, values];
@@ -338,9 +388,12 @@ CTVT.calculate = function calculate(core = {}, commonData = {}) {
 
   // The VT's burden range (IEC 61869-3 5.6.301.3): I (0–100 %) or II (25–100 %)
   const burden_range = CTVT.validation.resolveBurdenRange(core);
+  // Where the attached resistor sits: at the VT terminals or at the meter
+  // (after the lead). A core without it (the Python model) has it at the meter.
+  const resistor_location = core.vt_resistor_location === 'vt' ? 'vt' : 'meter';
 
   const [result, v, data] = C.singleCoreWithValues(commonData,
-    { ...core, device_resistance, cable_resistance }, { burden_range });
+    { ...core, device_resistance, cable_resistance }, { burden_range, resistor_location });
   result.warnings.push(...cable.warnings);
 
   const is_ok = result.status === 'OK';
@@ -357,7 +410,7 @@ CTVT.calculate = function calculate(core = {}, commonData = {}) {
     cable_resistance,
     vt_class: data.vt_class,
     device_burden, device_resistance,
-    burden_range,
+    burden_range, resistor_location,
     burden_range_label: CTVT.validation.burdenRangeLabel(burden_range, data.burden, data.vt_class),
     // Fields the results panel reads
     Rc: cable_resistance,

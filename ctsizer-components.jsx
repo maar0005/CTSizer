@@ -734,12 +734,16 @@ function SectionCard({ title, children, defaultOpen = true, accent = false, sect
 // Help picture under the per-core Wiring select (PORTING_PLAN.md §9.8): the
 // selected wiring between the three secondaries and their burdens, and k per
 // current case read from the topology registry (R_lead = k · R_c).
+// `resistor` (metering CT / VT core with an attached resistor): where it is
+// drawn in each phase — 'series' (CT: in the loop; its place does not change
+// the burden), 'vt' (VT: across the VT terminals, before the lead) or
+// 'meter' (VT: across the meter, after the lead, so its current is in the lead).
 const WIRING_SQRT3 = Math.sqrt(3);
 function fmtWiringK(k) {
   return Math.abs(k - WIRING_SQRT3) < 1e-12 ? '√3 ≈ 1.73' : String(+k.toFixed(3));
 }
 
-function WiringDiagram({ lang, topology, calcType }) {
+function WiringDiagram({ lang, topology, calcType, resistor }) {
   const res = typeof CTCalc !== 'undefined' ? CTCalc.cableRes : null;
   const reg = res && Object.prototype.hasOwnProperty.call(res.topology, topology) ? res.topology[topology] : null;
   if (!reg) return null;
@@ -753,6 +757,13 @@ function WiringDiagram({ lang, topology, calcType }) {
   const ys = [28, 56, 84];
   const go = 'var(--accent)', ret = 'var(--amber)', dim = 'var(--text-dim)', muted = 'var(--text-muted)';
   const title = `${Tl('lbl_cable_topology')}: ${lang === 'da' ? reg.label_da : reg.label_en}`;
+  // The attached resistor: a shunt across go and return (VT) at x, inside the
+  // VT's or the meter's end where both wires run in every wiring, or in
+  // series in the go lead at the meter's end (CT)
+  const rOn = resistor === 'vt' || resistor === 'meter' || resistor === 'series';
+  const rX = resistor === 'vt' ? 50 : resistor === 'meter' ? 239 : 229;
+  const rCol = 'var(--red)';
+  const rLabel = calcType === 'vt' ? 'R_att' : 'R_res';
 
   return (
     <div data-testid="wiring-diagram" data-topology={topology}
@@ -783,6 +794,18 @@ function WiringDiagram({ lang, topology, calcType }) {
           </g>
         ))}
         <text x={(xS + xE) / 2} y={ys[0] - 7} textAnchor="middle" fontSize="8" fill={dim}>R_c</text>
+        {rOn && (
+          <g data-testid="wiring-resistor" data-at={resistor}>
+            {ys.map((y, i) => resistor === 'series'
+              ? <rect key={i} x={rX - 7} y={y - 6.5} width={14} height={5} fill="var(--surface-2)" stroke={rCol} strokeWidth="1.3"/>
+              : <g key={i}>
+                  <rect x={rX - 2.5} y={y - 4} width={5} height={8} fill="var(--surface-2)" stroke={rCol} strokeWidth="1.3"/>
+                  <circle cx={rX} cy={y - 4} r={1.5} fill={rCol}/>
+                  <circle cx={rX} cy={y + 4} r={1.5} fill={rCol}/>
+                </g>)}
+            <text x={rX} y={ys[0] - 8} textAnchor="middle" fontSize="8" fill={rCol}>{rLabel}</text>
+          </g>
+        )}
         {four
           ? <>
               <line x1={xN1} y1={ys[0] + 4} x2={xN1} y2={yN} stroke={ret} strokeWidth="1.6"/>
@@ -809,6 +832,11 @@ function WiringDiagram({ lang, topology, calcType }) {
       <div style={{ marginTop: 5, fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', lineHeight: 1.35 }}>
         {Tl('wiring_help')}
       </div>
+      {rOn && (
+        <div style={{ marginTop: 3, fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', lineHeight: 1.35 }}>
+          <span style={{ color: rCol }}>{rLabel}</span>: {Tl(`wiring_resistor_${resistor}`)}
+        </div>
+      )}
     </div>
   );
 }

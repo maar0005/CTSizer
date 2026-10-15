@@ -11,6 +11,7 @@ const DEFAULT_SYSTEM = {
   station_name:'', station_abbr:'', voltage:null, freq:null,
   isc_sys:null, tp:null, tp_confirmed:false,
   cable_r_method:null, cable_temp:null,
+  local_rules:null,   // optional national metering rules: none unless picked
 };
 const DEFAULT_SETTINGS = {
   full_name:'',initials:'',company_name:'',department:'',
