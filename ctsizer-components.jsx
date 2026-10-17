@@ -435,7 +435,7 @@ function Sidebar3({ lang, navActive, setNavActive, feeders, sel,
 
       {/* Standards */}
       <div style={{padding:'8px 14px 10px',display:'flex',flexDirection:'column',gap:3}}>
-        {['IEC 61869-2','IEC 61869-100','IEEE C57.13'].map(s=>(
+        {['IEC 61869-2','IEC 61869-3','IEC TR 61869-100'].map(s=>(
           <div key={s} style={{display:'flex',alignItems:'center',gap:5}}>
             <span style={{width:4,height:4,borderRadius:'50%',background:'var(--accent)',
                            boxShadow:'0 0 3px var(--accent)',flexShrink:0}}/>

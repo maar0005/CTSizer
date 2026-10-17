@@ -6,7 +6,7 @@
   <title>CTSizer — CT/VT Dimensioning</title>
 
   <!-- SEO: the description is what search engines show under the title -->
-  <meta name="description" content="Free online tool for sizing current and voltage transformers (CT/VT) to IEC 61869: overcurrent, distance, line and transformer differential, busbar, metering and VT. Every formula shown, report export.">
+  <meta name="description" content="Free CT/VT sizing calculator to IEC 61869-2, -3 and TR 61869-100: knee-point voltage, ALF, transient factor Ktd, TPX/TPY/TPZ, auto-reclosure. Runs in your browser.">
   <link rel="canonical" href="https://ctsizer.com/">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#060d18">
@@ -19,6 +19,8 @@
 
   <!-- Link previews (LinkedIn, Facebook, Teams, Slack, X) -->
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="da_DK">
   <meta property="og:site_name" content="CTSizer">
   <meta property="og:url" content="https://ctsizer.com/">
   <meta property="og:title" content="CTSizer — CT/VT Dimensioning">
@@ -28,8 +30,12 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="CTSizer — CT/VT Dimensioning">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CTSizer — CT/VT Dimensioning">
+  <meta name="twitter:description" content="Free online sizing of current and voltage transformers for protection and metering to IEC 61869, with every calculation step shown.">
+  <meta name="twitter:image" content="https://ctsizer.com/logo/og-image.png">
 
-  <!-- Structured data: lets Google know this is a free web application -->
+  <!-- Structured data: lets Google know this is a free web application. Keep it, the FAQ
+       below and the static summary in #root to what CTSizer actually does (README "Search engines"). -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -38,7 +44,7 @@
     "alternateName": "CTSizer — CT/VT Dimensioning",
     "url": "https://ctsizer.com/",
     "image": "https://ctsizer.com/logo/og-image.png",
-    "description": "Free online tool for dimensioning current transformers (CT) and voltage transformers (VT) for protection and metering to IEC 61869.",
+    "description": "Free online tool for dimensioning current transformers (CT) and voltage transformers (VT) for protection and metering to IEC 61869-2, IEC 61869-3 and IEC TR 61869-100. Runs locally in the browser, no account.",
     "applicationCategory": "EngineeringApplication",
     "operatingSystem": "Any (web browser)",
     "browserRequirements": "Requires JavaScript",
@@ -46,6 +52,8 @@
     "isAccessibleForFree": true,
     "license": "https://www.gnu.org/licenses/agpl-3.0.html",
     "codeRepository": "https://github.com/maar0005/CTSizer",
+    "author": { "@type": "Person", "name": "Maarten L. Kamstrup" },
+    "keywords": "current transformer sizing, CT sizing calculator, CT dimensioning, IEC 61869-2, IEC 61869-3, IEC TR 61869-100, knee-point voltage, accuracy limit factor, transient dimensioning factor, Ktd, TPX, TPY, TPZ, PX, auto-reclosure, voltage transformer burden, strømtransformer dimensionering, spændingstransformer, knæpunktsspænding",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
     "featureList": [
       "Overcurrent protection CT sizing",
@@ -56,7 +64,66 @@
       "Metering CT sizing",
       "Voltage transformer (VT) burden and voltage drop",
       "Knee-point voltage, ALF and transient dimensioning factors",
+      "Transient dimensioning factor Ktd and C-O / C-O-C-O duty cycles to IEC TR 61869-100",
+      "CT classes 5P, 5PR, 10P, 10PR, PX, TPX, TPY and TPZ, with remanence factor",
+      "Instrument security factor (FS) and burden range for metering cores",
+      "Cable loop resistance to IEC 60228 and IEC 60287, with wiring topology",
+      "Relay database (ABB, GE, SEL, Siemens) for relay burden and time to accuracy limit",
+      "Danish metering rules (Elmåling, TR 353) check for metering CT and VT cores",
+      "Every formula and calculation step shown",
+      "Runs locally in the browser: no account, no tracking",
+      "English and Danish user interface",
       "RTF report export"
+    ]
+  }
+  </script>
+
+  <!-- FAQ: the same questions and answers as the static summary in #root -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is CTSizer free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. CTSizer is free and open source (GNU AGPL-3.0). It needs no account and runs in the browser; projects are stored only in the browser."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which standards does CTSizer use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "IEC 61869-2 for current transformers, IEC 61869-3 for voltage transformers and IEC TR 61869-100 for transient dimensioning (Ktd, C-O and C-O-C-O duty cycles). Cable resistance follows IEC 60228 and IEC 60287, and the fault current factors IEC 60909. IEC 60044 and IEEE C57.13 (C-class) are not supported."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which protection and metering applications are covered?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Overcurrent, distance (with auto-reclosure), line differential, transformer differential and busbar protection, metering cores and voltage transformers. CT classes 5P, 5PR, 10P, 10PR, PX, TPX, TPY and TPZ."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What does CTSizer not do?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It is not an electromagnetic transient (EMT) simulator: it uses the analytical formulas of the standards, not a non-linear magnetising (B-H) curve or a step-by-step core model. It does not calculate short-circuit currents from a network model; the fault current and time constant are entered by the user. Results must always be checked independently."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I export a report?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. CTSizer exports a documentation report as an RTF file for Word or LibreOffice, with the input data, every formula and calculation step, the charts and the verdict per core."
+        }
+      }
     ]
   }
   </script>
@@ -222,8 +289,37 @@
         <li>Metering cores</li>
         <li>Voltage transformers: burden, voltage drop and thermal checks</li>
       </ul>
+      <h2>Standards and CT classes</h2>
+      <p>IEC 61869-2 (current transformers), IEC 61869-3 (voltage transformers) and
+        IEC TR 61869-100 (transient dimensioning factor Ktd, C-O and C-O-C-O duty cycles);
+        cable resistance to IEC 60228 and IEC 60287. CT classes 5P, 5PR, 10P, 10PR, PX, TPX,
+        TPY and TPZ; metering cores with instrument security factor (FS).</p>
       <p>Results can be exported as a documentation report (RTF) for Word or LibreOffice.
         Available in English and Danish.</p>
+      <section>
+        <h2>Frequently asked questions</h2>
+        <h3>Is CTSizer free?</h3>
+        <p>Yes. CTSizer is free and open source (GNU AGPL-3.0). It needs no account and runs in the browser; projects are stored only in the browser.</p>
+        <h3>Which standards does CTSizer use?</h3>
+        <p>IEC 61869-2 for current transformers, IEC 61869-3 for voltage transformers and IEC TR 61869-100 for transient dimensioning (Ktd, C-O and C-O-C-O duty cycles). Cable resistance follows IEC 60228 and IEC 60287, and the fault current factors IEC 60909. IEC 60044 and IEEE C57.13 (C-class) are not supported.</p>
+        <h3>Which protection and metering applications are covered?</h3>
+        <p>Overcurrent, distance (with auto-reclosure), line differential, transformer differential and busbar protection, metering cores and voltage transformers. CT classes 5P, 5PR, 10P, 10PR, PX, TPX, TPY and TPZ.</p>
+        <h3>What does CTSizer not do?</h3>
+        <p>It is not an electromagnetic transient (EMT) simulator: it uses the analytical formulas of the standards, not a non-linear magnetising (B-H) curve or a step-by-step core model. It does not calculate short-circuit currents from a network model; the fault current and time constant are entered by the user. Results must always be checked independently.</p>
+        <h3>Can I export a report?</h3>
+        <p>Yes. CTSizer exports a documentation report as an RTF file for Word or LibreOffice, with the input data, every formula and calculation step, the charts and the verdict per core.</p>
+      </section>
+      <section lang="da">
+        <h2>Dimensionering af strømtransformere og spændingstransformere</h2>
+        <p>CTSizer er et gratis onlineværktøj til dimensionering af strømtransformere (CT) og
+          spændingstransformere (VT) til beskyttelse og måling efter IEC 61869-2, IEC 61869-3 og
+          IEC TR 61869-100: knæpunktsspænding (Vk), nøjagtighedsgrænsefaktor (ALF), byrde,
+          transient dimensioneringsfaktor (Ktd), genindkobling (C-O-C-O) og sløjfemodstand.
+          Overstrøms-, distance-, linjedifferential-, transformerdifferential- og
+          samleskinnebeskyttelse, målekerner og spændingstransformere, med kontrol efter
+          Elmåling (TR 353). Alle formler og mellemregninger vises, og rapporten eksporteres som
+          RTF. Beregningerne kører lokalt i browseren, uden konto.</p>
+      </section>
       <p>CTSizer is a free, non-commercial open-source project (GNU AGPL-3.0):
         <a href="https://github.com/maar0005/CTSizer">github.com/maar0005/CTSizer</a>.
         No account, no cookies, no tracking.</p>

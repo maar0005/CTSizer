@@ -180,6 +180,7 @@ function App({ ctl }) {
   useEffect(()=>{ localStorage.setItem('ctsizer_projname', JSON.stringify(projName));  },[projName]);
   useEffect(()=>{ localStorage.setItem('ctsizer_report',   JSON.stringify(report));    },[report]);
   useEffect(()=>{ document.documentElement.setAttribute('data-theme', theme);     },[theme]);
+  useEffect(()=>{ document.documentElement.lang = lang;                           },[lang]);
 
   // ── Activity log for "Give feedback" (ctsizer-activity.js) ──
   // Every state change is diffed against the previous state, so each edit is

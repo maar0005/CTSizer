@@ -290,6 +290,7 @@ function TermsGate({ children }) {
   };
 
   useEffect(() => { if (!accepted) applyStoredTheme(); }, [accepted]);
+  useEffect(() => { if (!accepted) document.documentElement.lang = lang; }, [lang, accepted]);
 
   const checkScrolled = () => {
     const el = scrollRef.current;

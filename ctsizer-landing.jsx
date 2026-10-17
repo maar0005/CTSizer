@@ -496,7 +496,7 @@ function LandingPage({ lang, setLang, onContinue, returning }) {
             ))}
           </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', marginTop: 10 }}>
-            IEC 61869-2 · IEC 61869-100 · IEEE C57.13 · IEC 60228 · IEC 60287
+            IEC 61869-2 · IEC 61869-3 · IEC TR 61869-100 · IEC 60228 · IEC 60287
           </div>
         </section>
 
@@ -588,6 +588,8 @@ function LandingGate({ children }) {
   };
 
   useEffect(() => { if (!passed) applyStoredTheme(); }, [passed]);
+  // <html lang> follows the language shown (screen readers, search engines).
+  useEffect(() => { if (!passed) document.documentElement.lang = lang; }, [lang, passed]);
 
   const gate = useMemo(() => ({
     home: () => { setLangState(readJSON('ctsizer_lang', 'en')); window.scrollTo(0, 0); setPassed(false); },
