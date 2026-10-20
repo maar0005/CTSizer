@@ -1,0 +1,151 @@
+{
+  "format_impedance_step": [
+    {
+      "input": {
+        "name": "impedance_step",
+        "description": "Source impedance calculation",
+        "rs": 1.2345,
+        "xs": 2.3456,
+        "zs": 2.6457,
+        "voltage_level": 110,
+        "iscc_max": 5000,
+        "frequency": 50,
+        "tp": 100
+      },
+      "expected": {
+        "name": "impedance_step",
+        "description": "Source impedance calculation",
+        "formula": "Zs = c x Un x 1000 / (sqrt(3) x Iscc_max)",
+        "latex_formula": "Z_s = \\frac{c \\cdot U_n \\cdot 1000}{\\sqrt{3} \\cdot I_{scc,max}}",
+        "substitution": "Zs = 1.1 x 110 x 1000 / (sqrt(3) x 5000)",
+        "latex_substitution": "Z_s = \\frac{1.1 \\cdot 110 \\cdot 1000}{\\sqrt{3} \\cdot 5000}",
+        "result": "2.6457 \u03a9",
+        "latex_result": "Z_s = 2.6457 \\, \\Omega"
+      }
+    },
+    {
+      "input": {
+        "name": "zs_zero",
+        "description": "Zero-impedance edge case",
+        "rs": 0.0,
+        "xs": 0.0,
+        "zs": 0.0,
+        "voltage_level": 10,
+        "iscc_max": 1,
+        "frequency": 50,
+        "tp": 0
+      },
+      "expected": {
+        "name": "zs_zero",
+        "description": "Zero-impedance edge case",
+        "formula": "Zs = c x Un x 1000 / (sqrt(3) x Iscc_max)",
+        "latex_formula": "Z_s = \\frac{c \\cdot U_n \\cdot 1000}{\\sqrt{3} \\cdot I_{scc,max}}",
+        "substitution": "Zs = 1.1 x 10 x 1000 / (sqrt(3) x 1)",
+        "latex_substitution": "Z_s = \\frac{1.1 \\cdot 10 \\cdot 1000}{\\sqrt{3} \\cdot 1}",
+        "result": "0.0000 \u03a9",
+        "latex_result": "Z_s = 0.0000 \\, \\Omega"
+      }
+    },
+    {
+      "input": {
+        "name": "zs_highres",
+        "description": "High fault current, low impedance",
+        "rs": 0.04321,
+        "xs": 0.09876,
+        "zs": 0.107628,
+        "voltage_level": 400,
+        "iscc_max": 40000,
+        "frequency": 60,
+        "tp": 200
+      },
+      "expected": {
+        "name": "zs_highres",
+        "description": "High fault current, low impedance",
+        "formula": "Zs = c x Un x 1000 / (sqrt(3) x Iscc_max)",
+        "latex_formula": "Z_s = \\frac{c \\cdot U_n \\cdot 1000}{\\sqrt{3} \\cdot I_{scc,max}}",
+        "substitution": "Zs = 1.1 x 400 x 1000 / (sqrt(3) x 40000)",
+        "latex_substitution": "Z_s = \\frac{1.1 \\cdot 400 \\cdot 1000}{\\sqrt{3} \\cdot 40000}",
+        "result": "0.1076 \u03a9",
+        "latex_result": "Z_s = 0.1076 \\, \\Omega"
+      }
+    }
+  ],
+  "format_ktd_step": [
+    {
+      "input": {
+        "name": "ktd_step",
+        "description": "Ktd factor lookup",
+        "ktd": 1.05,
+        "tp_range": "Tp <= 30 ms"
+      },
+      "expected": {
+        "name": "ktd_step",
+        "description": "Ktd factor lookup",
+        "formula": "Tp <= 30 ms \u2192 Ktd = 1.05",
+        "latex_formula": "Tp <= 30 ms \\rightarrow K_{td} = 1.05",
+        "substitution": "",
+        "latex_substitution": "",
+        "result": "1.05",
+        "latex_result": "K_{td} = 1.05"
+      }
+    },
+    {
+      "input": {
+        "name": "ktd_int",
+        "description": "Ktd integer value",
+        "ktd": 1,
+        "tp_range": "100 < Tp <= 200 ms"
+      },
+      "expected": {
+        "name": "ktd_int",
+        "description": "Ktd integer value",
+        "formula": "100 < Tp <= 200 ms \u2192 Ktd = 1",
+        "latex_formula": "100 < Tp <= 200 ms \\rightarrow K_{td} = 1",
+        "substitution": "",
+        "latex_substitution": "",
+        "result": "1",
+        "latex_result": "K_{td} = 1"
+      }
+    },
+    {
+      "input": {
+        "name": "ktd_high",
+        "description": "High Ktd band",
+        "ktd": 3.2,
+        "tp_range": "Tp > 200 ms"
+      },
+      "expected": {
+        "name": "ktd_high",
+        "description": "High Ktd band",
+        "formula": "Tp > 200 ms \u2192 Ktd = 3.2",
+        "latex_formula": "Tp > 200 ms \\rightarrow K_{td} = 3.2",
+        "substitution": "",
+        "latex_substitution": "",
+        "result": "3.2",
+        "latex_result": "K_{td} = 3.2"
+      }
+    }
+  ],
+  "format_final_result": [
+    {
+      "input": {
+        "status": "OK",
+        "conclusion": "CT er tilstr\u00e6kkelig"
+      },
+      "expected": {
+        "status": "OK",
+        "conclusion": "CT er tilstr\u00e6kkelig"
+      }
+    },
+    {
+      "input": {
+        "status": "IKKE OK",
+        "conclusion": "CT er IKKE tilstr\u00e6kkelig"
+      },
+      "expected": {
+        "status": "IKKE OK",
+        "conclusion": "CT er IKKE tilstr\u00e6kkelig"
+      }
+    }
+  ]
+}

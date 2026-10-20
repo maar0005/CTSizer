@@ -1,0 +1,270 @@
+{
+  "calculate_ktd_analytical": [
+    {
+      "input": {
+        "t_p": 100,
+        "t_al": 80
+      },
+      "expected": {
+        "ktd": 17.850511844622964,
+        "ktd_max": 32.41592653589794,
+        "t_al_used": 80,
+        "method_used": "analytical_simplified"
+      }
+    },
+    {
+      "input": {
+        "t_p": 100,
+        "t_al": 80,
+        "t_s": 300
+      },
+      "expected": {
+        "ktd": 15.919394024002637,
+        "ktd_max": 32.41592653589794,
+        "t_al_used": 80,
+        "method_used": "analytical_full"
+      }
+    },
+    {
+      "input": {
+        "t_p": 100,
+        "t_al": 80,
+        "t_s": 100.00005
+      },
+      "expected": {
+        "ktd": 3.513274122871835,
+        "ktd_max": 32.41592653589794,
+        "t_al_used": 80,
+        "method_used": "simplified_equal_tc"
+      }
+    },
+    {
+      "input": {
+        "t_p": 100,
+        "t_al": 80,
+        "duty_cycle": "C-O-C-O"
+      },
+      "expected": {
+        "ktd": 19.833902049581074,
+        "ktd_max": 32.41592653589794,
+        "t_al_used": 80,
+        "method_used": "analytical_simplified_auto_reclosure"
+      }
+    },
+    {
+      "input": {
+        "t_p": 100,
+        "t_al": 80,
+        "duty_cycle": "C-O-C-O",
+        "remanence_factor": 0.8
+      },
+      "expected": {
+        "ktd": 89.25255922311484,
+        "ktd_max": 32.41592653589794,
+        "t_al_used": 80,
+        "method_used": "analytical_simplified_auto_reclosure"
+      }
+    },
+    {
+      "input": {
+        "t_p": 80,
+        "t_al": 60,
+        "t_s": 250,
+        "frequency": 60
+      },
+      "expected": {
+        "ktd": 14.938084953548653,
+        "ktd_max": 31.159289474462014,
+        "t_al_used": 60,
+        "method_used": "analytical_full"
+      }
+    }
+  ],
+  "calculate_tal_from_ktd": [
+    {
+      "input": {
+        "t_p": 100,
+        "k_td": 5
+      },
+      "expected": 16.75257568104603
+    },
+    {
+      "input": {
+        "t_p": 50,
+        "k_td": 3,
+        "frequency": 60
+      },
+      "expected": 8.192866676289995
+    }
+  ],
+  "get_ktd_factors": [
+    {
+      "input": {
+        "tp": 30
+      },
+      "expected": {
+        "ktd_a": 1,
+        "ktd_b": 4,
+        "tp_range_a": "Tp <= 30 ms",
+        "tp_range_b": "Tp <= 30 ms"
+      }
+    },
+    {
+      "input": {
+        "tp": 50
+      },
+      "expected": {
+        "ktd_a": 2,
+        "ktd_b": 5,
+        "tp_range_a": "30 ms < Tp <= 50 ms",
+        "tp_range_b": "30 ms < Tp <= 200 ms"
+      }
+    },
+    {
+      "input": {
+        "tp": 100
+      },
+      "expected": {
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "tp_range_a": "50 ms < Tp <= 100 ms",
+        "tp_range_b": "30 ms < Tp <= 200 ms"
+      }
+    },
+    {
+      "input": {
+        "tp": 150
+      },
+      "expected": {
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "tp_range_a": "100 ms < Tp <= 200 ms",
+        "tp_range_b": "30 ms < Tp <= 200 ms"
+      }
+    }
+  ],
+  "get_ktd_factors_with_validation": [
+    {
+      "input": {
+        "t_p": 100,
+        "t_al": 80
+      },
+      "expected": {
+        "ktd_a": 4,
+        "ktd_b": 17.850511844622964,
+        "t_al_used": 80,
+        "method": "analytical",
+        "relay_type": "Ukendt",
+        "ktd_max": 32.41592653589794,
+        "tp_range_a": "50 ms < Tp <= 100 ms",
+        "tp_range_b": "Analytical (t_al = 80 ms)",
+        "warnings_len": 1
+      }
+    },
+    {
+      "input": {
+        "t_p": 100,
+        "t_al": 15
+      },
+      "expected": {
+        "ktd_a": 4,
+        "ktd_b": 4.51528000324189,
+        "t_al_used": 15,
+        "method": "analytical",
+        "relay_type": "Ukendt",
+        "ktd_max": 32.41592653589794,
+        "tp_range_a": "50 ms < Tp <= 100 ms",
+        "tp_range_b": "Analytical (t_al = 15 ms)",
+        "warnings_len": 0
+      }
+    },
+    {
+      "input": {
+        "t_p": 100
+      },
+      "expected": {
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "t_al_used": 13.170008027353171,
+        "method": "lookup_table",
+        "relay_type": "Ukendt",
+        "tp_range_a": "50 ms < Tp <= 100 ms",
+        "tp_range_b": "30 ms < Tp <= 200 ms",
+        "warnings_len": 1
+      }
+    },
+    {
+      "input": {
+        "t_p": 50,
+        "t_al": 40,
+        "relay_type": "ABB REL670"
+      },
+      "expected": {
+        "ktd_a": 2,
+        "ktd_b": 9.200591440252872,
+        "t_al_used": 40,
+        "method": "analytical",
+        "relay_type": "ABB REL670",
+        "ktd_max": 16.70796326794897,
+        "tp_range_a": "30 ms < Tp <= 50 ms",
+        "tp_range_b": "Analytical (t_al = 40 ms)",
+        "warnings_len": 1
+      }
+    }
+  ],
+  "calculate_kssc": [
+    {
+      "input": {
+        "ktd": 4,
+        "fault_current": 40000,
+        "primary_current": 2000
+      },
+      "expected": 80.0
+    },
+    {
+      "input": {
+        "ktd": 5,
+        "fault_current": 12000,
+        "primary_current": 1000
+      },
+      "expected": 60.0
+    }
+  ],
+  "calculate_vka": [
+    {
+      "input": {
+        "kssc1": 80,
+        "r_total": 4.5,
+        "secondary_current": 1
+      },
+      "expected": 276.9230769230769
+    },
+    {
+      "input": {
+        "kssc1": 60,
+        "r_total": 6,
+        "secondary_current": 5,
+        "vka_factor": 1.5
+      },
+      "expected": 1200.0
+    }
+  ],
+  "calculate_vkb": [
+    {
+      "input": {
+        "kssc2": 60,
+        "r_total": 4.5,
+        "secondary_current": 1
+      },
+      "expected": 270.0
+    },
+    {
+      "input": {
+        "kssc2": 50,
+        "r_total": 6,
+        "secondary_current": 5
+      },
+      "expected": 1500
+    }
+  ]
+}

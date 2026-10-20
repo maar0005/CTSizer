@@ -1,0 +1,1368 @@
+{
+  "peak_factor": [
+    {
+      "input": [
+        100,
+        50
+      ],
+      "expected": 1.9107462600367902
+    },
+    {
+      "input": [
+        40,
+        50
+      ],
+      "expected": 1.7918730990366436
+    },
+    {
+      "input": [
+        250,
+        50
+      ],
+      "expected": 1.9632726632477664
+    },
+    {
+      "input": [
+        60,
+        60
+      ],
+      "expected": 1.878274048573644
+    },
+    {
+      "input": [
+        0,
+        50
+      ],
+      "expected": 2.0
+    },
+    {
+      "input": [
+        null,
+        50
+      ],
+      "expected": 2.0
+    }
+  ],
+  "thermal_allowed_current": [
+    {
+      "input": [
+        [
+          [
+            1.0,
+            500.0
+          ],
+          [
+            10.0,
+            150.0
+          ],
+          [
+            60.0,
+            50.0
+          ]
+        ],
+        0.2
+      ],
+      "expected": [
+        1118.033988749895,
+        1.0,
+        500.0
+      ]
+    },
+    {
+      "input": [
+        [
+          [
+            1.0,
+            500.0
+          ],
+          [
+            10.0,
+            150.0
+          ],
+          [
+            60.0,
+            50.0
+          ]
+        ],
+        1.0
+      ],
+      "expected": [
+        500.0,
+        1.0,
+        500.0
+      ]
+    },
+    {
+      "input": [
+        [
+          [
+            1.0,
+            500.0
+          ],
+          [
+            10.0,
+            150.0
+          ],
+          [
+            60.0,
+            50.0
+          ]
+        ],
+        3.0
+      ],
+      "expected": [
+        273.8612787525831,
+        10.0,
+        150.0
+      ]
+    },
+    {
+      "input": [
+        [
+          [
+            1.0,
+            500.0
+          ],
+          [
+            10.0,
+            150.0
+          ],
+          [
+            60.0,
+            50.0
+          ]
+        ],
+        10.0
+      ],
+      "expected": [
+        150.0,
+        10.0,
+        150.0
+      ]
+    },
+    {
+      "input": [
+        [
+          [
+            1.0,
+            500.0
+          ],
+          [
+            10.0,
+            150.0
+          ],
+          [
+            60.0,
+            50.0
+          ]
+        ],
+        30.0
+      ],
+      "expected": [
+        70.71067811865476,
+        60.0,
+        50.0
+      ]
+    },
+    {
+      "input": [
+        [
+          [
+            1.0,
+            500.0
+          ],
+          [
+            10.0,
+            150.0
+          ],
+          [
+            60.0,
+            50.0
+          ]
+        ],
+        120.0
+      ],
+      "expected": [
+        35.35533905932738,
+        60.0,
+        50.0
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "input": {
+        "specs": {
+          "ct_input": {
+            "measuring_range_max": 200,
+            "dynamic_capacity_x_in": 250,
+            "thermal_1s_x_in": 100,
+            "thermal_10s_x_in": 30
+          },
+          "thermal_duration_s": 0.5,
+          "requirements": []
+        },
+        "isr": 5,
+        "i_sec_rms": 100.0,
+        "i_sec_peak": 270.0
+      },
+      "expected": [
+        {
+          "id": "measuring_range",
+          "kind": "peak_max",
+          "value": 270.0,
+          "limit": 200,
+          "ok": false,
+          "reason": null
+        },
+        {
+          "id": "dynamic_capacity",
+          "kind": "peak_max",
+          "value": 270.0,
+          "limit": 1250,
+          "ok": true,
+          "reason": null
+        },
+        {
+          "id": "thermal_short_time",
+          "kind": "thermal_i2t",
+          "value": 100.0,
+          "limit": 707.1067811865476,
+          "ok": true,
+          "reason": null
+        }
+      ]
+    },
+    {
+      "input": {
+        "specs": {
+          "ct_input": {
+            "measuring_range_max": 40,
+            "thermal_1s_x_in": 100
+          },
+          "thermal_duration_s": null,
+          "requirements": []
+        },
+        "isr": 1,
+        "i_sec_rms": 20.0,
+        "i_sec_peak": 54.0
+      },
+      "expected": [
+        {
+          "id": "measuring_range",
+          "kind": "peak_max",
+          "value": 54.0,
+          "limit": 40,
+          "ok": false,
+          "reason": null
+        },
+        {
+          "id": "thermal_short_time",
+          "kind": "thermal_i2t",
+          "value": null,
+          "limit": null,
+          "ok": null,
+          "reason": "no_thermal_duration"
+        }
+      ]
+    },
+    {
+      "input": {
+        "specs": {
+          "ct_input": null,
+          "thermal_duration_s": 2.0,
+          "requirements": [
+            {
+              "kind": "peak_max",
+              "limit_value": 30,
+              "limit_unit": "x_in",
+              "label": "lin"
+            },
+            {
+              "kind": "rms_max",
+              "limit_value": 80,
+              "limit_unit": "A",
+              "label": "rms"
+            },
+            {
+              "kind": "thermal_i2t",
+              "limit_value": 20,
+              "limit_unit": "x_in",
+              "rating_duration_s": 1,
+              "check_duration_s": 0.5,
+              "label": "th_own"
+            },
+            {
+              "kind": "thermal_i2t",
+              "limit_value": 20,
+              "limit_unit": "x_in",
+              "rating_duration_s": 1,
+              "check_duration_s": null,
+              "label": "th_relay"
+            },
+            {
+              "kind": "thermal_i2t",
+              "limit_value": 20,
+              "limit_unit": "x_in",
+              "rating_duration_s": null,
+              "check_duration_s": 1,
+              "label": "th_norating"
+            },
+            {
+              "kind": "future_kind",
+              "limit_value": 1,
+              "limit_unit": "A",
+              "label": "future"
+            },
+            {
+              "kind": "peak_max",
+              "limit_value": 1,
+              "limit_unit": "pu",
+              "label": "badunit"
+            },
+            {
+              "kind": "peak_max",
+              "limit_value": 500,
+              "limit_unit": null,
+              "label": null
+            }
+          ]
+        },
+        "isr": 5,
+        "i_sec_rms": 60.0,
+        "i_sec_peak": 160.0
+      },
+      "expected": [
+        {
+          "id": "lin",
+          "kind": "peak_max",
+          "value": 160.0,
+          "limit": 150,
+          "ok": false,
+          "reason": null
+        },
+        {
+          "id": "rms",
+          "kind": "rms_max",
+          "value": 60.0,
+          "limit": 80,
+          "ok": true,
+          "reason": null
+        },
+        {
+          "id": "th_own",
+          "kind": "thermal_i2t",
+          "value": 60.0,
+          "limit": 141.4213562373095,
+          "ok": true,
+          "reason": null
+        },
+        {
+          "id": "th_relay",
+          "kind": "thermal_i2t",
+          "value": 60.0,
+          "limit": 70.71067811865476,
+          "ok": true,
+          "reason": null
+        },
+        {
+          "id": "th_norating",
+          "kind": "thermal_i2t",
+          "value": null,
+          "limit": null,
+          "ok": null,
+          "reason": "no_thermal_rating"
+        },
+        {
+          "id": "future",
+          "kind": "future_kind",
+          "value": null,
+          "limit": null,
+          "ok": null,
+          "reason": "unknown_kind"
+        },
+        {
+          "id": "badunit",
+          "kind": "peak_max",
+          "value": null,
+          "limit": null,
+          "ok": null,
+          "reason": "unknown_limit_unit"
+        },
+        {
+          "id": "requirement_8",
+          "kind": "peak_max",
+          "value": 160.0,
+          "limit": 500,
+          "ok": true,
+          "reason": null
+        }
+      ]
+    }
+  ],
+  "calculate": [
+    {
+      "name": "busbar 7SS85 5 A 2000/5 40 kA: 270 A peak within 500 A",
+      "calc_type": "busbar",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SS85",
+        "Ip": 2000,
+        "Is": 5
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "busbar",
+          "primary_current": 2000,
+          "secondary_current": 5,
+          "relay_model": "SIPROTEC 5 7SS85"
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 40000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 100.0,
+        "i_sec_peak": 270.22032751976974,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 270.22032751976974,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 270.22032751976974,
+            "limit": 1250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "busbar 7SS85 5 A 4000/5: within ratings",
+      "calc_type": "busbar",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SS85",
+        "Ip": 4000,
+        "Is": 5
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "busbar",
+          "primary_current": 4000,
+          "secondary_current": 5,
+          "relay_model": "SIPROTEC 5 7SS85"
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 40000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 50.0,
+        "i_sec_peak": 135.11016375988487,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 135.11016375988487,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 135.11016375988487,
+            "limit": 1250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "busbar 7SS85 5 A 1000/5: 540 A peak > 500 A measuring range",
+      "calc_type": "busbar",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SS85",
+        "Ip": 1000,
+        "Is": 5
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "busbar",
+          "primary_current": 1000,
+          "secondary_current": 5,
+          "relay_model": "SIPROTEC 5 7SS85"
+        }
+      },
+      "expected": {
+        "status": "NOT_OK",
+        "i_fault": 40000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 200.0,
+        "i_sec_peak": 540.4406550395395,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 540.4406550395395,
+            "limit": 500.0,
+            "ok": false,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 540.4406550395395,
+            "limit": 1250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 2
+      }
+    },
+    {
+      "name": "busbar 7SS85 1 A 200/1: measuring range and dynamic exceeded",
+      "calc_type": "busbar",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SS85",
+        "Ip": 200,
+        "Is": 1
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "busbar",
+          "primary_current": 200,
+          "secondary_current": 1,
+          "relay_model": "SIPROTEC 5 7SS85"
+        }
+      },
+      "expected": {
+        "status": "NOT_OK",
+        "i_fault": 40000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 200.0,
+        "i_sec_peak": 540.4406550395395,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 540.4406550395395,
+            "limit": 500.0,
+            "ok": false,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 540.4406550395395,
+            "limit": 250.0,
+            "ok": false,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 3
+      }
+    },
+    {
+      "name": "busbar REB500 1 A 2000/1: 54 A peak",
+      "calc_type": "busbar",
+      "inputs": {
+        "relay_model": "ABB REB500",
+        "Ip": 2000,
+        "Is": 1
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "busbar",
+          "primary_current": 2000,
+          "secondary_current": 1,
+          "relay_model": "ABB REB500"
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 40000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 20.0,
+        "i_sec_peak": 54.044065503953945,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 54.044065503953945,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 54.044065503953945,
+            "limit": 250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "busbar 7SS85 1 A short Tp",
+      "calc_type": "busbar",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SS85",
+        "Ip": 3000,
+        "Is": 1
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 20,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 20,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "busbar",
+          "primary_current": 3000,
+          "secondary_current": 1,
+          "relay_model": "SIPROTEC 5 7SS85"
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 40000,
+        "tp_ms": 20,
+        "kappa": 1.6279470214453389,
+        "i_sec_rms": 13.333333333333334,
+        "i_sec_peak": 30.696863420705096,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 30.696863420705096,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 30.696863420705096,
+            "limit": 250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "distance 7SA87 1 A core Tp, 60 Hz",
+      "calc_type": "distance",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SA87",
+        "Ip": 1200,
+        "Is": 1,
+        "tp": 60
+      },
+      "system": {
+        "isc_sys": 31.5,
+        "tp": 100,
+        "freq": "60",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 31.5,
+          "primary_time_constant": 100,
+          "frequency": 60.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "distance",
+          "primary_current": 1200,
+          "secondary_current": 1,
+          "relay_model": "SIPROTEC 5 7SA87",
+          "primary_time_constant": 60
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 31500.0,
+        "tp_ms": 60,
+        "kappa": 1.878274048573644,
+        "i_sec_rms": 26.25,
+        "i_sec_peak": 69.72736662533956,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 69.72736662533956,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 69.72736662533956,
+            "limit": 250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "overcurrent 7SJ86 5 A core Isc override",
+      "calc_type": "overcurrent",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SJ86",
+        "Ip": 800,
+        "Is": 5,
+        "Isc_max_override": 25000
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "overcurrent",
+          "primary_current": 800,
+          "secondary_current": 5,
+          "relay_model": "SIPROTEC 5 7SJ86",
+          "max_fault_current": 25000
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 25000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 156.25,
+        "i_sec_peak": 422.2192617496402,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 422.2192617496402,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 422.2192617496402,
+            "limit": 1250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "overcurrent 7SJ86 1 A project Ik",
+      "calc_type": "overcurrent",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SJ86",
+        "Ip": 2500,
+        "Is": 1
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "overcurrent",
+          "primary_current": 2500,
+          "secondary_current": 1,
+          "relay_model": "SIPROTEC 5 7SJ86",
+          "max_fault_current": 40000
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 40000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 16.0,
+        "i_sec_peak": 43.23525240316316,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 43.23525240316316,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 43.23525240316316,
+            "limit": 250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "line diff 7SD87 1 A per-core Ik / It",
+      "calc_type": "line_diff",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7SD87",
+        "Ip": 1600,
+        "Is": 1,
+        "ik_max_3ph": 18000,
+        "ik_max_1ph": 26000,
+        "it_max_3ph": 9000,
+        "it_max_1ph": 11000
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "line_differential",
+          "primary_current": 1600,
+          "secondary_current": 1,
+          "relay_model": "SIPROTEC 5 7SD87",
+          "ik_max_3ph": 18000,
+          "ik_max_1ph": 26000,
+          "it_max_3ph": 9000,
+          "it_max_1ph": 11000
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 26000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 16.25,
+        "i_sec_peak": 43.91080322196258,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 43.91080322196258,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 43.91080322196258,
+            "limit": 250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "transformer diff 7UT86 1 A: larger of It,max / Ik,max",
+      "calc_type": "transformer_diff",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7UT86",
+        "Ip": 1000,
+        "Is": 1,
+        "trafo_voltage_kv": 150,
+        "trafo_power_mva": 100,
+        "trafo_z_percent": 12,
+        "trafo_ik_max": 22000
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "transformer_differential",
+          "primary_current": 1000,
+          "secondary_current": 1,
+          "relay_model": "SIPROTEC 5 7UT86",
+          "trafo_ik_max": 22000,
+          "trafo_rated_power": 100,
+          "trafo_uk_percent": 12
+        }
+      },
+      "expected": {
+        "status": "OK",
+        "i_fault": 22000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 22.0,
+        "i_sec_peak": 59.448472054349345,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 59.448472054349345,
+            "limit": 500.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 59.448472054349345,
+            "limit": 250.0,
+            "ok": true,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "transformer diff 7UT86 1 A 100/1: measuring range exceeded",
+      "calc_type": "transformer_diff",
+      "inputs": {
+        "relay_model": "SIPROTEC 5 7UT86",
+        "Ip": 100,
+        "Is": 1,
+        "trafo_voltage_kv": 150,
+        "trafo_power_mva": 100,
+        "trafo_z_percent": 12,
+        "trafo_ik_max": 22000
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "transformer_differential",
+          "primary_current": 100,
+          "secondary_current": 1,
+          "relay_model": "SIPROTEC 5 7UT86",
+          "trafo_ik_max": 22000,
+          "trafo_rated_power": 100,
+          "trafo_uk_percent": 12
+        }
+      },
+      "expected": {
+        "status": "NOT_OK",
+        "i_fault": 22000,
+        "tp_ms": 100,
+        "kappa": 1.9107462600367902,
+        "i_sec_rms": 220.0,
+        "i_sec_peak": 594.4847205434934,
+        "checks": [
+          {
+            "id": "measuring_range",
+            "kind": "peak_max",
+            "value": 594.4847205434934,
+            "limit": 500.0,
+            "ok": false,
+            "reason": null
+          },
+          {
+            "id": "dynamic_capacity",
+            "kind": "peak_max",
+            "value": 594.4847205434934,
+            "limit": 250.0,
+            "ok": false,
+            "reason": null
+          },
+          {
+            "id": "thermal_short_time",
+            "kind": "thermal_i2t",
+            "value": null,
+            "limit": null,
+            "ok": null,
+            "reason": "no_thermal_duration"
+          }
+        ],
+        "step_keys": [
+          "ied_secondary_fault_current",
+          "ied_peak_factor",
+          "ied_secondary_peak_current",
+          "ied_measuring_range_check",
+          "ied_dynamic_capacity_check"
+        ],
+        "n_warnings": 3
+      }
+    },
+    {
+      "name": "transformer diff RET670: no input data \u2192 N/A",
+      "calc_type": "transformer_diff",
+      "inputs": {
+        "relay_model": "ABB RET670",
+        "Ip": 1000,
+        "Is": 1,
+        "trafo_voltage_kv": 150,
+        "trafo_power_mva": 100,
+        "trafo_z_percent": 12,
+        "trafo_ik_max": 22000
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "transformer_differential",
+          "primary_current": 1000,
+          "secondary_current": 1,
+          "relay_model": "ABB RET670",
+          "trafo_ik_max": 22000,
+          "trafo_rated_power": 100,
+          "trafo_uk_percent": 12
+        }
+      },
+      "expected": {
+        "status": "N/A",
+        "checks": [],
+        "step_keys": [],
+        "n_warnings": 1
+      }
+    },
+    {
+      "name": "custom relay: not checked",
+      "calc_type": "busbar",
+      "inputs": {
+        "Ip": 2000,
+        "Is": 5
+      },
+      "system": {
+        "isc_sys": 40,
+        "tp": 100,
+        "freq": "50",
+        "voltage": 150
+      },
+      "python": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "primary_time_constant": 100,
+          "frequency": 50.0,
+          "voltage_level": 150
+        },
+        "core_data": {
+          "application": "protection",
+          "relay_type": "busbar",
+          "primary_current": 2000,
+          "secondary_current": 5
+        }
+      },
+      "expected": null
+    }
+  ]
+}

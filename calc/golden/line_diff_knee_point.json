@@ -1,0 +1,57 @@
+{
+  "calculate_required_vk": [
+    {
+      "input": {
+        "e_3p_in": 120.5,
+        "e_1p_in": 95.2,
+        "e_3p_ex": 80.0,
+        "e_1p_ex": 150.75
+      },
+      "expected": 150.75
+    },
+    {
+      "input": {
+        "e_3p_in": 60.0,
+        "e_1p_in": 45.5,
+        "e_3p_ex": 200.25,
+        "e_1p_ex": 30.0
+      },
+      "expected": 200.25
+    }
+  ],
+  "verify_vk_adequacy": [
+    {
+      "input": {
+        "proposed_vk": 300,
+        "required_vk": 200,
+        "is_px": false
+      },
+      "expected": {
+        "status": "OK",
+        "conclusion": "ct_sufficient"
+      }
+    },
+    {
+      "input": {
+        "proposed_vk": 100,
+        "required_vk": 200,
+        "is_px": false
+      },
+      "expected": {
+        "status": "NOT_OK",
+        "conclusion": "ct_insufficient"
+      }
+    },
+    {
+      "input": {
+        "proposed_vk": 300,
+        "required_vk": 300,
+        "is_px": true
+      },
+      "expected": {
+        "status": "OK",
+        "conclusion": "ct_sufficient"
+      }
+    }
+  ]
+}

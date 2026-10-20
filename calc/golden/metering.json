@@ -1,0 +1,595 @@
+{
+  "calculate_metering": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 5,
+          "attached_resistor": 0,
+          "device_burden": 0
+        },
+        "cable_resistance": 0.431025,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 50,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "ct_ratio": "1000",
+          "cable_burden_s_lead": "0.4310 VA",
+          "connected_device_burden_s_connected": "0.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "0.4310 VA",
+          "internal_burden_s_in": "2.0000 VA",
+          "minimum_required_burden_s_min": "1.2500 VA",
+          "effective_safety_factor_fsa": "14.3972",
+          "condition_1_burden_check": "NOT_OK",
+          "condition_1_values": "Sn=5, S=0.4310, Smin=1.2500",
+          "condition_2_safety_factor_check": "NOT_OK",
+          "condition_2_values": "Fmin=5, Fsa=14.3972",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_condition_not_met",
+            5,
+            0.431025,
+            1.25
+          ],
+          [
+            "warning_safety_factor_condition_not_met",
+            5,
+            14.397219279933362
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 20,
+          "attached_resistor": 3,
+          "device_burden": 6
+        },
+        "cable_resistance": 0.258615,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 30,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "ct_ratio": "2000",
+          "cable_burden_s_lead": "0.2586 VA",
+          "connected_device_burden_s_connected": "6.0000 VA",
+          "resistor_burden_s_res": "3.0000 VA",
+          "total_connected_burden_s": "9.2586 VA",
+          "internal_burden_s_in": "2.0000 VA",
+          "minimum_required_burden_s_min": "7.5000 VA",
+          "effective_safety_factor_fsa": "14.2113",
+          "condition_1_burden_check": "OK",
+          "condition_1_values": "Sn=30, S=9.2586, Smin=7.5000",
+          "condition_2_safety_factor_check": "OK",
+          "condition_2_values": "Fmin=20, Fsa=14.2113",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 0,
+          "burden": 10,
+          "secondary_current": 1,
+          "primary_current": 500,
+          "fs_factor": 7,
+          "min_burden_percent": 25,
+          "min_safety_factor": 5,
+          "attached_resistor": 0,
+          "device_burden": 0
+        },
+        "cable_resistance": 0.0,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 0,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "ct_ratio": "500",
+          "cable_burden_s_lead": "0.0000 VA",
+          "connected_device_burden_s_connected": "0.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "0.0000 VA",
+          "internal_burden_s_in": "0.0000 VA",
+          "minimum_required_burden_s_min": "2.5000 VA",
+          "effective_safety_factor_fsa": "7.0000",
+          "condition_1_burden_check": "NOT_OK",
+          "condition_1_values": "Sn=10, S=0.0000, Smin=2.5000",
+          "condition_2_safety_factor_check": "NOT_OK",
+          "condition_2_values": "Fmin=5, Fsa=7.0000",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_condition_not_met",
+            10,
+            0.0,
+            2.5
+          ],
+          [
+            "warning_safety_factor_condition_not_met",
+            5,
+            7
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 1000,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 5,
+          "attached_resistor": 0,
+          "device_burden": 20
+        },
+        "cable_resistance": 0.431025,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 50,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "ct_ratio": "1000",
+          "cable_burden_s_lead": "0.4310 VA",
+          "connected_device_burden_s_connected": "20.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "20.4310 VA",
+          "internal_burden_s_in": "2.0000 VA",
+          "minimum_required_burden_s_min": "1.2500 VA",
+          "effective_safety_factor_fsa": "1.5603",
+          "condition_1_burden_check": "NOT_OK",
+          "condition_1_values": "Sn=5, S=20.4310, Smin=1.2500",
+          "condition_2_safety_factor_check": "OK",
+          "condition_2_values": "Fmin=5, Fsa=1.5603",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_condition_not_met",
+            5,
+            20.431024999999998,
+            1.25
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 15,
+          "secondary_current": 5,
+          "primary_current": 1000,
+          "fs_factor": 10,
+          "min_burden_percent": 20,
+          "min_safety_factor": 15,
+          "attached_resistor": 0.5,
+          "device_burden": 2
+        },
+        "cable_resistance": 1.22151024,
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "temp_c": 40,
+          "length_m": 80,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "ct_ratio": "200",
+          "cable_burden_s_lead": "30.5378 VA",
+          "connected_device_burden_s_connected": "2.0000 VA",
+          "resistor_burden_s_res": "12.5000 VA",
+          "total_connected_burden_s": "45.0378 VA",
+          "internal_burden_s_in": "25.0000 VA",
+          "minimum_required_burden_s_min": "3.0000 VA",
+          "effective_safety_factor_fsa": "5.7112",
+          "condition_1_burden_check": "NOT_OK",
+          "condition_1_values": "Sn=15, S=45.0378, Smin=3.0000",
+          "condition_2_safety_factor_check": "OK",
+          "condition_2_values": "Fmin=15, Fsa=5.7112",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_condition_not_met",
+            15,
+            45.037756,
+            3.0
+          ]
+        ]
+      }
+    }
+  ],
+  "by_method": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 200,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 10,
+          "attached_resistor": 0,
+          "device_burden": 0
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 58,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 0.60806162235
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.304030811175,
+          "factor": 2,
+          "r_loop": 0.60806162235
+        },
+        "calculations": {
+          "ct_ratio": "200",
+          "cable_burden_s_lead": "0.6081 VA",
+          "connected_device_burden_s_connected": "0.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "0.6081 VA",
+          "internal_burden_s_in": "2.0000 VA",
+          "minimum_required_burden_s_min": "0.6250 VA",
+          "effective_safety_factor_fsa": "8.6271",
+          "condition_1_burden_check": "NOT_OK",
+          "condition_1_values": "Sn=2.5, S=0.6081, Smin=0.6250",
+          "condition_2_safety_factor_check": "OK",
+          "condition_2_values": "Fmin=10, Fsa=8.6271",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_condition_not_met",
+            2.5,
+            0.60806162235,
+            0.625
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 200,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 10,
+          "attached_resistor": 0,
+          "device_burden": 0
+        },
+        "common_data": {
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 58,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 0.650348374
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.325174187,
+          "factor": 2,
+          "r_loop": 0.650348374,
+          "in_table": true
+        },
+        "calculations": {
+          "ct_ratio": "200",
+          "cable_burden_s_lead": "0.6503 VA",
+          "connected_device_burden_s_connected": "0.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "0.6503 VA",
+          "internal_burden_s_in": "2.0000 VA",
+          "minimum_required_burden_s_min": "0.6250 VA",
+          "effective_safety_factor_fsa": "8.4894",
+          "condition_1_burden_check": "OK",
+          "condition_1_values": "Sn=2.5, S=0.6503, Smin=0.6250",
+          "condition_2_safety_factor_check": "OK",
+          "condition_2_values": "Fmin=10, Fsa=8.4894",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 400,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 11.08,
+          "attached_resistor": 0,
+          "device_burden": 0
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 150,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.72619145
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.71,
+          "r_conductor": 0.863095725,
+          "factor": 2,
+          "r_loop": 1.72619145
+        },
+        "calculations": {
+          "ct_ratio": "400",
+          "cable_burden_s_lead": "1.7262 VA",
+          "connected_device_burden_s_connected": "0.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "1.7262 VA",
+          "internal_burden_s_in": "1.0000 VA",
+          "minimum_required_burden_s_min": "1.2500 VA",
+          "effective_safety_factor_fsa": "11.0044",
+          "condition_1_burden_check": "OK",
+          "condition_1_values": "Sn=5, S=1.7262, Smin=1.2500",
+          "condition_2_safety_factor_check": "OK",
+          "condition_2_values": "Fmin=11.08, Fsa=11.0044",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 400,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 11.08,
+          "attached_resistor": 0,
+          "device_burden": 0
+        },
+        "common_data": {
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 150,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.6895419499999997
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.8447709749999999,
+          "factor": 2,
+          "r_loop": 1.6895419499999997,
+          "in_table": true
+        },
+        "calculations": {
+          "ct_ratio": "400",
+          "cable_burden_s_lead": "1.6895 VA",
+          "connected_device_burden_s_connected": "0.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "1.6895 VA",
+          "internal_burden_s_in": "1.0000 VA",
+          "minimum_required_burden_s_min": "1.2500 VA",
+          "effective_safety_factor_fsa": "11.1543",
+          "condition_1_burden_check": "OK",
+          "condition_1_values": "Sn=5, S=1.6895, Smin=1.2500",
+          "condition_2_safety_factor_check": "NOT_OK",
+          "condition_2_values": "Fmin=11.08, Fsa=11.1543",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_safety_factor_condition_not_met",
+            11.08,
+            11.154315700485729
+          ]
+        ]
+      }
+    }
+  ],
+  "by_topology": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 200,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 10,
+          "attached_resistor": 0,
+          "device_burden": 0
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 58,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 0.60806162235
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.304030811175,
+          "factor": 2,
+          "r_loop": 0.60806162235
+        },
+        "calculations": {
+          "ct_ratio": "200",
+          "cable_burden_s_lead": "0.6081 VA",
+          "connected_device_burden_s_connected": "0.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "0.6081 VA",
+          "internal_burden_s_in": "2.0000 VA",
+          "minimum_required_burden_s_min": "0.6250 VA",
+          "effective_safety_factor_fsa": "8.6271",
+          "condition_1_burden_check": "NOT_OK",
+          "condition_1_values": "Sn=2.5, S=0.6081, Smin=0.6250",
+          "condition_2_safety_factor_check": "OK",
+          "condition_2_values": "Fmin=10, Fsa=8.6271",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_condition_not_met",
+            2.5,
+            0.60806162235,
+            0.625
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 200,
+          "fs_factor": 5,
+          "min_burden_percent": 25,
+          "min_safety_factor": 10,
+          "attached_resistor": 0,
+          "device_burden": 0
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 58,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 0.304030811175,
+        "cable_topology": "four_wire"
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.304030811175,
+          "factor": 1,
+          "r_loop": 0.304030811175
+        },
+        "calculations": {
+          "ct_ratio": "200",
+          "cable_burden_s_lead": "0.3040 VA",
+          "connected_device_burden_s_connected": "0.0000 VA",
+          "resistor_burden_s_res": "0.0000 VA",
+          "total_connected_burden_s": "0.3040 VA",
+          "internal_burden_s_in": "2.0000 VA",
+          "minimum_required_burden_s_min": "0.6250 VA",
+          "effective_safety_factor_fsa": "9.7655",
+          "condition_1_burden_check": "NOT_OK",
+          "condition_1_values": "Sn=2.5, S=0.3040, Smin=0.6250",
+          "condition_2_safety_factor_check": "OK",
+          "condition_2_values": "Fmin=10, Fsa=9.7655",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_condition_not_met",
+            2.5,
+            0.304030811175,
+            0.625
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+{
+  "compute_ar_ktd": [
+    {
+      "input": {},
+      "expected": 1.9
+    },
+    {
+      "input": {
+        "ar_t_prime": 0.06,
+        "ar_t_al": 0.06,
+        "ar_tfr": 0.3,
+        "ar_t_double_al": 0.06,
+        "ar_ts": 1.0,
+        "ar_time_constant_class": "low",
+        "ar_ktf_preset": "iec_slow_core"
+      },
+      "expected": 2.1051186443280785
+    },
+    {
+      "input": {
+        "ar_t_prime": 0.1,
+        "ar_t_al": 0.06,
+        "ar_tfr": 0.4,
+        "ar_ts": 1.0,
+        "ar_time_constant_class": "high",
+        "ar_ktf_preset": "iec_fast_core"
+      },
+      "expected": 3.1500000000000004
+    },
+    {
+      "input": {
+        "ar_t_al": 0.06,
+        "ar_t_prime": 0.1,
+        "ar_tfr": 0.4,
+        "ar_t_double_al": 0.1,
+        "ar_ts": 0
+      },
+      "expected": 1.6
+    }
+  ],
+  "compute_ar_eal": [
+    {
+      "input": {
+        "ktd_ar": 3.2,
+        "iscc_max": 5000,
+        "primary_current": 400,
+        "rct": 4.0,
+        "burden_resistance": 30.0,
+        "secondary_current": 1.0
+      },
+      "expected": {
+        "eal_ar": 1360.0,
+        "kssc_ar": 12.5
+      }
+    },
+    {
+      "input": {
+        "ktd_ar": 3.2,
+        "iscc_max": 5000,
+        "primary_current": 0,
+        "rct": 4.0,
+        "burden_resistance": 30.0,
+        "secondary_current": 1.0
+      },
+      "expected": {
+        "eal_ar": 0.0,
+        "kssc_ar": 0
+      }
+    }
+  ],
+  "verify_ar_adequacy": [
+    {
+      "input": {
+        "eal_ar": 100.0,
+        "ealf": 120.0
+      },
+      "expected": {
+        "is_adequate": true
+      }
+    },
+    {
+      "input": {
+        "eal_ar": 120.0,
+        "ealf": 100.0
+      },
+      "expected": {
+        "is_adequate": false
+      }
+    },
+    {
+      "input": {
+        "eal_ar": 100.0,
+        "ealf": 100.0
+      },
+      "expected": {
+        "is_adequate": true
+      }
+    }
+  ],
+  "ode_saturation_check": [
+    {
+      "input": {
+        "core_data": {
+          "ct_class": "5P",
+          "alf": 20,
+          "burden": 15,
+          "cable_resistance": 0.5,
+          "relay_burden": 0.1,
+          "ar_t_prime": 0.1,
+          "ar_t_al": 0.025,
+          "ar_tfr": 0.4,
+          "ar_t_double_al": 0.1,
+          "ar_ts": 1.0,
+          "ar_tp": 0.1
+        },
+        "kssc": 3.0,
+        "rct": 3.5,
+        "secondary_current": 1.0
+      },
+      "expected": {
+        "alfo": 90.2439024390244,
+        "rBurdenRated": 15.0,
+        "rBurdenActual": 0.6,
+        "ktdMw1": 5.874340193630287,
+        "ktdMw2": 18.120632827661762,
+        "ktdWorst": 18.120632827661762,
+        "ksscKtdMw1": 17.62302058089086,
+        "ksscKtdMw2": 54.36189848298528,
+        "ksscKtdWorst": 54.36189848298528,
+        "isOk": true
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "ct_class": "5PR",
+          "alf": 15,
+          "burden": 10,
+          "cable_resistance": 0.3,
+          "relay_burden": 0.05,
+          "ar_ts": 2.0,
+          "ar_t_al": 0.03
+        },
+        "kssc": 8.0,
+        "rct": 2.0,
+        "secondary_current": 5.0
+      },
+      "expected": {
+        "alfo": 15.638575152041703,
+        "rBurdenRated": 0.4,
+        "rBurdenActual": 0.302,
+        "ktdMw1": 8.054473081490114,
+        "ktdMw2": 23.659040866914474,
+        "ktdWorst": 23.659040866914474,
+        "ksscKtdMw1": 64.43578465192091,
+        "ksscKtdMw2": 189.2723269353158,
+        "ksscKtdWorst": 189.2723269353158,
+        "isOk": false
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "ct_class": "TPX",
+          "alf": 10,
+          "burden": 20,
+          "cable_resistance": 1.0,
+          "relay_burden": 0.2,
+          "ar_ts": 5.0
+        },
+        "kssc": 20.0,
+        "rct": 1.5,
+        "secondary_current": 1.0
+      },
+      "expected": {
+        "alfo": 79.62962962962962,
+        "rBurdenRated": 20.0,
+        "rBurdenActual": 1.2,
+        "ktdMw1": 5.943945600244473,
+        "ktdMw2": 23.964099769220063,
+        "ktdWorst": 23.964099769220063,
+        "ksscKtdMw1": 118.87891200488946,
+        "ksscKtdMw2": 479.2819953844013,
+        "ksscKtdWorst": 479.2819953844013,
+        "isOk": false
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "ct_class": "5P",
+          "burden": 15
+        },
+        "kssc": 3.0,
+        "rct": 3.5,
+        "secondary_current": 1.0
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "core_data": {
+          "ct_class": "5P",
+          "alf": 20
+        },
+        "kssc": 3.0,
+        "rct": 3.5,
+        "secondary_current": 1.0
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "core_data": null,
+        "kssc": 3.0,
+        "rct": 3.5,
+        "secondary_current": 1.0
+      },
+      "expected": null
+    }
+  ]
+}

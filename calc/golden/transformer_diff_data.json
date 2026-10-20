@@ -1,0 +1,508 @@
+{
+  "extract_ct_inputs": [
+    {
+      "input": {
+        "core_data": {}
+      },
+      "expected": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.1,
+        "linked_winding": "HV",
+        "cable_length": 150,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)"
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2.5,
+          "burden": 15,
+          "secondary_current": 5,
+          "primary_current": 1200,
+          "relay_burden": 0.05,
+          "linked_winding": "LV",
+          "cable_length": 80,
+          "cable_cross_section": 6,
+          "cable_temp": 60,
+          "cable_material": "Aluminium (Al)"
+        }
+      },
+      "expected": {
+        "rct": 2.5,
+        "burden_va": 15,
+        "secondary_current": 5,
+        "primary_current": 1200,
+        "relay_burden": 0.05,
+        "linked_winding": "LV",
+        "cable_length": 80,
+        "cable_cross_section": 6,
+        "cable_temp": 60,
+        "cable_material": "Aluminium (Al)"
+      }
+    }
+  ],
+  "parse_transformer_windings": [
+    {
+      "input": {
+        "transformer_data": {
+          "mva": 250,
+          "z_percent": 12,
+          "inrush_factor": 10,
+          "windings": {
+            "HV": {
+              "voltage": 400,
+              "Ir": 360.8,
+              "isc_ext": 3007,
+              "isc_int": 50000
+            },
+            "LV": {
+              "voltage": 150,
+              "Ir": 962.3,
+              "isc_ext": 8019,
+              "isc_int": 31500
+            }
+          }
+        },
+        "linked_winding": "HV",
+        "common_data": {
+          "voltage_level": 400
+        }
+      },
+      "expected": [
+        400,
+        0.3608,
+        3007,
+        50000
+      ]
+    },
+    {
+      "input": {
+        "transformer_data": {
+          "mva": 250,
+          "z_percent": 12,
+          "inrush_factor": 10,
+          "windings": {
+            "HV": {
+              "voltage": 400,
+              "Ir": 360.8,
+              "isc_ext": 3007,
+              "isc_int": 50000
+            },
+            "LV": {
+              "voltage": 150,
+              "Ir": 962.3,
+              "isc_ext": 8019,
+              "isc_int": 31500
+            }
+          }
+        },
+        "linked_winding": "LV",
+        "common_data": {}
+      },
+      "expected": [
+        150,
+        0.9622999999999999,
+        8019,
+        31500
+      ]
+    },
+    {
+      "input": {
+        "transformer_data": {
+          "mva": 250,
+          "z_percent": 12,
+          "inrush_factor": 10,
+          "windings": {
+            "HV": {
+              "voltage": 400,
+              "Ir": 360.8,
+              "isc_ext": 3007,
+              "isc_int": 50000
+            },
+            "LV": {
+              "voltage": 150,
+              "Ir": 962.3,
+              "isc_ext": 8019,
+              "isc_int": 31500
+            }
+          }
+        },
+        "linked_winding": "TV",
+        "common_data": {
+          "voltage_level": 60
+        }
+      },
+      "expected": [
+        60,
+        0.0,
+        10000,
+        null
+      ]
+    },
+    {
+      "input": {
+        "transformer_data": {},
+        "linked_winding": "HV",
+        "common_data": {}
+      },
+      "expected": [
+        150,
+        0.0,
+        10000,
+        null
+      ]
+    },
+    {
+      "input": {
+        "transformer_data": {
+          "mva": 250,
+          "z_percent": 12,
+          "inrush_factor": 10,
+          "windings": {
+            "HV": {
+              "voltage": 400,
+              "Ir": 360.8,
+              "isc_ext": 3007,
+              "isc_int": 50000
+            },
+            "LV": {
+              "voltage": 150,
+              "Ir": 962.3,
+              "isc_ext": 8019,
+              "isc_int": 31500
+            }
+          }
+        },
+        "linked_winding": "TV",
+        "common_data": {
+          "voltage_level": 60,
+          "short_circuit_ka": 31.5
+        }
+      },
+      "expected": [
+        60,
+        0.0,
+        10000,
+        31500.0
+      ]
+    },
+    {
+      "input": {
+        "transformer_data": {
+          "windings": {
+            "HV": {
+              "voltage": 150,
+              "isc_int": 0
+            }
+          }
+        },
+        "linked_winding": "HV",
+        "common_data": {
+          "short_circuit_ka": 40
+        }
+      },
+      "expected": [
+        150,
+        0.0,
+        10000,
+        40000
+      ]
+    }
+  ],
+  "extract_transformer_data": [
+    {
+      "input": {
+        "common_data": {
+          "remote_end": {
+            "transformer_data": {
+              "mva": 250,
+              "z_percent": 12,
+              "inrush_factor": 10,
+              "windings": {
+                "HV": {
+                  "voltage": 400,
+                  "Ir": 360.8,
+                  "isc_ext": 3007,
+                  "isc_int": 50000
+                },
+                "LV": {
+                  "voltage": 150,
+                  "Ir": 962.3,
+                  "isc_ext": 8019,
+                  "isc_int": 31500
+                }
+              }
+            }
+          }
+        },
+        "core_data": {
+          "linked_winding": "HV"
+        }
+      },
+      "expected": [
+        400,
+        250,
+        12,
+        10,
+        0.3608,
+        3007,
+        50000,
+        "HV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "remote_end": {
+            "transformer_data": {
+              "mva": 250,
+              "z_percent": 12,
+              "inrush_factor": 10,
+              "windings": {
+                "HV": {
+                  "voltage": 400,
+                  "Ir": 360.8,
+                  "isc_ext": 3007,
+                  "isc_int": 50000
+                },
+                "LV": {
+                  "voltage": 150,
+                  "Ir": 962.3,
+                  "isc_ext": 8019,
+                  "isc_int": 31500
+                }
+              }
+            }
+          },
+          "voltage_level": 150
+        },
+        "core_data": {
+          "linked_winding": "LV"
+        }
+      },
+      "expected": [
+        150,
+        250,
+        12,
+        10,
+        0.9622999999999999,
+        8019,
+        31500,
+        "LV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "remote_end": {
+            "transformer_data": {}
+          }
+        },
+        "core_data": {}
+      },
+      "expected": [
+        150,
+        160,
+        14,
+        8,
+        0.0,
+        10000,
+        null,
+        "HV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {},
+        "core_data": {}
+      },
+      "expected": [
+        150,
+        160,
+        14,
+        8,
+        0.6158402871356008,
+        4398.85919382572,
+        null,
+        "HV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "voltage_level": 132,
+          "remote_end": {}
+        },
+        "core_data": {
+          "trafo_rated_power": 100,
+          "trafo_uk_percent": 12,
+          "inrush_factor": 6,
+          "linked_winding": "LV"
+        }
+      },
+      "expected": [
+        132,
+        100,
+        12,
+        6,
+        0.43738656756789834,
+        3644.8880630658196,
+        null,
+        "LV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "voltage_level": 60
+        },
+        "core_data": {
+          "trafo_rated_power": 40,
+          "trafo_it_max": 4500,
+          "trafo_ik_max": 25000
+        }
+      },
+      "expected": [
+        60,
+        40,
+        14,
+        8,
+        0.3849001794597505,
+        4500,
+        25000,
+        "HV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "voltage_level": 150
+        },
+        "core_data": {
+          "trafo_uk_percent": 0
+        }
+      },
+      "expected": [
+        150,
+        160,
+        0,
+        8,
+        0.6158402871356008,
+        10000,
+        null,
+        "HV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "voltage_level": 420,
+          "short_circuit_ka": 63
+        },
+        "core_data": {
+          "trafo_rated_power": 140,
+          "trafo_uk_percent": 8
+        }
+      },
+      "expected": [
+        420,
+        140,
+        8,
+        8,
+        0.1924500897298753,
+        2405.626121623441,
+        63000,
+        "HV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "voltage_level": 60,
+          "short_circuit_ka": 40
+        },
+        "core_data": {
+          "trafo_rated_power": 160,
+          "trafo_ik_max": 32000,
+          "linked_winding": "LV"
+        }
+      },
+      "expected": [
+        60,
+        160,
+        14,
+        8,
+        1.539600717839002,
+        10997.147984564299,
+        32000,
+        "LV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "voltage_level": 60,
+          "short_circuit_ka": 40
+        },
+        "core_data": {
+          "trafo_ik_max": 0
+        }
+      },
+      "expected": [
+        60,
+        160,
+        14,
+        8,
+        1.539600717839002,
+        10997.147984564299,
+        40000,
+        "HV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "voltage_level": 60,
+          "short_circuit_ka": 0
+        },
+        "core_data": {}
+      },
+      "expected": [
+        60,
+        160,
+        14,
+        8,
+        1.539600717839002,
+        10997.147984564299,
+        null,
+        "HV"
+      ]
+    },
+    {
+      "input": {
+        "common_data": {
+          "remote_end": {
+            "transformer_data": {}
+          },
+          "short_circuit_ka": 50
+        },
+        "core_data": {}
+      },
+      "expected": [
+        150,
+        160,
+        14,
+        8,
+        0.0,
+        10000,
+        50000,
+        "HV"
+      ]
+    }
+  ]
+}

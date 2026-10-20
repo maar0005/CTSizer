@@ -1,0 +1,991 @@
+{
+  "calculate_distance_protection": [
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 20
+        }
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 190.72301731113996,
+        "vka": 148.57965215384615,
+        "vkb": 190.72301731113996,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 4.828838695,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 1
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 20,
+          "relay_tal": 50,
+          "relay_type": "7SA87"
+        }
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 486.52195260605623,
+        "vka": 148.57965215384615,
+        "vkb": 486.52195260605623,
+        "ktd_a": 4,
+        "ktd_b": 12.754673228883503,
+        "kssc1": 40.0,
+        "kssc2": 100.75340746209297,
+        "r_total": 4.828838695,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 1
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "is_px_class": true,
+          "vk_voltage": 150
+        }
+      },
+      "expected": {
+        "ealf": 150,
+        "vk_required": 190.72301731113996,
+        "vka": 148.57965215384615,
+        "vkb": 190.72301731113996,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 4.828838695,
+        "isc_lim": 15798.665423106657,
+        "is_px": true,
+        "status": "NOT_OK",
+        "warnings_len": 2
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 40,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 20,
+          "fault_type": "3-phase",
+          "ik_alternative": 63000
+        }
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 413.1533341413197,
+        "vka": 297.1593043076923,
+        "vkb": 413.1533341413197,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 80.0,
+        "kssc2": 85.55956415962238,
+        "r_total": 4.828838695,
+        "isc_lim": 34223.825663848955,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 2
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 63,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 20,
+          "fault_type": "1-phase",
+          "ik_alternative": 40000
+        }
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 468.02590428461536,
+        "vka": 468.02590428461536,
+        "vkb": 413.1533341413197,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 126.0,
+        "kssc2": 85.55956415962238,
+        "r_total": 4.828838695,
+        "isc_lim": 34223.825663848955,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 2
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 40,
+          "auto_reclose_enabled": true
+        }
+      },
+      "expected": {
+        "ealf": 1360.0,
+        "vk_required": 190.72301731113996,
+        "vka": 148.57965215384615,
+        "vkb": 190.72301731113996,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 4.828838695,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 3,
+        "ar_ktd": 1.9,
+        "eal_ar": 646.0,
+        "kssc_ar": 10.0,
+        "is_adequate": true,
+        "ode_is_ok": true
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 20,
+          "auto_reclose_enabled": true
+        }
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 190.72301731113996,
+        "vka": 148.57965215384615,
+        "vkb": 190.72301731113996,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 4.828838695,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "NOT_OK",
+        "warnings_len": 3,
+        "ar_ktd": 1.9,
+        "eal_ar": 646.0,
+        "kssc_ar": 10.0,
+        "is_adequate": true,
+        "ode_is_ok": false
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 20,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 5,
+          "auto_reclose_enabled": true
+        }
+      },
+      "expected": {
+        "ealf": 170.0,
+        "vk_required": 152.22349382319757,
+        "vka": 37.14491303846154,
+        "vkb": 152.22349382319757,
+        "ktd_a": 1,
+        "ktd_b": 4,
+        "kssc1": 10.0,
+        "kssc2": 31.523830767181504,
+        "r_total": 4.828838695,
+        "isc_lim": 15761.915383590753,
+        "is_px": false,
+        "status": "NOT_OK",
+        "warnings_len": 4,
+        "ar_ktd": 1.9,
+        "eal_ar": 646.0,
+        "kssc_ar": 10.0,
+        "is_adequate": false,
+        "ode_is_ok": false
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          }
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 40,
+          "zone1_setting": 0.85,
+          "cable_length": 65,
+          "cable_cross_section": 4,
+          "cable_temp": 75,
+          "cable_material": "Kobber (Cu)",
+          "alf": 20,
+          "ar_ts": 1.0,
+          "auto_reclose_enabled": true
+        }
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 190.4959406436158,
+        "vka": 74.28982607692308,
+        "vkb": 190.4959406436158,
+        "ktd_a": 2,
+        "ktd_b": 5,
+        "kssc1": 20.0,
+        "kssc2": 39.449638448445995,
+        "r_total": 4.828838695,
+        "isc_lim": 15779.855379378396,
+        "is_px": false,
+        "status": "NOT_OK",
+        "warnings_len": 4,
+        "ar_ktd": 2.4780986177504425,
+        "eal_ar": 842.5535300351504,
+        "kssc_ar": 10.0,
+        "is_adequate": false,
+        "ode_is_ok": true
+      }
+    }
+  ],
+  "by_method": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 18,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.57257316125
+      },
+      "expected": {
+        "ealf": 108.0,
+        "vk_required": 105.55772298340808,
+        "vka": 82.23302034615385,
+        "vkb": 105.55772298340808,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 2.6725731612500003,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 1,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 2,
+          "r_loop": 1.57257316125
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 18,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.68193545
+      },
+      "expected": {
+        "ealf": 108.0,
+        "vk_required": 109.87716850807416,
+        "vka": 85.59801384615385,
+        "vkb": 109.87716850807416,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 2.78193545,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "NOT_OK",
+        "warnings_len": 2,
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.840967725,
+          "factor": 2,
+          "r_loop": 1.68193545,
+          "in_table": true
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 15,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 40,
+          "fault_type": "3-phase",
+          "auto_reclose_enabled": true,
+          "cable_material": "Aluminium (Al)",
+          "cable_cross_section": 6,
+          "cable_length": 145,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 145,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.668651735
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 148.84916964368855,
+        "vka": 115.95851492307693,
+        "vkb": 148.84916964368855,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 3.768651735,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "NOT_OK",
+        "warnings_len": 3,
+        "ar_ktd": 1.9,
+        "eal_ar": 323.0,
+        "kssc_ar": 10.0,
+        "is_adequate": true,
+        "ode_is_ok": false,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.71,
+          "r_conductor": 0.8343258675,
+          "factor": 2,
+          "r_loop": 1.668651735
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 15,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 40,
+          "fault_type": "3-phase",
+          "auto_reclose_enabled": true,
+          "cable_material": "Aluminium (Al)",
+          "cable_cross_section": 6,
+          "cable_length": 145,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 145,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.6332238849999998
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 147.4498877716635,
+        "vka": 114.86842723076921,
+        "vkb": 147.4498877716635,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 3.7332238849999997,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 3,
+        "ar_ktd": 1.9,
+        "eal_ar": 323.0,
+        "kssc_ar": 10.0,
+        "is_adequate": true,
+        "ode_is_ok": true,
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.8166119424999999,
+          "factor": 2,
+          "r_loop": 1.6332238849999998,
+          "in_table": true
+        }
+      }
+    }
+  ],
+  "by_topology": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 18,
+          "fault_type": "3-phase",
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 0.786286580625
+      },
+      "expected": {
+        "ealf": 108.0,
+        "vk_required": 74.5020264484757,
+        "vka": 58.03958709615385,
+        "vkb": 74.5020264484757,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 1.8862865806250002,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 1,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 1,
+          "r_loop": 0.786286580625
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 18,
+          "fault_type": "2-phase",
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.3618883069521024
+      },
+      "expected": {
+        "ealf": 108.0,
+        "vk_required": 97.23637417648693,
+        "vka": 75.75040944468007,
+        "vkb": 97.23637417648693,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 2.4618883069521025,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 1,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "two_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 1.7320508075688772,
+          "r_loop": 1.3618883069521024
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 18,
+          "fault_type": "1-phase",
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.57257316125
+      },
+      "expected": {
+        "ealf": 108.0,
+        "vk_required": 105.55772298340808,
+        "vka": 82.23302034615385,
+        "vkb": 105.55772298340808,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 2.6725731612500003,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 1,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 2,
+          "r_loop": 1.57257316125
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 1,
+          "burden": 5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 18,
+          "fault_type": "3-phase",
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4,
+          "cable_length": 150,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 150,
+          "cross_mm2": 4
+        },
+        "cable_resistance": 1.57257316125,
+        "cable_topology": "six_wire"
+      },
+      "expected": {
+        "ealf": 108.0,
+        "vk_required": 105.55772298340808,
+        "vka": 82.23302034615385,
+        "vkb": 105.55772298340808,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 2.6725731612500003,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 1,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 4.31025,
+          "r_conductor": 0.786286580625,
+          "factor": 2,
+          "r_loop": 1.57257316125
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 15,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 100,
+          "zone1_setting": 0.85,
+          "alf": 40,
+          "fault_type": "3-phase",
+          "auto_reclose_enabled": true,
+          "cable_material": "Aluminium (Al)",
+          "cable_cross_section": 6,
+          "cable_length": 145,
+          "cable_temp": 75
+        },
+        "common_data": {
+          "short_circuit_ka": 20,
+          "voltage_level": 132,
+          "frequency": 50,
+          "remote_end": {
+            "R_L_per_km": 0.0423,
+            "X_L_per_km": 0.203,
+            "lL": 6.4
+          },
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 145,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 0.8343258675
+      },
+      "expected": {
+        "ealf": 680.0,
+        "vk_required": 115.89608155749926,
+        "vka": 90.28694976923077,
+        "vkb": 115.89608155749926,
+        "ktd_a": 4,
+        "ktd_b": 5,
+        "kssc1": 40.0,
+        "kssc2": 39.496663557766645,
+        "r_total": 2.9343258675,
+        "isc_lim": 15798.665423106657,
+        "is_px": false,
+        "status": "OK",
+        "warnings_len": 3,
+        "ar_ktd": 1.9,
+        "eal_ar": 323.0,
+        "kssc_ar": 10.0,
+        "is_adequate": true,
+        "ode_is_ok": true,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 4.71,
+          "r_conductor": 0.8343258675,
+          "factor": 1,
+          "r_loop": 0.8343258675
+        }
+      }
+    }
+  ]
+}

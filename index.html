@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTSizer — CT/VT Dimensioning</title>
+
+  <!-- SEO: the description is what search engines show under the title -->
+  <meta name="description" content="Free CT/VT sizing calculator to IEC 61869-2, -3 and TR 61869-100: knee-point voltage, ALF, transient factor Ktd, TPX/TPY/TPZ, auto-reclosure. Runs in your browser.">
+  <link rel="canonical" href="https://ctsizer.com/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#060d18">
+
+  <!-- Icons: browser tab, iOS home screen, Android/PWA -->
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+
+  <!-- Link previews (LinkedIn, Facebook, Teams, Slack, X) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="da_DK">
+  <meta property="og:site_name" content="CTSizer">
+  <meta property="og:url" content="https://ctsizer.com/">
+  <meta property="og:title" content="CTSizer — CT/VT Dimensioning">
+  <meta property="og:description" content="Free online sizing of current and voltage transformers for protection and metering to IEC 61869, with every calculation step shown.">
+  <meta property="og:image" content="https://ctsizer.com/logo/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="CTSizer — CT/VT Dimensioning">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CTSizer — CT/VT Dimensioning">
+  <meta name="twitter:description" content="Free online sizing of current and voltage transformers for protection and metering to IEC 61869, with every calculation step shown.">
+  <meta name="twitter:image" content="https://ctsizer.com/logo/og-image.png">
+
+  <!-- Structured data: lets Google know this is a free web application. Keep it, the FAQ
+       below and the static summary in #root to what CTSizer actually does (README "Search engines"). -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "CTSizer",
+    "alternateName": "CTSizer — CT/VT Dimensioning",
+    "url": "https://ctsizer.com/",
+    "image": "https://ctsizer.com/logo/og-image.png",
+    "description": "Free online tool for dimensioning current transformers (CT) and voltage transformers (VT) for protection and metering to IEC 61869-2, IEC 61869-3 and IEC TR 61869-100. Runs locally in the browser, no account.",
+    "applicationCategory": "EngineeringApplication",
+    "operatingSystem": "Any (web browser)",
+    "browserRequirements": "Requires JavaScript",
+    "inLanguage": ["en", "da"],
+    "isAccessibleForFree": true,
+    "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+    "codeRepository": "https://github.com/maar0005/CTSizer",
+    "author": { "@type": "Person", "name": "Maarten L. Kamstrup" },
+    "keywords": "current transformer sizing, CT sizing calculator, CT dimensioning, IEC 61869-2, IEC 61869-3, IEC TR 61869-100, knee-point voltage, accuracy limit factor, transient dimensioning factor, Ktd, TPX, TPY, TPZ, PX, auto-reclosure, voltage transformer burden, strømtransformer dimensionering, spændingstransformer, knæpunktsspænding",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+    "featureList": [
+      "Overcurrent protection CT sizing",
+      "Distance protection CT sizing with auto-reclosure",
+      "Line differential protection CT sizing",
+      "Transformer differential protection CT sizing",
+      "Busbar protection CT sizing",
+      "Metering CT sizing",
+      "Voltage transformer (VT) burden and voltage drop",
+      "Knee-point voltage, ALF and transient dimensioning factors",
+      "Transient dimensioning factor Ktd and C-O / C-O-C-O duty cycles to IEC TR 61869-100",
+      "CT classes 5P, 5PR, 10P, 10PR, PX, TPX, TPY and TPZ, with remanence factor",
+      "Instrument security factor (FS) and burden range for metering cores",
+      "Cable loop resistance to IEC 60228 and IEC 60287, with wiring topology",
+      "Relay database (ABB, GE, SEL, Siemens) for relay burden and time to accuracy limit",
+      "Danish metering rules (Elmåling, TR 353) check for metering CT and VT cores",
+      "Every formula and calculation step shown",
+      "Runs locally in the browser: no account, no tracking",
+      "English and Danish user interface",
+      "RTF report export"
+    ]
+  }
+  </script>
+
+  <!-- FAQ: the same questions and answers as the static summary in #root -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is CTSizer free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. CTSizer is free and open source (GNU AGPL-3.0). It needs no account and runs in the browser; projects are stored only in the browser."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which standards does CTSizer use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "IEC 61869-2 for current transformers, IEC 61869-3 for voltage transformers and IEC TR 61869-100 for transient dimensioning (Ktd, C-O and C-O-C-O duty cycles). Cable resistance follows IEC 60228 and IEC 60287, and the fault current factors IEC 60909. IEC 60044 and IEEE C57.13 (C-class) are not supported."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which protection and metering applications are covered?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Overcurrent, distance (with auto-reclosure), line differential, transformer differential and busbar protection, metering cores and voltage transformers. CT classes 5P, 5PR, 10P, 10PR, PX, TPX, TPY and TPZ."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What does CTSizer not do?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It is not an electromagnetic transient (EMT) simulator: it uses the analytical formulas of the standards, not a non-linear magnetising (B-H) curve or a step-by-step core model. It does not calculate short-circuit currents from a network model; the fault current and time constant are entered by the user. Results must always be checked independently."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I export a report?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. CTSizer exports a documentation report as an RTF file for Word or LibreOffice, with the input data, every formula and calculation step, the charts and the verdict per core."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Fonts: Space Grotesk (headings) + DM Sans (body) + JetBrains Mono (numbers),
+       served from this site (fonts/, generated by tools/gen_fonts.py) — nothing from Google -->
+  <link rel="preload" href="fonts/dm-sans-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="fonts/fonts.css">
+
+  <!-- Libraries, served from this site (vendor/, copied by tools/gen_vendor.py; MIT, licences
+       next to each file) — nothing is loaded from a CDN. The hashes pin the exact files.
+       This is the development page: Babel compiles the .jsx files in the browser. The
+       deployed site is built by tools/build-deploy.mjs, which compiles them ahead of time,
+       loads the production React builds and drops Babel. -->
+  <link rel="stylesheet" href="vendor/katex/katex.min.css" integrity="sha384-3rdsX6e5mueWyoweR9NIVmtEsUkokpBT/0ALqKKIBMr9j4qhHkaIkAcGgsE6uVlp">
+  <script src="vendor/katex/katex.min.js" integrity="sha384-QFFtAGzvvj+bfgCGxXJlNZZR1nXEZgvG8tDLCCY1F19xl20WlfTYgguB4VcNdxYk"></script>
+  <script src="vendor/react/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"></script>
+  <script src="vendor/react-dom/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"></script>
+  <script src="vendor/babel/babel.min.js" integrity="sha384-DvKInD++yy7A2BLvCHTGeQpbzHFQ/fygXywfI/wco5cjKN4A+mE48ib8UE8FiW0o"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sidebar-w: 210px;
+      --topbar-h: 50px;
+      --radius: 8px;
+      --radius-sm: 5px;
+      --font-head: 'Space Grotesk', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --transition: 0.18s ease;
+    }
+
+    /* ── Dark theme ─────────────────────────── */
+    [data-theme="dark"] {
+      --bg:          #060d18;
+      --surface:     #0c1624;
+      --surface-2:   #111e30;
+      --surface-3:   #182840;
+      --border:      #1a2a3e;
+      --border-2:    #213550;
+      --text:        #e4eeff;
+      --text-dim:    #8aaac8;
+      --text-muted:  #446080;
+      --accent:      #38bdf8;
+      --accent-glow: rgba(56,189,248,0.12);
+      --green:       #10b981;
+      --green-bg:    rgba(16,185,129,0.1);
+      --red:         #f43f5e;
+      --red-bg:      rgba(244,63,94,0.1);
+      --amber:       #f59e0b;
+      --amber-bg:    rgba(245,158,11,0.1);
+    }
+
+    /* ── Light theme ────────────────────────── */
+    [data-theme="light"] {
+      --bg:          #eef2f8;
+      --surface:     #ffffff;
+      --surface-2:   #f5f8fc;
+      --surface-3:   #edf1f7;
+      --border:      #dce4ef;
+      --border-2:    #c8d4e3;
+      --text:        #0c1829;
+      --text-dim:    #445870;
+      --text-muted:  #8095aa;
+      --accent:      #0284c7;
+      --accent-glow: rgba(2,132,199,0.1);
+      --green:       #059669;
+      --green-bg:    rgba(5,150,105,0.08);
+      --red:         #dc2626;
+      --red-bg:      rgba(220,38,38,0.08);
+      --amber:       #d97706;
+      --amber-bg:    rgba(217,119,6,0.08);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    #root { height: 100%; }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* Inputs */
+    input, select, textarea {
+      font-family: var(--font-body);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"] { -moz-appearance: textfield; }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px var(--accent-glow) !important;
+    }
+    input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
+    select option { background: var(--surface-2); color: var(--text); }
+
+    /* KaTeX tweak */
+    .katex { font-size: 0.95em !important; }
+    .katex-html { color: var(--text-dim); }
+
+    /* Subtle shimmer on accent elements in dark mode */
+    [data-theme="dark"] .accent-glow {
+      box-shadow: 0 0 20px rgba(56,189,248,0.08);
+    }
+
+    /* Transition for theme changes */
+    *, *::before, *::after {
+      transition: background-color var(--transition), border-color var(--transition), color var(--transition);
+    }
+    /* But NOT canvas, SVG paths — no transition on those */
+    canvas, svg path, svg line, svg circle { transition: none; }
+
+    /* App shell: the visible height, without a phone browser's toolbars */
+    .ctsizer-app { height: 100vh; height: 100dvh; }
+
+    /* ── Phone (same width as useMobile in ctsizer-components.jsx) ── */
+    @media (max-width: 760px) {
+      /* iOS zooms into any field with text under 16px when it is tapped */
+      input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px !important; }
+      /* Sidebar drawer: rows tall enough to tap */
+      .ctsizer-drawer button { min-height: 34px; }
+      .ctsizer-drawer button[title] { min-width: 30px; }
+      /* Paired fields (Ipr / Isr …) one under the other; result metrics two per row */
+      .ctsizer-pair { grid-template-columns: minmax(0, 1fr) !important; }
+      .ctsizer-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      /* Wide formulas scroll sideways instead of widening the page */
+      .katex-display { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <!-- Static summary for search engines and for visitors without JavaScript.
+         React replaces it as soon as the app mounts. -->
+    <main style="max-width:720px;margin:0 auto;padding:48px 24px;line-height:1.6">
+      <h1>CTSizer — CT/VT Dimensioning</h1>
+      <p>CTSizer is a free online tool for dimensioning current transformers (CTs) and
+        voltage transformers (VTs) for protection and metering to IEC 61869. It checks
+        the knee-point voltage, the accuracy limit factor (ALF), burden and transient
+        dimensioning factors, and shows every formula and calculation step.</p>
+      <h2>Supported applications</h2>
+      <ul>
+        <li>Overcurrent protection</li>
+        <li>Distance protection, including auto-reclosure (C-O-C-O) analysis</li>
+        <li>Line differential protection</li>
+        <li>Transformer differential protection</li>
+        <li>Busbar protection</li>
+        <li>Metering cores</li>
+        <li>Voltage transformers: burden, voltage drop and thermal checks</li>
+      </ul>
+      <h2>Standards and CT classes</h2>
+      <p>IEC 61869-2 (current transformers), IEC 61869-3 (voltage transformers) and
+        IEC TR 61869-100 (transient dimensioning factor Ktd, C-O and C-O-C-O duty cycles);
+        cable resistance to IEC 60228 and IEC 60287. CT classes 5P, 5PR, 10P, 10PR, PX, TPX,
+        TPY and TPZ; metering cores with instrument security factor (FS).</p>
+      <p>Results can be exported as a documentation report (RTF) for Word or LibreOffice.
+        Available in English and Danish.</p>
+      <section>
+        <h2>Frequently asked questions</h2>
+        <h3>Is CTSizer free?</h3>
+        <p>Yes. CTSizer is free and open source (GNU AGPL-3.0). It needs no account and runs in the browser; projects are stored only in the browser.</p>
+        <h3>Which standards does CTSizer use?</h3>
+        <p>IEC 61869-2 for current transformers, IEC 61869-3 for voltage transformers and IEC TR 61869-100 for transient dimensioning (Ktd, C-O and C-O-C-O duty cycles). Cable resistance follows IEC 60228 and IEC 60287, and the fault current factors IEC 60909. IEC 60044 and IEEE C57.13 (C-class) are not supported.</p>
+        <h3>Which protection and metering applications are covered?</h3>
+        <p>Overcurrent, distance (with auto-reclosure), line differential, transformer differential and busbar protection, metering cores and voltage transformers. CT classes 5P, 5PR, 10P, 10PR, PX, TPX, TPY and TPZ.</p>
+        <h3>What does CTSizer not do?</h3>
+        <p>It is not an electromagnetic transient (EMT) simulator: it uses the analytical formulas of the standards, not a non-linear magnetising (B-H) curve or a step-by-step core model. It does not calculate short-circuit currents from a network model; the fault current and time constant are entered by the user. Results must always be checked independently.</p>
+        <h3>Can I export a report?</h3>
+        <p>Yes. CTSizer exports a documentation report as an RTF file for Word or LibreOffice, with the input data, every formula and calculation step, the charts and the verdict per core.</p>
+      </section>
+      <section lang="da">
+        <h2>Dimensionering af strømtransformere og spændingstransformere</h2>
+        <p>CTSizer er et gratis onlineværktøj til dimensionering af strømtransformere (CT) og
+          spændingstransformere (VT) til beskyttelse og måling efter IEC 61869-2, IEC 61869-3 og
+          IEC TR 61869-100: knæpunktsspænding (Vk), nøjagtighedsgrænsefaktor (ALF), byrde,
+          transient dimensioneringsfaktor (Ktd), genindkobling (C-O-C-O) og sløjfemodstand.
+          Overstrøms-, distance-, linjedifferential-, transformerdifferential- og
+          samleskinnebeskyttelse, målekerner og spændingstransformere, med kontrol efter
+          Elmåling (TR 353). Alle formler og mellemregninger vises, og rapporten eksporteres som
+          RTF. Beregningerne kører lokalt i browseren, uden konto.</p>
+      </section>
+      <p>CTSizer is a free, non-commercial open-source project (GNU AGPL-3.0):
+        <a href="https://github.com/maar0005/CTSizer">github.com/maar0005/CTSizer</a>.
+        No account, no cookies, no tracking.</p>
+      <noscript><p><strong>CTSizer needs JavaScript. Please enable it to use the calculator.</strong></p></noscript>
+    </main>
+  </div>
+
+  <!-- Activity log for "Give feedback": first, so it also records script errors -->
+  <script src="ctsizer-activity.js"></script>
+
+  <!-- Calculation submodules -->
+  <script src="calc/materials.js"></script>
+  <!-- Shared foundation (ports of formula_helper.py, ct_base.py, ct_shared/) -->
+  <script src="calc/foundation/step.js"></script>
+  <script src="calc/foundation/base_core.js"></script>
+  <script src="calc/foundation/knee_point.js"></script>
+  <script src="calc/foundation/base_classes.js"></script>
+  <script src="calc/foundation/base_adequacy.js"></script>
+  <!-- Cable-resistance toolbox (PORTING_PLAN.md §9); index.js last -->
+  <script src="calc/foundation/cable_resistance/common.js"></script>
+  <script src="calc/foundation/cable_resistance/table.js"></script>
+  <script src="calc/foundation/cable_resistance/iec60287.js"></script>
+  <script src="calc/foundation/cable_resistance/topology.js"></script>
+  <script src="calc/foundation/cable_resistance/index.js"></script>
+  <script src="calc/auto_reclosure.js"></script>
+  <script src="calc/auto_reclosure/presets.js"></script>
+  <script src="calc/auto_reclosure/computation.js"></script>
+  <script src="calc/auto_reclosure/waveform.js"></script>
+  <script src="calc/auto_reclosure/ts_table.js"></script>
+  <script src="calc/rct_estimate.js"></script>
+  <script src="calc/overcurrent.js"></script>
+  <script src="calc/metering.js"></script>
+  <script src="calc/busbar.js"></script>
+  <script src="calc/generic.js"></script>
+  <script src="calc/distance.js"></script>
+  <script src="calc/distance/cable_resistance.js"></script>
+  <script src="calc/distance/data.js"></script>
+  <script src="calc/distance/fault_calculation.js"></script>
+  <script src="calc/distance/transient_factors.js"></script>
+  <script src="calc/distance/knee_point.js"></script>
+  <script src="calc/distance/relay.js"></script>
+  <script src="calc/distance/auto_reclosure_ext.js"></script>
+  <script src="calc/distance/formatting.js"></script>
+  <script src="calc/distance/main.js"></script>
+  <script src="calc/transformer_diff.js"></script>
+  <script src="calc/transformer_diff/presets.js"></script>
+  <script src="calc/transformer_diff/data.js"></script>
+  <script src="calc/transformer_diff/burden_calculation.js"></script>
+  <script src="calc/transformer_diff/methods/emf.js"></script>
+  <script src="calc/transformer_diff/methods/iec61869.js"></script>
+  <script src="calc/transformer_diff/methods/ziegler.js"></script>
+  <script src="calc/transformer_diff/formatting.js"></script>
+  <script src="calc/transformer_diff/main.js"></script>
+  <script src="calc/transformer_diff/zone.js"></script>
+  <script src="calc/line_diff.js"></script>
+  <script src="calc/line_diff/data.js"></script>
+  <script src="calc/line_diff/emf_calculation.js"></script>
+  <script src="calc/line_diff/knee_point.js"></script>
+  <script src="calc/line_diff/auto_reclosure_ext.js"></script>
+  <script src="calc/line_diff/formatting.js"></script>
+  <script src="calc/line_diff/main.js"></script>
+  <script src="calc/vt/data.js"></script>
+  <script src="calc/vt/presets.js"></script>
+  <script src="calc/vt/impedance.js"></script>
+  <script src="calc/vt/current_burden.js"></script>
+  <script src="calc/vt/voltage_analysis.js"></script>
+  <script src="calc/vt/thermal.js"></script>
+  <script src="calc/vt/validation.js"></script>
+  <script src="calc/vt/formatting.js"></script>
+  <script src="calc/vt/calculator.js"></script>
+  <script src="calc/relay_db.js"></script>
+  <script src="calc/relays.js"></script>
+  <script src="calc/meters.js"></script>
+  <script src="calc/ied_rating.js"></script>
+  <script src="calc/local_rules.js"></script>
+  <script src="calc/local_rules/dk_elmaaling.js"></script>
+  <script src="calc/index.js"></script>
+  <script src="calc/bay.js"></script>
+  <script src="calc/required.js"></script>
+  <script src="calc/tests.js"></script>
+  <!-- UI support -->
+  <script src="ctsizer-version.js"></script>
+  <script src="ctsizer-i18n.js"></script>
+  <script src="ctsizer-fingerprint.js"></script>
+  <script src="ctsizer-report.js"></script>
+  <script src="ctsizer-draw.js"></script>
+  <!-- Start of every page load: landing page (with the Privacy Policy), then the
+       Terms and Conditions gate, then the project list; the app mounts last -->
+  <script type="text/babel" src="ctsizer-landing.jsx"></script>
+  <script type="text/babel" src="ctsizer-terms.jsx"></script>
+  <script type="text/babel" src="ctsizer-projects.jsx"></script>
+  <script type="text/babel" src="ctsizer-components.jsx"></script>
+  <script type="text/babel" src="ctsizer-panels.jsx"></script>
+  <script type="text/babel" src="ctsizer-feedback.jsx"></script>
+  <script type="text/babel" src="ctsizer-export.jsx"></script>
+  <script type="text/babel" src="ctsizer-app.jsx"></script>
+</body>
+</html>

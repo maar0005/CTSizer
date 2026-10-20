@@ -1,0 +1,283 @@
+{
+  "actual_current": [
+    {
+      "input": [
+        100,
+        20.42
+      ],
+      "expected": {
+        "current": 4.897159647404505,
+        "step": {
+          "key": "actual_secondary_current",
+          "result": "4897.16 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        63.50852961085884,
+        400
+      ],
+      "expected": {
+        "current": 0.15877132402714708,
+        "step": {
+          "key": "actual_secondary_current",
+          "result": "158.77 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        100,
+        "inf"
+      ],
+      "expected": {
+        "current": 0.0,
+        "step": {
+          "key": "actual_secondary_current",
+          "result": "0.00 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        100,
+        0
+      ],
+      "expected": {
+        "current": 0,
+        "step": {
+          "key": "actual_secondary_current",
+          "result": "0.00 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        100,
+        -5
+      ],
+      "expected": {
+        "current": 0,
+        "step": {
+          "key": "actual_secondary_current",
+          "result": "0.00 mA"
+        }
+      }
+    },
+    {
+      "input": [
+        110,
+        0.75
+      ],
+      "expected": {
+        "current": 146.66666666666666,
+        "step": {
+          "key": "actual_secondary_current",
+          "result": "146666.67 mA"
+        }
+      }
+    }
+  ],
+  "actual_burden": [
+    {
+      "input": [
+        100,
+        4.897159647404505
+      ],
+      "expected": {
+        "burden": 489.71596474045054,
+        "step": {
+          "key": "actual_burden",
+          "result": "489.72 VA"
+        }
+      }
+    },
+    {
+      "input": [
+        63.50852961085884,
+        0.1588
+      ],
+      "expected": {
+        "burden": 10.085154502204382,
+        "step": {
+          "key": "actual_burden",
+          "result": "10.09 VA"
+        }
+      }
+    },
+    {
+      "input": [
+        100,
+        0
+      ],
+      "expected": {
+        "burden": 0,
+        "step": {
+          "key": "actual_burden",
+          "result": "0.00 VA"
+        }
+      }
+    },
+    {
+      "input": [
+        110,
+        0.003
+      ],
+      "expected": {
+        "burden": 0.33,
+        "step": {
+          "key": "actual_burden",
+          "result": "0.33 VA"
+        }
+      }
+    }
+  ],
+  "burden_utilization": [
+    {
+      "input": [
+        12.5,
+        25
+      ],
+      "expected": {
+        "utilization": 50.0,
+        "step": {
+          "key": "burden_utilization",
+          "result": "50.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        489.7,
+        25
+      ],
+      "expected": {
+        "utilization": 1958.8000000000002,
+        "step": {
+          "key": "burden_utilization",
+          "result": "1958.8 %"
+        }
+      }
+    },
+    {
+      "input": [
+        30,
+        30
+      ],
+      "expected": {
+        "utilization": 100.0,
+        "step": {
+          "key": "burden_utilization",
+          "result": "100.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        5,
+        0
+      ],
+      "expected": {
+        "utilization": 0,
+        "step": {
+          "key": "burden_utilization",
+          "result": "0.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        5,
+        -10
+      ],
+      "expected": {
+        "utilization": 0,
+        "step": {
+          "key": "burden_utilization",
+          "result": "0.0 %"
+        }
+      }
+    },
+    {
+      "input": [
+        0.333,
+        15
+      ],
+      "expected": {
+        "utilization": 2.22,
+        "step": {
+          "key": "burden_utilization",
+          "result": "2.2 %"
+        }
+      }
+    }
+  ],
+  "reserve_capacity": [
+    {
+      "input": [
+        25,
+        12.5
+      ],
+      "expected": {
+        "reserve": 12.5,
+        "step": {
+          "key": "reserve_capacity",
+          "result": "12.50 VA"
+        }
+      }
+    },
+    {
+      "input": [
+        25,
+        489.7
+      ],
+      "expected": {
+        "reserve": -464.7,
+        "step": {
+          "key": "reserve_capacity",
+          "result": "-464.70 VA"
+        }
+      }
+    },
+    {
+      "input": [
+        30,
+        30
+      ],
+      "expected": {
+        "reserve": 0,
+        "step": {
+          "key": "reserve_capacity",
+          "result": "0.00 VA"
+        }
+      }
+    },
+    {
+      "input": [
+        0,
+        0
+      ],
+      "expected": {
+        "reserve": 0,
+        "step": {
+          "key": "reserve_capacity",
+          "result": "0.00 VA"
+        }
+      }
+    },
+    {
+      "input": [
+        15,
+        0.333
+      ],
+      "expected": {
+        "reserve": 14.667,
+        "step": {
+          "key": "reserve_capacity",
+          "result": "14.67 VA"
+        }
+      }
+    }
+  ]
+}

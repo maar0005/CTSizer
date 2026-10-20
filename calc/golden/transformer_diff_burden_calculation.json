@@ -1,0 +1,165 @@
+{
+  "get_material_properties": [
+    {
+      "input": {
+        "cable_material": "Kobber (Cu)"
+      },
+      "expected": [
+        0.017241,
+        0.00393
+      ]
+    },
+    {
+      "input": {
+        "cable_material": "Aluminium (Al)"
+      },
+      "expected": [
+        0.02826,
+        0.00403
+      ]
+    },
+    {
+      "input": {
+        "cable_material": ""
+      },
+      "expected": [
+        0.017241,
+        0.00393
+      ]
+    },
+    {
+      "input": {
+        "cable_material": "Unobtainium"
+      },
+      "expected": [
+        0.017241,
+        0.00393
+      ]
+    }
+  ],
+  "calculate_resistivity_at_temp": [
+    {
+      "input": {
+        "cable_material": "Kobber (Cu)",
+        "cable_temp": 75
+      },
+      "expected": 0.02096764215
+    },
+    {
+      "input": {
+        "cable_material": "Aluminium (Al)",
+        "cable_temp": 90
+      },
+      "expected": 0.036232146
+    },
+    {
+      "input": {
+        "cable_material": "Kobber (Cu)",
+        "cable_temp": 20
+      },
+      "expected": 0.017241
+    }
+  ],
+  "calculate_cable_burden": [
+    {
+      "input": {
+        "cable_material": "Kobber (Cu)",
+        "cable_temp": 75,
+        "cable_length": 150,
+        "cable_cross_section": 4,
+        "secondary_current": 1
+      },
+      "expected": [
+        1.57257316125,
+        0.02096764215
+      ]
+    },
+    {
+      "input": {
+        "cable_material": "Aluminium (Al)",
+        "cable_temp": 60,
+        "cable_length": 80,
+        "cable_cross_section": 6,
+        "secondary_current": 5
+      },
+      "expected": [
+        21.877007999999996,
+        0.032815512
+      ]
+    },
+    {
+      "input": {
+        "cable_material": "Kobber (Cu)",
+        "cable_temp": 90,
+        "cable_length": 300,
+        "cable_cross_section": 2.5,
+        "secondary_current": 5
+      },
+      "expected": [
+        131.90399460000003,
+        0.021983999100000002
+      ]
+    }
+  ],
+  "calculate_ct_internal_burden": [
+    {
+      "input": {
+        "rct": 4,
+        "secondary_current": 1
+      },
+      "expected": 4
+    },
+    {
+      "input": {
+        "rct": 2.5,
+        "secondary_current": 5
+      },
+      "expected": 62.5
+    }
+  ],
+  "calculate_total_burden": [
+    {
+      "input": {
+        "relay_burden": 0.1,
+        "s_wire": 2.08
+      },
+      "expected": 2.18
+    },
+    {
+      "input": {
+        "relay_burden": 0.05,
+        "s_wire": 11.7
+      },
+      "expected": 11.75
+    }
+  ],
+  "calculate_operating_alf": [
+    {
+      "input": {
+        "alf": 20,
+        "burden_va": 30,
+        "s_ct": 4,
+        "s_total": 2.2
+      },
+      "expected": 109.6774193548387
+    },
+    {
+      "input": {
+        "alf": 10,
+        "burden_va": 15,
+        "s_ct": 62.5,
+        "s_total": 11.8
+      },
+      "expected": 10.430686406460296
+    },
+    {
+      "input": {
+        "alf": null,
+        "burden_va": 30,
+        "s_ct": 4,
+        "s_total": 2.2
+      },
+      "expected": null
+    }
+  ]
+}

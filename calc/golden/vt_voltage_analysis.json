@@ -1,0 +1,242 @@
+{
+  "voltage_drop": [
+    {
+      "input": [
+        0.42,
+        0.0049,
+        100
+      ],
+      "expected": {
+        "voltage_drop": 0.002058,
+        "voltage_drop_percent": 0.002058,
+        "step": {
+          "key": "voltage_drop_in_cable",
+          "result": "0.0021 V (0.002%)"
+        }
+      }
+    },
+    {
+      "input": [
+        1.2345,
+        0.1588,
+        63.50852961085884
+      ],
+      "expected": {
+        "voltage_drop": 0.19603859999999998,
+        "voltage_drop_percent": 0.3086807413133383,
+        "step": {
+          "key": "voltage_drop_in_cable",
+          "result": "0.1960 V (0.309%)"
+        }
+      }
+    },
+    {
+      "input": [
+        0.42,
+        0,
+        100
+      ],
+      "expected": {
+        "voltage_drop": 0.0,
+        "voltage_drop_percent": 0.0,
+        "step": {
+          "key": "voltage_drop_in_cable",
+          "result": "0.0000 V (0.000%)"
+        }
+      }
+    },
+    {
+      "input": [
+        2.5,
+        0.25,
+        0
+      ],
+      "expected": {
+        "voltage_drop": 0.625,
+        "voltage_drop_percent": 0,
+        "step": {
+          "key": "voltage_drop_in_cable",
+          "result": "0.6250 V (0.000%)"
+        }
+      }
+    },
+    {
+      "input": [
+        2.5,
+        0.25,
+        -100
+      ],
+      "expected": {
+        "voltage_drop": 0.625,
+        "voltage_drop_percent": 0,
+        "step": {
+          "key": "voltage_drop_in_cable",
+          "result": "0.6250 V (0.000%)"
+        }
+      }
+    },
+    {
+      "input": [
+        0.0871,
+        0.3,
+        110
+      ],
+      "expected": {
+        "voltage_drop": 0.026129999999999997,
+        "voltage_drop_percent": 0.023754545454545452,
+        "step": {
+          "key": "voltage_drop_in_cable",
+          "result": "0.0261 V (0.024%)"
+        }
+      }
+    }
+  ],
+  "max_voltage_drop": [
+    {
+      "input": [
+        "0.1"
+      ],
+      "expected": 0.1
+    },
+    {
+      "input": [
+        "0.2"
+      ],
+      "expected": 0.2
+    },
+    {
+      "input": [
+        "0.5"
+      ],
+      "expected": 0.5
+    },
+    {
+      "input": [
+        "1.0"
+      ],
+      "expected": 1.0
+    },
+    {
+      "input": [
+        "3P"
+      ],
+      "expected": 3.0
+    },
+    {
+      "input": [
+        "6P"
+      ],
+      "expected": 0.5
+    },
+    {
+      "input": [
+        ""
+      ],
+      "expected": 0.5
+    }
+  ],
+  "check_limits": [
+    {
+      "input": [
+        0.05,
+        "0.2"
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        0.2,
+        "0.2"
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        0.2345,
+        "0.2"
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 0.234% > 0.2% (klasse 0.2)"
+        ]
+      }
+    },
+    {
+      "input": [
+        0.75,
+        "0.5"
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 0.750% > 0.5% (klasse 0.5)"
+        ]
+      }
+    },
+    {
+      "input": [
+        1.5,
+        "1.0"
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 1.500% > 1.0% (klasse 1.0)"
+        ]
+      }
+    },
+    {
+      "input": [
+        3.25,
+        "3P"
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 3.250% > 3.0% (klasse 3P)"
+        ]
+      }
+    },
+    {
+      "input": [
+        0.6,
+        "6P"
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 0.600% > 0.5% (klasse 6P)"
+        ]
+      }
+    },
+    {
+      "input": [
+        0.4,
+        "6P"
+      ],
+      "expected": {
+        "is_ok": true,
+        "warnings": []
+      }
+    },
+    {
+      "input": [
+        0.1234,
+        "0.1"
+      ],
+      "expected": {
+        "is_ok": false,
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 0.123% > 0.1% (klasse 0.1)"
+        ]
+      }
+    }
+  ]
+}

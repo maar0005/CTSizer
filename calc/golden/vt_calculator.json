@@ -1,0 +1,2608 @@
+{
+  "execute_core": [
+    {
+      "input": [
+        0.656,
+        {
+          "burden": 10,
+          "device_resistance": 2000
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "2000.66 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "49.98 mA",
+          "Aktuel byrde": "5.00 VA",
+          "Byrde udnyttelse": "50.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0328 V (0.033%)",
+          "Termisk udnyttelse": "10.0 %",
+          "Reserve kapacitet": "5.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "2000.66 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "49.98 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "5.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "50.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0328 V (0.033%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "10.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "5.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 50.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        0.656,
+        {
+          "burden": 10,
+          "device_resistance": 2000,
+          "attached_resistor": 1000
+        }
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "667.32 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "149.85 mA",
+          "Aktuel byrde": "14.99 VA",
+          "Byrde udnyttelse": "149.9 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0983 V (0.098%)",
+          "Termisk udnyttelse": "30.0 %",
+          "Reserve kapacitet": "-4.99 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Byrde overskridelse: 149.9% > 100%"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "667.32 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "149.85 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "14.99 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "149.9 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0983 V (0.098%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "30.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-4.99 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Burden 149.9% > 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        0.2,
+        {
+          "burden": 100,
+          "thermal_burden": 20,
+          "device_resistance": 200
+        }
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "1000.00 mA",
+          "Byrdeimpedans (Zn)": "100.00 \u03a9",
+          "Total belastningsimpedans": "200.20 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "499.50 mA",
+          "Aktuel byrde": "49.95 VA",
+          "Byrde udnyttelse": "50.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0999 V (0.100%)",
+          "Termisk udnyttelse": "249.8 %",
+          "Reserve kapacitet": "50.05 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Termisk overbelastning: 249.8% > 100%"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "1000.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "100.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "200.20 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "499.50 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "49.95 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "50.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0999 V (0.100%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "249.8 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "50.05 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Thermal 249.8% > 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        1.5,
+        {
+          "burden": 10,
+          "thermal_burden": 15,
+          "device_resistance": 300,
+          "vt_class": "1.0"
+        }
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "301.50 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "331.67 mA",
+          "Aktuel byrde": "33.17 VA",
+          "Byrde udnyttelse": "331.7 %",
+          "Sp\u00e6ndingsfald i kabel": "0.4975 V (0.498%)",
+          "Termisk udnyttelse": "221.1 %",
+          "Reserve kapacitet": "-23.17 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Byrde overskridelse: 331.7% > 100%",
+          "Termisk overbelastning: 221.1% > 100%"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "301.50 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "331.67 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "33.17 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "331.7 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.4975 V (0.498%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "221.1 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-23.17 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Burden 331.7% > 100%, Thermal 221.1% > 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        0,
+        {
+          "burden": 10,
+          "device_resistance": 1000
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "1000.00 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Aktuel byrde": "10.00 VA",
+          "Byrde udnyttelse": "100.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0000 V (0.000%)",
+          "Termisk udnyttelse": "20.0 %",
+          "Reserve kapacitet": "0.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "10.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "100.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0000 V (0.000%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "20.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "0.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 100.0% \u2264 100%, Thermal 20.0% \u2264 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        0.4,
+        {
+          "burden": 50,
+          "thermal_burden": 100,
+          "device_resistance": 5000,
+          "vt_class": "3P"
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "500.00 mA",
+          "Byrdeimpedans (Zn)": "200.00 \u03a9",
+          "Total belastningsimpedans": "5000.40 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "20.00 mA",
+          "Aktuel byrde": "2.00 VA",
+          "Byrde udnyttelse": "4.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0080 V (0.008%)",
+          "Termisk udnyttelse": "2.0 %",
+          "Reserve kapacitet": "48.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Lav byrde: 4.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "500.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "200.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "5000.40 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "20.00 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "2.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "4.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0080 V (0.008%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "2.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "48.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 4.0% \u2264 100%, Thermal 2.0% \u2264 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        5,
+        {
+          "burden": 25,
+          "thermal_burden": 100,
+          "secondary_voltage": 63.50852961085884,
+          "device_resistance": 300,
+          "vt_class": "0.5"
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "393.65 mA",
+          "Byrdeimpedans (Zn)": "161.33 \u03a9",
+          "Total belastningsimpedans": "305.00 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "208.22 mA",
+          "Aktuel byrde": "13.22 VA",
+          "Byrde udnyttelse": "52.9 %",
+          "Sp\u00e6ndingsfald i kabel": "1.0411 V (1.639%)",
+          "Termisk udnyttelse": "13.2 %",
+          "Reserve kapacitet": "11.78 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 1.639% > 0.5% (klasse 0.5)"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "393.65 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "161.33 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "305.00 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "208.22 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "13.22 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "52.9 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "1.0411 V (1.639%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "13.2 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "11.78 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 52.9% \u2264 100%, Thermal 13.2% \u2264 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        0,
+        {}
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "0.00 mA",
+          "Byrdeimpedans (Zn)": "inf \u03a9",
+          "Total belastningsimpedans": "100.00 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "1000.00 mA",
+          "Aktuel byrde": "100.00 VA",
+          "Byrde udnyttelse": "0.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0000 V (0.000%)",
+          "Termisk udnyttelse": "200.0 %",
+          "Reserve kapacitet": "-100.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Lav byrde: 0.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%.",
+          "Termisk overbelastning: 200.0% > 100%"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "0.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "inf \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "100.00 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "1000.00 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "100.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "0.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0000 V (0.000%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "200.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-100.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Thermal 200.0% > 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        0.3,
+        {
+          "burden": 10,
+          "device_resistance": 0
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "inf \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "0.00 mA",
+          "Aktuel byrde": "0.00 VA",
+          "Byrde udnyttelse": "0.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0000 V (0.000%)",
+          "Termisk udnyttelse": "0.0 %",
+          "Reserve kapacitet": "10.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Lav byrde: 0.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "inf \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "0.00 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "0.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "0.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0000 V (0.000%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "0.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "10.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 0.0% \u2264 100%, Thermal 0.0% \u2264 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        0.3,
+        {
+          "burden": 10,
+          "secondary_voltage": 0,
+          "device_resistance": 1500
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "0.00 mA",
+          "Byrdeimpedans (Zn)": "inf \u03a9",
+          "Total belastningsimpedans": "1500.30 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "0.00 mA",
+          "Aktuel byrde": "0.00 VA",
+          "Byrde udnyttelse": "0.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0000 V (0.000%)",
+          "Termisk udnyttelse": "0.0 %",
+          "Reserve kapacitet": "10.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Lav byrde: 0.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%."
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "0.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "inf \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "1500.30 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "0.00 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "0.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "0.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0000 V (0.000%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "0.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "10.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 0.0% \u2264 100%, Thermal 0.0% \u2264 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        2.1,
+        {
+          "burden": 30,
+          "thermal_burden": 200,
+          "secondary_voltage": 110,
+          "device_resistance": 800,
+          "attached_resistor": 2400,
+          "vt_class": "0.1"
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "272.73 mA",
+          "Byrdeimpedans (Zn)": "403.33 \u03a9",
+          "Total belastningsimpedans": "602.10 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "182.69 mA",
+          "Aktuel byrde": "20.10 VA",
+          "Byrde udnyttelse": "67.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.3837 V (0.349%)",
+          "Termisk udnyttelse": "10.0 %",
+          "Reserve kapacitet": "9.90 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 0.349% > 0.1% (klasse 0.1)"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "272.73 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "403.33 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "602.10 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "182.69 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "20.10 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "67.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.3837 V (0.349%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "10.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "9.90 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 67.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+          }
+        ]
+      }
+    }
+  ],
+  "single_core": [
+    {
+      "input": [
+        {},
+        {
+          "burden": 10,
+          "device_resistance": 2000,
+          "cable_resistance": 0.656,
+          "transformer_id": "T1",
+          "core_number": 2
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "2000.66 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "49.98 mA",
+          "Aktuel byrde": "5.00 VA",
+          "Byrde udnyttelse": "50.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0328 V (0.033%)",
+          "Termisk udnyttelse": "10.0 %",
+          "Reserve kapacitet": "5.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "2000.66 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "49.98 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "5.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "50.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0328 V (0.033%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "10.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "5.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 50.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+          }
+        ],
+        "core_name": "T1 kerne 2",
+        "transformer_id": "T1",
+        "core_number": 2
+      }
+    },
+    {
+      "input": [
+        {
+          "cable_resistance": 99
+        },
+        {
+          "burden": 15,
+          "device_resistance": 400,
+          "cable_resistance": 1.2,
+          "vt_class": "0.5",
+          "transformer_id": "VT-A",
+          "core_number": 1
+        }
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "150.00 mA",
+          "Byrdeimpedans (Zn)": "666.67 \u03a9",
+          "Total belastningsimpedans": "401.20 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "249.25 mA",
+          "Aktuel byrde": "24.93 VA",
+          "Byrde udnyttelse": "166.2 %",
+          "Sp\u00e6ndingsfald i kabel": "0.2991 V (0.299%)",
+          "Termisk udnyttelse": "49.9 %",
+          "Reserve kapacitet": "-9.93 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Byrde overskridelse: 166.2% > 100%"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "150.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "666.67 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "401.20 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "249.25 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "24.93 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "166.2 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.2991 V (0.299%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "49.9 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-9.93 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Burden 166.2% > 100%"
+          }
+        ],
+        "core_name": "VT-A kerne 1",
+        "transformer_id": "VT-A",
+        "core_number": 1
+      }
+    },
+    {
+      "input": [
+        {},
+        {}
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "0.00 mA",
+          "Byrdeimpedans (Zn)": "inf \u03a9",
+          "Total belastningsimpedans": "100.00 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "1000.00 mA",
+          "Aktuel byrde": "100.00 VA",
+          "Byrde udnyttelse": "0.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0000 V (0.000%)",
+          "Termisk udnyttelse": "200.0 %",
+          "Reserve kapacitet": "-100.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Lav byrde: 0.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%.",
+          "Termisk overbelastning: 200.0% > 100%"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "0.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "inf \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "100.00 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "1000.00 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "100.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "0.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0000 V (0.000%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "200.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-100.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Thermal 200.0% > 100%"
+          }
+        ],
+        "core_name": "VT kerne 1",
+        "transformer_id": "VT",
+        "core_number": 1
+      }
+    },
+    {
+      "input": [
+        {
+          "remote_end": {
+            "type": "line",
+            "lL": 12.5,
+            "R_L_per_km": 0.12,
+            "X_L_per_km": 0.39,
+            "R_0_per_km": 0.35,
+            "X_0_per_km": 1.18,
+            "RL": 1.5,
+            "XL": 4.875,
+            "R0L": 4.375,
+            "X0L": 14.75,
+            "ZL": 5.100551440775791,
+            "Z0L": 15.385159245194702,
+            "line_length_km": 12.5,
+            "r1_per_km": 0.12,
+            "x1_per_km": 0.39,
+            "r0_per_km": 0.35,
+            "x0_per_km": 1.18,
+            "r1_total": 1.5,
+            "x1_total": 4.875,
+            "r0_total": 4.375,
+            "x0_total": 14.75,
+            "z1_total": 5.100551440775791,
+            "z0_total": 15.385159245194702
+          }
+        },
+        {
+          "burden": 10,
+          "device_resistance": 2000,
+          "cable_resistance": 0.656,
+          "transformer_id": "T1",
+          "core_number": 2
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "2000.66 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "49.98 mA",
+          "Aktuel byrde": "5.00 VA",
+          "Byrde udnyttelse": "50.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0328 V (0.033%)",
+          "Termisk udnyttelse": "10.0 %",
+          "Reserve kapacitet": "5.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "2000.66 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "49.98 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "5.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "50.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0328 V (0.033%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "10.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "5.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 50.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+          }
+        ],
+        "core_name": "T1 kerne 2",
+        "transformer_id": "T1",
+        "core_number": 2
+      }
+    },
+    {
+      "input": [
+        {
+          "cable_resistance": 3.3,
+          "remote_end": {
+            "type": "line",
+            "lL": 80,
+            "R_L_per_km": 0.03,
+            "X_L_per_km": 0.6,
+            "R_0_per_km": 0.9,
+            "X_0_per_km": 2.4,
+            "RL": 2.4,
+            "XL": 48.0,
+            "R0L": 72.0,
+            "X0L": 192.0,
+            "ZL": 48.05996254680189,
+            "Z0L": 205.05608988762074,
+            "line_length_km": 80,
+            "r1_per_km": 0.03,
+            "x1_per_km": 0.6,
+            "r0_per_km": 0.9,
+            "x0_per_km": 2.4,
+            "r1_total": 2.4,
+            "x1_total": 48.0,
+            "r0_total": 72.0,
+            "x0_total": 192.0,
+            "z1_total": 48.05996254680189,
+            "z0_total": 205.05608988762074
+          }
+        },
+        {
+          "burden": 15,
+          "device_resistance": 400,
+          "cable_resistance": 1.2,
+          "vt_class": "0.5",
+          "transformer_id": "VT-A",
+          "core_number": 1
+        }
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "150.00 mA",
+          "Byrdeimpedans (Zn)": "666.67 \u03a9",
+          "Total belastningsimpedans": "401.20 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "249.25 mA",
+          "Aktuel byrde": "24.93 VA",
+          "Byrde udnyttelse": "166.2 %",
+          "Sp\u00e6ndingsfald i kabel": "0.2991 V (0.299%)",
+          "Termisk udnyttelse": "49.9 %",
+          "Reserve kapacitet": "-9.93 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Byrde overskridelse: 166.2% > 100%"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "150.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "666.67 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "401.20 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "249.25 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "24.93 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "166.2 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.2991 V (0.299%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "49.9 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-9.93 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Burden 166.2% > 100%"
+          }
+        ],
+        "core_name": "VT-A kerne 1",
+        "transformer_id": "VT-A",
+        "core_number": 1
+      }
+    }
+  ],
+  "multi_core": [
+    {
+      "input": [
+        {
+          "cable_resistance": 0.5
+        },
+        {
+          "1": {
+            "burden": 10,
+            "device_resistance": 2000,
+            "cable_resistance": 50
+          },
+          "2": {
+            "burden": 10,
+            "device_resistance": 500,
+            "vt_class": "3P"
+          }
+        }
+      ],
+      "expected": {
+        "overall_status": "IKKE OK",
+        "common_calculations": {
+          "cable_resistance": {
+            "value": 0.5,
+            "unit": "\u03a9",
+            "description": "Total kabelresistans (tur/retur)",
+            "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+          }
+        },
+        "cores": {
+          "1": {
+            "status": "OK",
+            "calculations": {
+              "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+              "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+              "Total belastningsimpedans": "2000.50 \u03a9",
+              "Aktuel sekund\u00e6r str\u00f8m": "49.99 mA",
+              "Aktuel byrde": "5.00 VA",
+              "Byrde udnyttelse": "50.0 %",
+              "Sp\u00e6ndingsfald i kabel": "0.0250 V (0.025%)",
+              "Termisk udnyttelse": "10.0 %",
+              "Reserve kapacitet": "5.00 VA",
+              "Effektfaktor (antaget)": "1.00"
+            },
+            "warnings": [],
+            "steps": [
+              {
+                "key": "rated_secondary_current",
+                "result": "100.00 mA"
+              },
+              {
+                "key": "burden_impedance",
+                "result": "1000.00 \u03a9"
+              },
+              {
+                "key": "total_load_impedance",
+                "result": "2000.50 \u03a9"
+              },
+              {
+                "key": "actual_secondary_current",
+                "result": "49.99 mA"
+              },
+              {
+                "key": "actual_burden",
+                "result": "5.00 VA"
+              },
+              {
+                "key": "burden_utilization",
+                "result": "50.0 %"
+              },
+              {
+                "key": "voltage_drop_in_cable",
+                "result": "0.0250 V (0.025%)"
+              },
+              {
+                "key": "thermal_utilization",
+                "result": "10.0 %"
+              },
+              {
+                "key": "reserve_capacity",
+                "result": "5.00 VA"
+              },
+              {
+                "key": "conclusion_comparison",
+                "result": "OK",
+                "substitution": "Burden 50.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+              }
+            ]
+          },
+          "2": {
+            "status": "IKKE OK",
+            "calculations": {
+              "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+              "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+              "Total belastningsimpedans": "500.50 \u03a9",
+              "Aktuel sekund\u00e6r str\u00f8m": "199.80 mA",
+              "Aktuel byrde": "19.98 VA",
+              "Byrde udnyttelse": "199.8 %",
+              "Sp\u00e6ndingsfald i kabel": "0.0999 V (0.100%)",
+              "Termisk udnyttelse": "40.0 %",
+              "Reserve kapacitet": "-9.98 VA",
+              "Effektfaktor (antaget)": "1.00"
+            },
+            "warnings": [
+              "Byrde overskridelse: 199.8% > 100%"
+            ],
+            "steps": [
+              {
+                "key": "rated_secondary_current",
+                "result": "100.00 mA"
+              },
+              {
+                "key": "burden_impedance",
+                "result": "1000.00 \u03a9"
+              },
+              {
+                "key": "total_load_impedance",
+                "result": "500.50 \u03a9"
+              },
+              {
+                "key": "actual_secondary_current",
+                "result": "199.80 mA"
+              },
+              {
+                "key": "actual_burden",
+                "result": "19.98 VA"
+              },
+              {
+                "key": "burden_utilization",
+                "result": "199.8 %"
+              },
+              {
+                "key": "voltage_drop_in_cable",
+                "result": "0.0999 V (0.100%)"
+              },
+              {
+                "key": "thermal_utilization",
+                "result": "40.0 %"
+              },
+              {
+                "key": "reserve_capacity",
+                "result": "-9.98 VA"
+              },
+              {
+                "key": "conclusion_comparison",
+                "result": "NOT OK",
+                "substitution": "Burden 199.8% > 100%"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "input": [
+        {
+          "cable_resistance": 0.5
+        },
+        {
+          "1": {
+            "burden": 10,
+            "device_resistance": 2000,
+            "cable_resistance": 50
+          }
+        }
+      ],
+      "expected": {
+        "overall_status": "OK",
+        "common_calculations": {
+          "cable_resistance": {
+            "value": 0.5,
+            "unit": "\u03a9",
+            "description": "Total kabelresistans (tur/retur)",
+            "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+          }
+        },
+        "cores": {
+          "1": {
+            "status": "OK",
+            "calculations": {
+              "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+              "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+              "Total belastningsimpedans": "2000.50 \u03a9",
+              "Aktuel sekund\u00e6r str\u00f8m": "49.99 mA",
+              "Aktuel byrde": "5.00 VA",
+              "Byrde udnyttelse": "50.0 %",
+              "Sp\u00e6ndingsfald i kabel": "0.0250 V (0.025%)",
+              "Termisk udnyttelse": "10.0 %",
+              "Reserve kapacitet": "5.00 VA",
+              "Effektfaktor (antaget)": "1.00"
+            },
+            "warnings": [],
+            "steps": [
+              {
+                "key": "rated_secondary_current",
+                "result": "100.00 mA"
+              },
+              {
+                "key": "burden_impedance",
+                "result": "1000.00 \u03a9"
+              },
+              {
+                "key": "total_load_impedance",
+                "result": "2000.50 \u03a9"
+              },
+              {
+                "key": "actual_secondary_current",
+                "result": "49.99 mA"
+              },
+              {
+                "key": "actual_burden",
+                "result": "5.00 VA"
+              },
+              {
+                "key": "burden_utilization",
+                "result": "50.0 %"
+              },
+              {
+                "key": "voltage_drop_in_cable",
+                "result": "0.0250 V (0.025%)"
+              },
+              {
+                "key": "thermal_utilization",
+                "result": "10.0 %"
+              },
+              {
+                "key": "reserve_capacity",
+                "result": "5.00 VA"
+              },
+              {
+                "key": "conclusion_comparison",
+                "result": "OK",
+                "substitution": "Burden 50.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "input": [
+        {},
+        {
+          "1": {
+            "burden": 10,
+            "device_resistance": 2000,
+            "cable_resistance": 50
+          },
+          "2": {
+            "burden": 25,
+            "device_resistance": 1000
+          }
+        }
+      ],
+      "expected": {
+        "overall_status": "OK",
+        "common_calculations": {
+          "cable_resistance": {
+            "value": 0,
+            "unit": "\u03a9",
+            "description": "Total kabelresistans (tur/retur)",
+            "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+          }
+        },
+        "cores": {
+          "1": {
+            "status": "OK",
+            "calculations": {
+              "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+              "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+              "Total belastningsimpedans": "2000.00 \u03a9",
+              "Aktuel sekund\u00e6r str\u00f8m": "50.00 mA",
+              "Aktuel byrde": "5.00 VA",
+              "Byrde udnyttelse": "50.0 %",
+              "Sp\u00e6ndingsfald i kabel": "0.0000 V (0.000%)",
+              "Termisk udnyttelse": "10.0 %",
+              "Reserve kapacitet": "5.00 VA",
+              "Effektfaktor (antaget)": "1.00"
+            },
+            "warnings": [],
+            "steps": [
+              {
+                "key": "rated_secondary_current",
+                "result": "100.00 mA"
+              },
+              {
+                "key": "burden_impedance",
+                "result": "1000.00 \u03a9"
+              },
+              {
+                "key": "total_load_impedance",
+                "result": "2000.00 \u03a9"
+              },
+              {
+                "key": "actual_secondary_current",
+                "result": "50.00 mA"
+              },
+              {
+                "key": "actual_burden",
+                "result": "5.00 VA"
+              },
+              {
+                "key": "burden_utilization",
+                "result": "50.0 %"
+              },
+              {
+                "key": "voltage_drop_in_cable",
+                "result": "0.0000 V (0.000%)"
+              },
+              {
+                "key": "thermal_utilization",
+                "result": "10.0 %"
+              },
+              {
+                "key": "reserve_capacity",
+                "result": "5.00 VA"
+              },
+              {
+                "key": "conclusion_comparison",
+                "result": "OK",
+                "substitution": "Burden 50.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+              }
+            ]
+          },
+          "2": {
+            "status": "OK",
+            "calculations": {
+              "M\u00e6rke sekund\u00e6r str\u00f8m": "250.00 mA",
+              "Byrdeimpedans (Zn)": "400.00 \u03a9",
+              "Total belastningsimpedans": "1000.00 \u03a9",
+              "Aktuel sekund\u00e6r str\u00f8m": "100.00 mA",
+              "Aktuel byrde": "10.00 VA",
+              "Byrde udnyttelse": "40.0 %",
+              "Sp\u00e6ndingsfald i kabel": "0.0000 V (0.000%)",
+              "Termisk udnyttelse": "20.0 %",
+              "Reserve kapacitet": "15.00 VA",
+              "Effektfaktor (antaget)": "1.00"
+            },
+            "warnings": [],
+            "steps": [
+              {
+                "key": "rated_secondary_current",
+                "result": "250.00 mA"
+              },
+              {
+                "key": "burden_impedance",
+                "result": "400.00 \u03a9"
+              },
+              {
+                "key": "total_load_impedance",
+                "result": "1000.00 \u03a9"
+              },
+              {
+                "key": "actual_secondary_current",
+                "result": "100.00 mA"
+              },
+              {
+                "key": "actual_burden",
+                "result": "10.00 VA"
+              },
+              {
+                "key": "burden_utilization",
+                "result": "40.0 %"
+              },
+              {
+                "key": "voltage_drop_in_cable",
+                "result": "0.0000 V (0.000%)"
+              },
+              {
+                "key": "thermal_utilization",
+                "result": "20.0 %"
+              },
+              {
+                "key": "reserve_capacity",
+                "result": "15.00 VA"
+              },
+              {
+                "key": "conclusion_comparison",
+                "result": "OK",
+                "substitution": "Burden 40.0% \u2264 100%, Thermal 20.0% \u2264 100%"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "input": [
+        {
+          "cable_resistance": 0.5
+        },
+        {}
+      ],
+      "expected": {
+        "overall_status": "OK",
+        "common_calculations": {
+          "cable_resistance": {
+            "value": 0.5,
+            "unit": "\u03a9",
+            "description": "Total kabelresistans (tur/retur)",
+            "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+          }
+        },
+        "cores": {}
+      }
+    },
+    {
+      "input": [
+        {
+          "cable_resistance": 0.5,
+          "remote_end": {
+            "type": "line",
+            "lL": 40,
+            "R_L_per_km": 0.05,
+            "X_L_per_km": 0.42,
+            "R_0_per_km": 0.25,
+            "X_0_per_km": 1.3,
+            "RL": 2.0,
+            "XL": 16.8,
+            "R0L": 10.0,
+            "X0L": 52.0,
+            "ZL": 16.918628786045282,
+            "Z0L": 52.952809179494906,
+            "line_length_km": 40,
+            "r1_per_km": 0.05,
+            "x1_per_km": 0.42,
+            "r0_per_km": 0.25,
+            "x0_per_km": 1.3,
+            "r1_total": 2.0,
+            "x1_total": 16.8,
+            "r0_total": 10.0,
+            "x0_total": 52.0,
+            "z1_total": 16.918628786045282,
+            "z0_total": 52.952809179494906
+          }
+        },
+        {
+          "1": {
+            "burden": 10,
+            "device_resistance": 2000,
+            "cable_resistance": 50
+          },
+          "2": {
+            "burden": 10,
+            "device_resistance": 500,
+            "vt_class": "3P"
+          }
+        }
+      ],
+      "expected": {
+        "overall_status": "IKKE OK",
+        "common_calculations": {
+          "cable_resistance": {
+            "value": 0.5,
+            "unit": "\u03a9",
+            "description": "Total kabelresistans (tur/retur)",
+            "formula": "R_cable = 2 \u00d7 \u03c1 \u00d7 L / A"
+          }
+        },
+        "cores": {
+          "1": {
+            "status": "OK",
+            "calculations": {
+              "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+              "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+              "Total belastningsimpedans": "2000.50 \u03a9",
+              "Aktuel sekund\u00e6r str\u00f8m": "49.99 mA",
+              "Aktuel byrde": "5.00 VA",
+              "Byrde udnyttelse": "50.0 %",
+              "Sp\u00e6ndingsfald i kabel": "0.0250 V (0.025%)",
+              "Termisk udnyttelse": "10.0 %",
+              "Reserve kapacitet": "5.00 VA",
+              "Effektfaktor (antaget)": "1.00"
+            },
+            "warnings": [],
+            "steps": [
+              {
+                "key": "rated_secondary_current",
+                "result": "100.00 mA"
+              },
+              {
+                "key": "burden_impedance",
+                "result": "1000.00 \u03a9"
+              },
+              {
+                "key": "total_load_impedance",
+                "result": "2000.50 \u03a9"
+              },
+              {
+                "key": "actual_secondary_current",
+                "result": "49.99 mA"
+              },
+              {
+                "key": "actual_burden",
+                "result": "5.00 VA"
+              },
+              {
+                "key": "burden_utilization",
+                "result": "50.0 %"
+              },
+              {
+                "key": "voltage_drop_in_cable",
+                "result": "0.0250 V (0.025%)"
+              },
+              {
+                "key": "thermal_utilization",
+                "result": "10.0 %"
+              },
+              {
+                "key": "reserve_capacity",
+                "result": "5.00 VA"
+              },
+              {
+                "key": "conclusion_comparison",
+                "result": "OK",
+                "substitution": "Burden 50.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+              }
+            ]
+          },
+          "2": {
+            "status": "IKKE OK",
+            "calculations": {
+              "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+              "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+              "Total belastningsimpedans": "500.50 \u03a9",
+              "Aktuel sekund\u00e6r str\u00f8m": "199.80 mA",
+              "Aktuel byrde": "19.98 VA",
+              "Byrde udnyttelse": "199.8 %",
+              "Sp\u00e6ndingsfald i kabel": "0.0999 V (0.100%)",
+              "Termisk udnyttelse": "40.0 %",
+              "Reserve kapacitet": "-9.98 VA",
+              "Effektfaktor (antaget)": "1.00"
+            },
+            "warnings": [
+              "Byrde overskridelse: 199.8% > 100%"
+            ],
+            "steps": [
+              {
+                "key": "rated_secondary_current",
+                "result": "100.00 mA"
+              },
+              {
+                "key": "burden_impedance",
+                "result": "1000.00 \u03a9"
+              },
+              {
+                "key": "total_load_impedance",
+                "result": "500.50 \u03a9"
+              },
+              {
+                "key": "actual_secondary_current",
+                "result": "199.80 mA"
+              },
+              {
+                "key": "actual_burden",
+                "result": "19.98 VA"
+              },
+              {
+                "key": "burden_utilization",
+                "result": "199.8 %"
+              },
+              {
+                "key": "voltage_drop_in_cable",
+                "result": "0.0999 V (0.100%)"
+              },
+              {
+                "key": "thermal_utilization",
+                "result": "40.0 %"
+              },
+              {
+                "key": "reserve_capacity",
+                "result": "-9.98 VA"
+              },
+              {
+                "key": "conclusion_comparison",
+                "result": "NOT OK",
+                "substitution": "Burden 199.8% > 100%"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "core_internal": [
+    {
+      "input": [
+        0.656,
+        {
+          "burden": 10,
+          "device_resistance": 2000
+        }
+      ],
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "2000.66 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "49.98 mA",
+          "Aktuel byrde": "5.00 VA",
+          "Byrde udnyttelse": "50.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.0328 V (0.033%)",
+          "Termisk udnyttelse": "10.0 %",
+          "Reserve kapacitet": "5.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "2000.66 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "49.98 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "5.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "50.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.0328 V (0.033%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "10.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "5.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 50.0% \u2264 100%, Thermal 10.0% \u2264 100%"
+          }
+        ]
+      }
+    },
+    {
+      "input": [
+        1.0,
+        {}
+      ],
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "0.00 mA",
+          "Byrdeimpedans (Zn)": "inf \u03a9",
+          "Total belastningsimpedans": "101.00 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "990.10 mA",
+          "Aktuel byrde": "99.01 VA",
+          "Byrde udnyttelse": "0.0 %",
+          "Sp\u00e6ndingsfald i kabel": "0.9901 V (0.990%)",
+          "Termisk udnyttelse": "198.0 %",
+          "Reserve kapacitet": "-99.01 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Lav byrde: 0.0% < 25%. Verificer om VT underst\u00f8tter Range I (0-100%) jf. IEC 61869-3. Standard omr\u00e5de II er 25-100%.",
+          "Sp\u00e6ndingsfald overskridelse: 0.990% > 0.2% (klasse 0.2)",
+          "Termisk overbelastning: 198.0% > 100%"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "0.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "inf \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "101.00 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "990.10 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "99.01 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "0.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.9901 V (0.990%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "198.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-99.01 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Thermal 198.0% > 100%"
+          }
+        ]
+      }
+    }
+  ],
+  "parallel_resistance": [
+    {
+      "input": [
+        [
+          100,
+          200
+        ]
+      ],
+      "expected": 66.66666666666667
+    },
+    {
+      "input": [
+        [
+          100,
+          "inf"
+        ]
+      ],
+      "expected": 100.0
+    },
+    {
+      "input": [
+        [
+          0,
+          -5
+        ]
+      ],
+      "expected": "inf"
+    },
+    {
+      "input": [
+        [
+          300,
+          600,
+          1200
+        ]
+      ],
+      "expected": 171.42857142857142
+    }
+  ],
+  "max_voltage_drop": [
+    {
+      "input": [
+        "0.1"
+      ],
+      "expected": 0.1
+    },
+    {
+      "input": [
+        "0.2"
+      ],
+      "expected": 0.2
+    },
+    {
+      "input": [
+        "0.5"
+      ],
+      "expected": 0.5
+    },
+    {
+      "input": [
+        "1.0"
+      ],
+      "expected": 1.0
+    },
+    {
+      "input": [
+        "3P"
+      ],
+      "expected": 3.0
+    },
+    {
+      "input": [
+        "6P"
+      ],
+      "expected": 0.5
+    },
+    {
+      "input": [
+        ""
+      ],
+      "expected": 0.5
+    }
+  ],
+  "by_method": [
+    {
+      "input": {
+        "core_data": {
+          "burden": 10,
+          "thermal_burden": 50,
+          "secondary_voltage": 100,
+          "vt_class": "0.2",
+          "transformer_id": "VT-M",
+          "core_number": 1,
+          "device_resistance": 985.653
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "cross_mm2": 1.5,
+          "length_m": 500
+        },
+        "cable_resistance": 13.9784281
+      },
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "999.63 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "100.04 mA",
+          "Aktuel byrde": "10.00 VA",
+          "Byrde udnyttelse": "100.0 %",
+          "Sp\u00e6ndingsfald i kabel": "1.3984 V (1.398%)",
+          "Termisk udnyttelse": "20.0 %",
+          "Reserve kapacitet": "-0.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Byrde overskridelse: 100.0% > 100%",
+          "Sp\u00e6ndingsfald overskridelse: 1.398% > 0.2% (klasse 0.2)"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "999.63 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "100.04 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "10.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "100.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "1.3984 V (1.398%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "20.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-0.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Burden 100.0% > 100%"
+          }
+        ],
+        "core_name": "VT-M kerne 1",
+        "transformer_id": "VT-M",
+        "core_number": 1,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 11.494,
+          "r_conductor": 6.98921405,
+          "factor": 2,
+          "r_loop": 13.9784281
+        },
+        "widget_r_loop": 14.188416666666669
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": 10,
+          "thermal_burden": 50,
+          "secondary_voltage": 100,
+          "vt_class": "0.2",
+          "transformer_id": "VT-M",
+          "core_number": 1,
+          "device_resistance": 985.653
+        },
+        "common_data": {
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "cross_mm2": 1.5,
+          "length_m": 500
+        },
+        "cable_resistance": 14.715415
+      },
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "1000.37 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "99.96 mA",
+          "Aktuel byrde": "10.00 VA",
+          "Byrde udnyttelse": "100.0 %",
+          "Sp\u00e6ndingsfald i kabel": "1.4710 V (1.471%)",
+          "Termisk udnyttelse": "20.0 %",
+          "Reserve kapacitet": "0.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 1.471% > 0.2% (klasse 0.2)"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "1000.37 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "99.96 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "10.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "100.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "1.4710 V (1.471%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "20.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "0.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 100.0% \u2264 100%, Thermal 20.0% \u2264 100%"
+          }
+        ],
+        "core_name": "VT-M kerne 1",
+        "transformer_id": "VT-M",
+        "core_number": 1,
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 12.1,
+          "r_conductor": 7.3577075,
+          "factor": 2,
+          "r_loop": 14.715415,
+          "in_table": true
+        },
+        "widget_r_loop": 14.188416666666669
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": 25,
+          "thermal_burden": 100,
+          "secondary_voltage": 63.50852961085884,
+          "vt_class": "0.5",
+          "device_resistance": 2000,
+          "transformer_id": "VT-B",
+          "core_number": 2,
+          "attached_resistor": 171.456
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "cross_mm2": 6,
+          "length_m": 300
+        },
+        "cable_resistance": 3.4523829
+      },
+      "expected": {
+        "status": "OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "393.65 mA",
+          "Byrdeimpedans (Zn)": "161.33 \u03a9",
+          "Total belastningsimpedans": "161.37 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "393.56 mA",
+          "Aktuel byrde": "24.99 VA",
+          "Byrde udnyttelse": "100.0 %",
+          "Sp\u00e6ndingsfald i kabel": "1.3587 V (2.139%)",
+          "Termisk udnyttelse": "25.0 %",
+          "Reserve kapacitet": "0.01 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Sp\u00e6ndingsfald overskridelse: 2.139% > 0.5% (klasse 0.5)"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "393.65 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "161.33 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "161.37 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "393.56 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "24.99 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "100.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "1.3587 V (2.139%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "25.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "0.01 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "OK",
+            "substitution": "Burden 100.0% \u2264 100%, Thermal 25.0% \u2264 100%"
+          }
+        ],
+        "core_name": "VT-B kerne 2",
+        "transformer_id": "VT-B",
+        "core_number": 2,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.71,
+          "r_conductor": 1.72619145,
+          "factor": 2,
+          "r_loop": 3.4523829
+        },
+        "widget_r_loop": 3.4572694999999993
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": 25,
+          "thermal_burden": 100,
+          "secondary_voltage": 63.50852961085884,
+          "vt_class": "0.5",
+          "device_resistance": 2000,
+          "transformer_id": "VT-B",
+          "core_number": 2,
+          "attached_resistor": 171.456
+        },
+        "common_data": {
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "cross_mm2": 6,
+          "length_m": 300
+        },
+        "cable_resistance": 3.3790838999999995
+      },
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "393.65 mA",
+          "Byrdeimpedans (Zn)": "161.33 \u03a9",
+          "Total belastningsimpedans": "161.30 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "393.74 mA",
+          "Aktuel byrde": "25.01 VA",
+          "Byrde udnyttelse": "100.0 %",
+          "Sp\u00e6ndingsfald i kabel": "1.3305 V (2.095%)",
+          "Termisk udnyttelse": "25.0 %",
+          "Reserve kapacitet": "-0.01 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Byrde overskridelse: 100.0% > 100%",
+          "Sp\u00e6ndingsfald overskridelse: 2.095% > 0.5% (klasse 0.5)"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "393.65 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "161.33 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "161.30 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "393.74 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "25.01 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "100.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "1.3305 V (2.095%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "25.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-0.01 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Burden 100.0% > 100%"
+          }
+        ],
+        "core_name": "VT-B kerne 2",
+        "transformer_id": "VT-B",
+        "core_number": 2,
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 1.6895419499999997,
+          "factor": 2,
+          "r_loop": 3.3790838999999995,
+          "in_table": true
+        },
+        "widget_r_loop": 3.4572694999999993
+      }
+    }
+  ],
+  "by_topology": [
+    {
+      "input": {
+        "core_data": {
+          "burden": 10,
+          "thermal_burden": 50,
+          "secondary_voltage": 100,
+          "vt_class": "0.2",
+          "transformer_id": "VT-M",
+          "core_number": 1,
+          "device_resistance": 985.653
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "cross_mm2": 1.5,
+          "length_m": 500
+        },
+        "cable_resistance": 6.98921405
+      },
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "992.64 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "100.74 mA",
+          "Aktuel byrde": "10.07 VA",
+          "Byrde udnyttelse": "100.7 %",
+          "Sp\u00e6ndingsfald i kabel": "0.7041 V (0.704%)",
+          "Termisk udnyttelse": "20.1 %",
+          "Reserve kapacitet": "-0.07 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Byrde overskridelse: 100.7% > 100%",
+          "Sp\u00e6ndingsfald overskridelse: 0.704% > 0.2% (klasse 0.2)"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "992.64 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "100.74 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "10.07 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "100.7 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "0.7041 V (0.704%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "20.1 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-0.07 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Burden 100.7% > 100%"
+          }
+        ],
+        "core_name": "VT-M kerne 1",
+        "transformer_id": "VT-M",
+        "core_number": 1,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 11.494,
+          "r_conductor": 6.98921405,
+          "factor": 1,
+          "r_loop": 6.98921405
+        }
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "burden": 10,
+          "thermal_burden": 50,
+          "secondary_voltage": 100,
+          "vt_class": "0.2",
+          "transformer_id": "VT-M",
+          "core_number": 1,
+          "device_resistance": 985.653
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "cross_mm2": 1.5,
+          "length_m": 500
+        },
+        "cable_resistance": 13.9784281,
+        "cable_topology": "six_wire"
+      },
+      "expected": {
+        "status": "IKKE OK",
+        "calculations": {
+          "M\u00e6rke sekund\u00e6r str\u00f8m": "100.00 mA",
+          "Byrdeimpedans (Zn)": "1000.00 \u03a9",
+          "Total belastningsimpedans": "999.63 \u03a9",
+          "Aktuel sekund\u00e6r str\u00f8m": "100.04 mA",
+          "Aktuel byrde": "10.00 VA",
+          "Byrde udnyttelse": "100.0 %",
+          "Sp\u00e6ndingsfald i kabel": "1.3984 V (1.398%)",
+          "Termisk udnyttelse": "20.0 %",
+          "Reserve kapacitet": "-0.00 VA",
+          "Effektfaktor (antaget)": "1.00"
+        },
+        "warnings": [
+          "Byrde overskridelse: 100.0% > 100%",
+          "Sp\u00e6ndingsfald overskridelse: 1.398% > 0.2% (klasse 0.2)"
+        ],
+        "steps": [
+          {
+            "key": "rated_secondary_current",
+            "result": "100.00 mA"
+          },
+          {
+            "key": "burden_impedance",
+            "result": "1000.00 \u03a9"
+          },
+          {
+            "key": "total_load_impedance",
+            "result": "999.63 \u03a9"
+          },
+          {
+            "key": "actual_secondary_current",
+            "result": "100.04 mA"
+          },
+          {
+            "key": "actual_burden",
+            "result": "10.00 VA"
+          },
+          {
+            "key": "burden_utilization",
+            "result": "100.0 %"
+          },
+          {
+            "key": "voltage_drop_in_cable",
+            "result": "1.3984 V (1.398%)"
+          },
+          {
+            "key": "thermal_utilization",
+            "result": "20.0 %"
+          },
+          {
+            "key": "reserve_capacity",
+            "result": "-0.00 VA"
+          },
+          {
+            "key": "conclusion_comparison",
+            "result": "NOT OK",
+            "substitution": "Burden 100.0% > 100%"
+          }
+        ],
+        "core_name": "VT-M kerne 1",
+        "transformer_id": "VT-M",
+        "core_number": 1,
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "current_case": "three_phase",
+          "r20_per_km": 11.494,
+          "r_conductor": 6.98921405,
+          "factor": 2,
+          "r_loop": 13.9784281
+        }
+      }
+    }
+  ]
+}

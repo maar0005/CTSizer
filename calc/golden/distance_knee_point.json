@@ -1,0 +1,52 @@
+{
+  "calculate_required_vk": [
+    {
+      "input": {
+        "vka": 120.5,
+        "vkb": 95.2
+      },
+      "expected": 120.5
+    },
+    {
+      "input": {
+        "vka": 80.0,
+        "vkb": 150.75
+      },
+      "expected": 150.75
+    }
+  ],
+  "calculate_proposed_ealf": [
+    {
+      "input": {
+        "core_data": {
+          "alf": 20,
+          "is_px_class": false,
+          "vk_voltage": null
+        },
+        "burden_va": 15,
+        "secondary_current": 1,
+        "rct": 3.5
+      },
+      "expected": {
+        "ealf": 370.0,
+        "is_px": false
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "alf": null,
+          "is_px_class": true,
+          "vk_voltage": 180.0
+        },
+        "burden_va": 30,
+        "secondary_current": 5,
+        "rct": 1.2
+      },
+      "expected": {
+        "ealf": 180.0,
+        "is_px": true
+      }
+    }
+  ]
+}

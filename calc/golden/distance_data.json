@@ -1,0 +1,558 @@
+{
+  "extract_distance_inputs": [
+    {
+      "input": {
+        "common_data": {},
+        "core_data": {}
+      },
+      "expected": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 25,
+          "remote_end": {
+            "R_L_per_km": 0.05,
+            "X_L_per_km": 0.25,
+            "lL": 10
+          },
+          "voltage_level": 132,
+          "frequency": 60
+        },
+        "core_data": {
+          "rct": 5,
+          "burden": 20,
+          "secondary_current": 5,
+          "primary_current": 1000,
+          "relay_burden": 0.1,
+          "primary_time_constant": 50,
+          "fault_type": "3-phase",
+          "ik_alternative": 15000,
+          "zone1_setting": 0.8,
+          "cable_length": 40,
+          "cable_cross_section": 6,
+          "cable_temp": 60,
+          "cable_material": "Aluminium (Al)"
+        }
+      },
+      "expected": {
+        "rct": 5,
+        "burden_va": 20,
+        "secondary_current": 5,
+        "primary_current": 1000,
+        "relay_burden": 0.1,
+        "tp": 50,
+        "iscc_max": 25000,
+        "fault_type": "3-phase",
+        "ik_alternative": 15000,
+        "r_line": 0.05,
+        "x_line": 0.25,
+        "line_length": 10,
+        "klim": 0.8,
+        "cable_length": 40,
+        "cable_cross_section": 6,
+        "cable_temp": 60,
+        "cable_material": "Aluminium (Al)",
+        "voltage_level": 132,
+        "frequency": 60,
+        "dc_resistance_20": 4.61
+      }
+    },
+    {
+      "input": {
+        "common_data": {},
+        "core_data": {
+          "dc_resistance_20": 9.99,
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 4
+        }
+      },
+      "expected": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 9.99
+      }
+    },
+    {
+      "input": {
+        "common_data": {},
+        "core_data": {
+          "cable_material": "Kobber (Cu)",
+          "cable_cross_section": 5
+        }
+      },
+      "expected": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 5,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 3.4482
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 250
+        },
+        "core_data": {
+          "primary_time_constant": 250,
+          "zone1_setting": 1.5,
+          "cable_temp": 100
+        }
+      },
+      "expected": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 250,
+        "iscc_max": 250000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 1.5,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 100,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 0
+        },
+        "core_data": {
+          "primary_time_constant": 0,
+          "zone1_setting": 0,
+          "cable_temp": -50
+        }
+      },
+      "expected": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 0,
+        "iscc_max": 0,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": -50,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      }
+    }
+  ],
+  "extract_fault_current_data": [
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      },
+      "expected": {
+        "tp": 100,
+        "iscc_max": 40000,
+        "voltage_level": 420,
+        "frequency": 50
+      }
+    },
+    {
+      "input": {
+        "rct": 5,
+        "burden_va": 20,
+        "secondary_current": 5,
+        "primary_current": 1000,
+        "relay_burden": 0.1,
+        "tp": 50,
+        "iscc_max": 25000,
+        "fault_type": "3-phase",
+        "ik_alternative": 15000,
+        "r_line": 0.05,
+        "x_line": 0.25,
+        "line_length": 10,
+        "klim": 0.8,
+        "cable_length": 40,
+        "cable_cross_section": 6,
+        "cable_temp": 60,
+        "cable_material": "Aluminium (Al)",
+        "voltage_level": 132,
+        "frequency": 60,
+        "dc_resistance_20": 4.61
+      },
+      "expected": {
+        "tp": 50,
+        "iscc_max": 25000,
+        "voltage_level": 132,
+        "frequency": 60
+      }
+    },
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 9.99
+      },
+      "expected": {
+        "tp": 100,
+        "iscc_max": 40000,
+        "voltage_level": 420,
+        "frequency": 50
+      }
+    },
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 5,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 3.4482
+      },
+      "expected": {
+        "tp": 100,
+        "iscc_max": 40000,
+        "voltage_level": 420,
+        "frequency": 50
+      }
+    },
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 250,
+        "iscc_max": 250000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 1.5,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 100,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      },
+      "expected": {
+        "tp": 250,
+        "iscc_max": 250000,
+        "voltage_level": 420,
+        "frequency": 50
+      }
+    },
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 0,
+        "iscc_max": 0,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": -50,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      },
+      "expected": {
+        "tp": 0,
+        "iscc_max": 0,
+        "voltage_level": 420,
+        "frequency": 50
+      }
+    }
+  ],
+  "validate_input_ranges": [
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      },
+      "expected": []
+    },
+    {
+      "input": {
+        "rct": 5,
+        "burden_va": 20,
+        "secondary_current": 5,
+        "primary_current": 1000,
+        "relay_burden": 0.1,
+        "tp": 50,
+        "iscc_max": 25000,
+        "fault_type": "3-phase",
+        "ik_alternative": 15000,
+        "r_line": 0.05,
+        "x_line": 0.25,
+        "line_length": 10,
+        "klim": 0.8,
+        "cable_length": 40,
+        "cable_cross_section": 6,
+        "cable_temp": 60,
+        "cable_material": "Aluminium (Al)",
+        "voltage_level": 132,
+        "frequency": 60,
+        "dc_resistance_20": 4.61
+      },
+      "expected": []
+    },
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 9.99
+      },
+      "expected": []
+    },
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 100,
+        "iscc_max": 40000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0.85,
+        "cable_length": 65,
+        "cable_cross_section": 5,
+        "cable_temp": 75,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 3.4482
+      },
+      "expected": []
+    },
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 250,
+        "iscc_max": 250000,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 1.5,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": 100,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      },
+      "expected": [
+        "Primary time constant Tp (250 ms) outside typical range (0-200 ms)",
+        "Zone-1 setting Klim (1.5) should be between 0 and 1.0",
+        "Cable temperature (100 \u00b0C) outside typical range (-40 to 90 \u00b0C)",
+        "Short circuit current I_k,max (250.0 kA) outside typical range (0-200 kA)"
+      ]
+    },
+    {
+      "input": {
+        "rct": 4,
+        "burden_va": 30,
+        "secondary_current": 1,
+        "primary_current": 2000,
+        "relay_burden": 0.05,
+        "tp": 0,
+        "iscc_max": 0,
+        "fault_type": "1-phase",
+        "ik_alternative": null,
+        "r_line": 0.0423,
+        "x_line": 0.203,
+        "line_length": 6.4,
+        "klim": 0,
+        "cable_length": 65,
+        "cable_cross_section": 4,
+        "cable_temp": -50,
+        "cable_material": "Kobber (Cu)",
+        "voltage_level": 420,
+        "frequency": 50,
+        "dc_resistance_20": 4.61
+      },
+      "expected": [
+        "Primary time constant Tp (0 ms) outside typical range (0-200 ms)",
+        "Zone-1 setting Klim (0) should be between 0 and 1.0",
+        "Cable temperature (-50 \u00b0C) outside typical range (-40 to 90 \u00b0C)",
+        "Short circuit current I_k,max (0.0 kA) outside typical range (0-200 kA)"
+      ]
+    }
+  ]
+}

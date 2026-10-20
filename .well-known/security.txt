@@ -1,0 +1,7 @@
+# Security contact for ctsizer.com (RFC 9116). See also SECURITY.md in the
+# source repository.
+Contact: mailto:privacy@ctsizer.com
+Expires: 2027-10-01T00:00:00.000Z
+Preferred-Languages: en, da
+Canonical: https://ctsizer.com/.well-known/security.txt
+Policy: https://github.com/maar0005/CTSizer/blob/main/SECURITY.md

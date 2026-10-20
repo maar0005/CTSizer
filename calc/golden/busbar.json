@@ -1,0 +1,669 @@
+{
+  "calculate_busbar": [
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 10,
+          "primary_time_constant": 100
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.02
+        },
+        "cable_resistance": 0.86205,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 100,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "0.8821 VA",
+          "burden_adequacy_check": "OK",
+          "burden_adequacy_detail": "S_n 30.00 VA > S_a 0.8821 VA",
+          "operating_alf_f_a": "139.2858",
+          "fault_current_check": "OK",
+          "fault_current_detail": "F_a 139.2858 >= I_fmax/I_pr 5.00",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 10,
+          "primary_time_constant": 100
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 0.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.02
+        },
+        "cable_resistance": 0.86205,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 100,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "0.8821 VA",
+          "burden_adequacy_check": "NOT_OK",
+          "burden_adequacy_detail": "S_n 0.50 VA <= S_a 0.8821 VA",
+          "operating_alf_f_a": "18.4349",
+          "fault_current_check": "OK",
+          "fault_current_detail": "F_a 18.4349 >= I_fmax/I_pr 5.00",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_inadequate",
+            0.5,
+            0.88205
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 80,
+          "primary_time_constant": 100
+        },
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 5,
+          "relay_burden": 0.02
+        },
+        "cable_resistance": 0.86205,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 100,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "0.8821 VA",
+          "burden_adequacy_check": "OK",
+          "burden_adequacy_detail": "S_n 30.00 VA > S_a 0.8821 VA",
+          "operating_alf_f_a": "34.8214",
+          "fault_current_check": "NOT_OK",
+          "fault_current_detail": "F_a 34.8214 < I_fmax/I_pr 40.00",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_fault_current_ratio_exceeded",
+            34.82143771571369,
+            40.0
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 10,
+          "primary_time_constant": 100
+        },
+        "core_data": {
+          "rct": 4,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 200,
+          "relay_burden": 0.02
+        },
+        "cable_resistance": 0.431025,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 50,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "emf_internal_fault": "22.26 V",
+          "emf_through_fault": "44.51 V",
+          "required_knee_point_voltage_vk": "44.51 V",
+          "specified_knee_point_voltage_vk": "200.00 V",
+          "conclusion": "ct_sufficient",
+          "vk_comparison": "Vk 200.00 V >= Vk_req 44.51 V"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 10,
+          "primary_time_constant": 100
+        },
+        "core_data": {
+          "rct": 4,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 30,
+          "relay_burden": 0.02
+        },
+        "cable_resistance": 0.431025,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 50,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "emf_internal_fault": "22.26 V",
+          "emf_through_fault": "44.51 V",
+          "required_knee_point_voltage_vk": "44.51 V",
+          "specified_knee_point_voltage_vk": "30.00 V",
+          "conclusion": "ct_insufficient",
+          "vk_comparison": "Vk 30.00 V < Vk_req 44.51 V"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_knee_point_voltage_insufficient",
+            "Vk",
+            30,
+            44.51025
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "common_data": {
+          "short_circuit_ka": 20,
+          "primary_time_constant": 80
+        },
+        "core_data": {
+          "rct": 2,
+          "burden": 15,
+          "secondary_current": 5,
+          "primary_current": 1000,
+          "alf": 15,
+          "relay_burden": 0.1
+        },
+        "cable_resistance": 0.91613268,
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "temp_c": 40,
+          "length_m": 60,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "relay_resistance_r_relay": "0.0040 \u03a9",
+          "internal_burden_s_in": "50.0000 VA",
+          "actual_burden_s_a": "23.0033 VA",
+          "burden_adequacy_check": "NOT_OK",
+          "burden_adequacy_detail": "S_n 15.00 VA <= S_a 23.0033 VA",
+          "operating_alf_f_a": "13.3556",
+          "fault_current_check": "NOT_OK",
+          "fault_current_detail": "F_a 13.3556 < I_fmax/I_pr 20.00",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_burden_inadequate",
+            15,
+            23.003317000000003
+          ],
+          [
+            "warning_fault_current_ratio_exceeded",
+            13.355557528981866,
+            20.0
+          ]
+        ]
+      }
+    }
+  ],
+  "by_method": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.02
+        },
+        "common_data": {
+          "short_circuit_ka": 45.2,
+          "primary_time_constant": 100,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "1.6974 VA",
+          "burden_adequacy_check": "OK",
+          "burden_adequacy_detail": "S_n 2.50 VA > S_a 1.6974 VA",
+          "operating_alf_f_a": "22.8174",
+          "fault_current_check": "OK",
+          "fault_current_detail": "F_a 22.8174 >= I_fmax/I_pr 22.60",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.02
+        },
+        "common_data": {
+          "short_circuit_ka": 45.2,
+          "primary_time_constant": 100,
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.8023343
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 7.41,
+          "r_conductor": 0.90116715,
+          "factor": 2,
+          "r_loop": 1.8023343,
+          "in_table": true
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "1.8223 VA",
+          "burden_adequacy_check": "OK",
+          "burden_adequacy_detail": "S_n 2.50 VA > S_a 1.8223 VA",
+          "operating_alf_f_a": "22.3278",
+          "fault_current_check": "NOT_OK",
+          "fault_current_detail": "F_a 22.3278 < I_fmax/I_pr 22.60",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_fault_current_ratio_exceeded",
+            22.327814464380722,
+            22.6
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 57.5,
+          "relay_burden": 0.02
+        },
+        "common_data": {
+          "short_circuit_ka": 10,
+          "primary_time_constant": 100,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "emf_internal_fault": "28.49 V",
+          "emf_through_fault": "56.97 V",
+          "required_knee_point_voltage_vk": "56.97 V",
+          "specified_knee_point_voltage_vk": "57.50 V",
+          "conclusion": "ct_sufficient",
+          "vk_comparison": "Vk 57.50 V >= Vk_req 56.97 V"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 57.5,
+          "relay_burden": 0.02
+        },
+        "common_data": {
+          "short_circuit_ka": 10,
+          "primary_time_constant": 100,
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.8023343
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 7.41,
+          "r_conductor": 0.90116715,
+          "factor": 2,
+          "r_loop": 1.8023343,
+          "in_table": true
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "emf_internal_fault": "29.11 V",
+          "emf_through_fault": "58.22 V",
+          "required_knee_point_voltage_vk": "58.22 V",
+          "specified_knee_point_voltage_vk": "57.50 V",
+          "conclusion": "ct_insufficient",
+          "vk_comparison": "Vk 57.50 V < Vk_req 58.22 V"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_knee_point_voltage_insufficient",
+            "Vk",
+            57.5,
+            58.223343
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.02
+        },
+        "common_data": {
+          "short_circuit_ka": 45.4,
+          "primary_time_constant": 100,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 150,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.72619145
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.71,
+          "r_conductor": 0.863095725,
+          "factor": 2,
+          "r_loop": 1.72619145
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "1.7462 VA",
+          "burden_adequacy_check": "OK",
+          "burden_adequacy_detail": "S_n 2.50 VA > S_a 1.7462 VA",
+          "operating_alf_f_a": "22.6237",
+          "fault_current_check": "NOT_OK",
+          "fault_current_detail": "F_a 22.6237 < I_fmax/I_pr 22.70",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_fault_current_ratio_exceeded",
+            22.623680594561467,
+            22.7
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.02
+        },
+        "common_data": {
+          "short_circuit_ka": 45.4,
+          "primary_time_constant": 100,
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 150,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.6895419499999997
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.8447709749999999,
+          "factor": 2,
+          "r_loop": 1.6895419499999997,
+          "in_table": true
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "1.7095 VA",
+          "burden_adequacy_check": "OK",
+          "burden_adequacy_detail": "S_n 2.50 VA > S_a 1.7095 VA",
+          "operating_alf_f_a": "22.7689",
+          "fault_current_check": "OK",
+          "fault_current_detail": "F_a 22.7689 >= I_fmax/I_pr 22.70",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    }
+  ],
+  "by_topology": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.02
+        },
+        "common_data": {
+          "short_circuit_ka": 45.2,
+          "primary_time_constant": 100,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "1.6974 VA",
+          "burden_adequacy_check": "OK",
+          "burden_adequacy_detail": "S_n 2.50 VA > S_a 1.6974 VA",
+          "operating_alf_f_a": "22.8174",
+          "fault_current_check": "OK",
+          "fault_current_detail": "F_a 22.8174 >= I_fmax/I_pr 22.60",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 2.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20,
+          "relay_burden": 0.02
+        },
+        "common_data": {
+          "short_circuit_ka": 45.2,
+          "primary_time_constant": 100,
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372,
+        "cable_topology": "six_wire"
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "relay_resistance_r_relay": "0.0200 \u03a9",
+          "internal_burden_s_in": "4.0000 VA",
+          "actual_burden_s_a": "1.6974 VA",
+          "burden_adequacy_check": "OK",
+          "burden_adequacy_detail": "S_n 2.50 VA > S_a 1.6974 VA",
+          "operating_alf_f_a": "22.8174",
+          "fault_current_check": "OK",
+          "fault_current_detail": "F_a 22.8174 >= I_fmax/I_pr 22.60",
+          "manufacturer_fa_check": "N/A",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    }
+  ]
+}

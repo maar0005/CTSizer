@@ -1,0 +1,421 @@
+{
+  "calculate_generic_protection": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 30,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 20
+        },
+        "cable_resistance": 0.86205,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 100,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "burden_resistance_rn": "30.0000 \u03a9",
+          "total_external_resistance": "0.8620 \u03a9",
+          "actual_alf": "139.86",
+          "knee_point_voltage_ealf": "680.00 V",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "burden": 2,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 1
+        },
+        "cable_resistance": 27.5856,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 2000,
+          "cross_mm2": 2.5
+        }
+      },
+      "expected": {
+        "calculations": {
+          "burden_resistance_rn": "2.0000 \u03a9",
+          "total_external_resistance": "27.5856 \u03a9",
+          "actual_alf": "0.19",
+          "knee_point_voltage_ealf": "6.00 V",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_alf_insufficient",
+            0.18995998176384177,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 200
+        },
+        "cable_resistance": 0.431025,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 50,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "burden_resistance_rn": "30.0000 \u03a9",
+          "total_external_resistance": "0.4310 \u03a9",
+          "specified_knee_point_voltage_vk": "200.00 V",
+          "equivalent_alf_from_vk": "45.14",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 4,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 2
+        },
+        "cable_resistance": 0.431025,
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "temp_c": 20,
+          "length_m": 50,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "burden_resistance_rn": "30.0000 \u03a9",
+          "total_external_resistance": "0.4310 \u03a9",
+          "specified_knee_point_voltage_vk": "2.00 V",
+          "equivalent_alf_from_vk": "0.45",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_alf_insufficient",
+            0.4513628336558697,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 15,
+          "secondary_current": 5,
+          "primary_current": 1000
+        },
+        "cable_resistance": 0.91613268,
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "temp_c": 40,
+          "length_m": 60,
+          "cross_mm2": 4
+        }
+      },
+      "expected": {
+        "calculations": {
+          "burden_resistance_rn": "0.6000 \u03a9",
+          "total_external_resistance": "0.9161 \u03a9",
+          "actual_alf": "26.75",
+          "knee_point_voltage_ealf": "390.00 V",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    }
+  ],
+  "by_method": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 1.74,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 1
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "burden_resistance_rn": "1.7400 \u03a9",
+          "total_external_resistance": "1.6774 \u03a9",
+          "actual_alf": "1.02",
+          "knee_point_voltage_ealf": "3.74 V",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 1.74,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 1
+        },
+        "common_data": {
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.8023343
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 7.41,
+          "r_conductor": 0.90116715,
+          "factor": 2,
+          "r_loop": 1.8023343,
+          "in_table": true
+        },
+        "calculations": {
+          "burden_resistance_rn": "1.7400 \u03a9",
+          "total_external_resistance": "1.8023 \u03a9",
+          "actual_alf": "0.98",
+          "knee_point_voltage_ealf": "3.74 V",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_alf_insufficient",
+            0.9836063073149566,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 0.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 2.206
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 150,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.72619145
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "r20_per_km": 4.71,
+          "r_conductor": 0.863095725,
+          "factor": 2,
+          "r_loop": 1.72619145
+        },
+        "calculations": {
+          "burden_resistance_rn": "30.0000 \u03a9",
+          "total_external_resistance": "1.7262 \u03a9",
+          "specified_knee_point_voltage_vk": "2.21 V",
+          "equivalent_alf_from_vk": "0.99",
+          "conclusion": "ct_insufficient"
+        },
+        "status": "NOT_OK",
+        "warnings": [
+          [
+            "warning_alf_insufficient",
+            0.9909300478177652,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 0.5,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "is_px_class": true,
+          "vk_voltage": 2.206
+        },
+        "common_data": {
+          "cable_r_method": "table",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Aluminium (Al)",
+          "length_m": 150,
+          "cross_mm2": 6
+        },
+        "cable_resistance": 1.6895419499999997
+      },
+      "expected": {
+        "cable_res": {
+          "method": "table",
+          "topology": "six_wire",
+          "r20_per_km": 4.61,
+          "r_conductor": 0.8447709749999999,
+          "factor": 2,
+          "r_loop": 1.6895419499999997,
+          "in_table": true
+        },
+        "calculations": {
+          "burden_resistance_rn": "30.0000 \u03a9",
+          "total_external_resistance": "1.6895 \u03a9",
+          "specified_knee_point_voltage_vk": "2.21 V",
+          "equivalent_alf_from_vk": "1.01",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    }
+  ],
+  "by_topology": [
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 1.74,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 1
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "four_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "burden_resistance_rn": "1.7400 \u03a9",
+          "total_external_resistance": "1.6774 \u03a9",
+          "actual_alf": "1.02",
+          "knee_point_voltage_ealf": "3.74 V",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    },
+    {
+      "input": {
+        "core_data": {
+          "rct": 2,
+          "burden": 1.74,
+          "secondary_current": 1,
+          "primary_current": 2000,
+          "alf": 1
+        },
+        "common_data": {
+          "cable_r_method": "iec60287",
+          "cable_temp": 75
+        },
+        "cable_params": {
+          "material": "Kobber (Cu)",
+          "length_m": 100,
+          "cross_mm2": 2.5
+        },
+        "cable_resistance": 1.677411372,
+        "cable_topology": "six_wire"
+      },
+      "expected": {
+        "cable_res": {
+          "method": "iec60287",
+          "topology": "six_wire",
+          "current_case": "single_phase",
+          "r20_per_km": 6.8964,
+          "r_conductor": 0.838705686,
+          "factor": 2,
+          "r_loop": 1.677411372
+        },
+        "calculations": {
+          "burden_resistance_rn": "1.7400 \u03a9",
+          "total_external_resistance": "1.6774 \u03a9",
+          "actual_alf": "1.02",
+          "knee_point_voltage_ealf": "3.74 V",
+          "conclusion": "ct_sufficient"
+        },
+        "status": "OK",
+        "warnings": []
+      }
+    }
+  ]
+}
