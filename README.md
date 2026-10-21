@@ -1,6 +1,6 @@
 # CTSizer
 
-![Tests: 6,235 passed](https://img.shields.io/badge/tests-6235%20passed-brightgreen)
+![Tests: 6,289 passed](https://img.shields.io/badge/tests-6289%20passed-brightgreen)
 
 CTSizer is a free web application for dimensioning current transformers (CT)
 and voltage transformers (VT) for protection and metering. It runs at
@@ -58,7 +58,7 @@ and open <http://127.0.0.1:8000/>.
 ## Tests
 
 Every release of ctsizer.com passes the whole test suite before it is
-published: **6,235 checks in 59 test groups**, all passing
+published: **6,289 checks in 62 test groups**, all passing
 on this commit. **[TESTS.md](TESTS.md)** lists every test group, what it
 checks and how many checks it has, with links to the test code.
 
@@ -67,7 +67,7 @@ checks and how many checks it has, with links to the test code.
 Python reference implementation that the CTSizer calculations were ported
 from. The JavaScript calculation engine is checked against those numbers, so
 each result is pinned to the reference instead of to hand-derived values. The
-other 950 checks are worked out by hand.
+other 1,004 checks are worked out by hand.
 
 Run the suite yourself with Node.js 18 or newer:
 

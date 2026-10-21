@@ -53,7 +53,7 @@ const CTSReport = (() => {
       cores_ok: '{ok} of {n} cores correctly dimensioned.',
       system_data: 'Station and system data',
       station_name: 'Station name', station_abbr: 'Abbreviation', un: 'Un — Nominal voltage',
-      fr: 'fr — Frequency', ik: 'Ik max — System fault current', tp: 'Tp — Primary time constant',
+      fr: 'fr — Frequency', ik: 'Ik3 max — 3-phase fault current', ik1: 'Ik1 max — 1-phase-to-earth fault current', tp: 'Tp — Primary time constant',
       tp_confirmed: 'Tp confirmed', yes: 'Yes', no: 'No',
       cable_method: 'Cable resistance method', cable_temp: 'Cable temperature (all cores)',
       cable_rho_source: 'Conductor resistivity (source)',
@@ -69,7 +69,7 @@ const CTSReport = (() => {
       methodology: 'Methodology and standards',
       meth_base: 'The calculations in this report follow the IEC 61869 series. Lead resistances are calculated with the project\u2019s cable resistance method at the project cable temperature. Each core is checked against the requirements of its application; a core is correctly dimensioned when every requirement is met.',
       meth_overcurrent: 'Overcurrent: the actual accuracy limit factor with the connected burden (ALFact) must reach the required factor ALFreq = Ik,max / Ipr (IEC 61869-2).',
-      meth_metering: 'Metering: the connected burden must lie between the minimum burden and the rated burden, and the instrument security factor at the connected burden (Fsa) must not exceed the required maximum (IEC 61869-2).',
+      meth_metering: 'Metering: the connected burden must lie between the minimum burden and the rated burden, and the instrument security factor at the connected burden (Fsa) must not exceed the required maximum (IEC 61869-2). The rated primary current must be the nearest standard value at or above the load current of the bay\u2019s connection, In = Sn / (\u221a3\u00b7U) (IEC 61869-2 5.3.201).',
       meth_busbar: 'Busbar: the burden, the accuracy limit factor at the actual burden (Fa) against the fault current ratio, and the manufacturer\u2019s minimum Fa are checked.',
       meth_distance: 'Distance protection: the required knee point voltage follows from the transient dimensioning factors Ktd for close-in and zone-1 faults (IEC TR 61869-100). The offered EALF must reach Vk,req. With auto-reclosure the C-O-C-O duty cycle is checked as well.',
       meth_line_diff: 'Line differential: the required knee point voltage is the largest e.m.f. for internal and through faults (three- and single-phase) with the loop resistance of each case.',
@@ -129,7 +129,7 @@ const CTSReport = (() => {
       cores_ok: '{ok} af {n} kerner korrekt dimensioneret.',
       system_data: 'Station- og systemdata',
       station_name: 'Stationsnavn', station_abbr: 'Forkortelse', un: 'Un — Nominel spænding',
-      fr: 'fr — Frekvens', ik: 'Ik max — Systemets kortslutningsstrøm', tp: 'Tp — Primær tidskonstant',
+      fr: 'fr — Frekvens', ik: 'Ik3 max — 3-faset kortslutningsstrøm', ik1: 'Ik1 max — 1-faset kortslutningsstrøm (fase–jord)', tp: 'Tp — Primær tidskonstant',
       tp_confirmed: 'Tp bekræftet', yes: 'Ja', no: 'Nej',
       cable_method: 'Metode for kabelmodstand', cable_temp: 'Kabeltemperatur (alle kerner)',
       cable_rho_source: 'Lederresistivitet (kilde)',
@@ -145,7 +145,7 @@ const CTSReport = (() => {
       methodology: 'Metode og standarder',
       meth_base: 'Beregningerne i denne rapport følger IEC 61869-serien. Ledningsmodstande beregnes med projektets metode for kabelmodstand ved projektets kabeltemperatur. Hver kerne kontrolleres mod kravene for dens applikation; en kerne er korrekt dimensioneret, når alle krav er opfyldt.',
       meth_overcurrent: 'Overstrøm: den aktuelle nøjagtighedsgrænsefaktor ved den tilsluttede byrde (ALFact) skal nå den krævede faktor ALFreq = Ik,max / Ipr (IEC 61869-2).',
-      meth_metering: 'Måling: den tilsluttede byrde skal ligge mellem minimumsbyrden og mærkebyrden, og sikkerhedsfaktoren ved den tilsluttede byrde (Fsa) må ikke overstige det krævede maksimum (IEC 61869-2).',
+      meth_metering: 'Måling: den tilsluttede byrde skal ligge mellem minimumsbyrden og mærkebyrden, og sikkerhedsfaktoren ved den tilsluttede byrde (Fsa) må ikke overstige det krævede maksimum (IEC 61869-2). Mærkeprimærstrømmen skal være den nærmeste standardværdi på eller over belastningsstrømmen for feltets forbindelse, In = Sn / (\u221a3\u00b7U) (IEC 61869-2 5.3.201).',
       meth_busbar: 'Samleskinne: byrden, nøjagtighedsgrænsefaktoren ved den aktuelle byrde (Fa) mod fejlstrømsforholdet og producentens minimum for Fa kontrolleres.',
       meth_distance: 'Distancebeskyttelse: den krævede knæpunktsspænding følger af de transiente dimensioneringsfaktorer Ktd for nærfejl og zone-1-fejl (IEC TR 61869-100). Den tilbudte EALF skal nå Vk,req. Med genindkobling kontrolleres C-O-C-O-cyklussen også.',
       meth_line_diff: 'Linjedifferential: den krævede knæpunktsspænding er den største e.m.k. for interne og gennemgående fejl (tre- og enfasede) med sløjfemodstanden for hvert tilfælde.',
@@ -228,6 +228,8 @@ const CTSReport = (() => {
       hint_lead_burden_above_sn: 'The cable burden alone ({0} VA) exceeds Sn = {1} VA: use a larger cross-section, a shorter cable, a 1 A secondary or a higher rated output.',
       hint_extended_burden_range: 'S = {0} VA is below Smin = {1} VA. A CT with the extended burden range (IEC 61869-2 5.6.201.4, 1 VA \u2013 Sn) meets cond. 1; otherwise add burden.',
       warning_extended_range_sn_above_15: 'The extended burden range is only defined for Sn \u2264 {1} VA (IEC 61869-2 5.6.201.4); Sn = {0} VA uses the standard range.',
+      warning_ipr_below_load: 'Cond. 3 not met: Ipr = {0} A is below the load current In = {1} A ({2} MVA at {3} kV). Choose Ipr = {4} A, the nearest standard rated primary current at or above the load (IEC 61869-2 5.3.201).',
+      warning_ipr_above_standard: 'Cond. 3 not met: Ipr = {0} A is above {4} A, the nearest standard rated primary current at or above the load In = {1} A ({2} MVA at {3} kV). The CT would meter the load at {5} % of Ipr: choose Ipr = {4} A.',
       warning_vt_range_ii_below_25: 'Burden range II: the burden utilization {0} % is below 25 % of the rated burden (IEC 61869-3 5.6.301.3). Add burden or specify a range I VT.',
       // The same remarks under Elmåling / TR 353 (calc/local_rules/dk_elmaaling.js), without the "add burden" advice it does not allow
       hint_metering_add_burden_dk_lv: 'Cond. 2 needs a total burden of at least {1} VA ({0} VA more), but Elmåling (TR 353 \u00a76.2) allows no extra burden in the metering circuit at \u2264 1 kV: choose a meter with a higher Fmin, a CT with a lower FS or a lower rated burden Sn (not below S).',
@@ -260,7 +262,10 @@ const CTSReport = (() => {
       warning_emf_insufficient: 'E.m.f. insufficient: {0} = {1} V < Vk,req = {2} V.',
       warning_knee_point_voltage_insufficient: 'Knee point voltage insufficient: {0} = {1} V < Vk,req = {2} V.',
       warning_auto_reclosure_eal_below_vk: 'Auto-reclosure: EAL,AR = {0} V exceeds the proposed Vk = {1} V.',
-      warning_total_resistance_capped: 'Total resistance {0} \u03a9 capped at {1} \u03a9.',
+      // CTSizer's sanity checks (calc/plausibility.js, issue #154)
+      warning_vk_required_above_limit: '{0} = {1} V exceeds the secondary voltage limit of {2} V (about 3 kV peak): the secondary wiring, terminals and relay inputs are not rated for it. Lower it with a 1 A secondary, a higher ratio, shorter or thicker leads or a lower relay burden.',
+      warning_offered_emf_above_limit: '{0} = {1} V exceeds the secondary voltage limit of {2} V (about 3 kV peak): such a CT drives voltages the secondary circuit is not rated for. Check ALF, Sn and Rct.',
+      warning_rct_implausible: 'Rct = {0} \u03a9 is {1} m\u03a9 per secondary turn (N = {2}), more than {5} \u00d7 the typical maximum of {3} m\u03a9/turn for Isr = {4} A (rule-of-thumb table, one primary turn). A higher Rct raises EALF on paper: confirm Rct with the rating plate, the test report or a measurement.',
       warning_alf_insufficient: 'ALF insufficient: ALF offered = {0} < ALF required = {1}.',
       warning_ar_eal_insufficient: 'Auto-reclosure: the C-O-C-O EAL,AR = {1} V exceeds the offered EALF = {0} V \u2014 the CT cannot handle the duty cycle.',
       warning_ik1_higher_than_ik3: 'Single-phase fault current (Ik1 = {ik1}) is higher than three-phase (Ik3 = {ik3}). This is normal for solidly earthed EHV systems; the CT is dimensioned for Ik1.',
@@ -279,6 +284,8 @@ const CTSReport = (() => {
       hint_lead_burden_above_sn: 'Kabelbyrden alene ({0} VA) overstiger Sn = {1} VA: brug et større tværsnit, et kortere kabel, 1 A sekundær eller en højere mærkebyrde.',
       hint_extended_burden_range: 'S = {0} VA er under Smin = {1} VA. En CT med udvidet byrdeområde (IEC 61869-2 5.6.201.4, 1 VA \u2013 Sn) opfylder bet. 1; ellers tilføj byrde.',
       warning_extended_range_sn_above_15: 'Det udvidede byrdeområde er kun defineret for Sn \u2264 {1} VA (IEC 61869-2 5.6.201.4); Sn = {0} VA bruger standardområdet.',
+      warning_ipr_below_load: 'Bet. 3 ikke opfyldt: Ipr = {0} A er under belastningsstrømmen In = {1} A ({2} MVA ved {3} kV). Vælg Ipr = {4} A, den nærmeste standard-mærkeprimærstrøm på eller over belastningen (IEC 61869-2 5.3.201).',
+      warning_ipr_above_standard: 'Bet. 3 ikke opfyldt: Ipr = {0} A er over {4} A, den nærmeste standard-mærkeprimærstrøm på eller over belastningen In = {1} A ({2} MVA ved {3} kV). Strømtransformeren ville måle belastningen ved {5} % af Ipr: vælg Ipr = {4} A.',
       warning_vt_range_ii_below_25: 'Byrdeområde II: byrdeudnyttelsen {0} % er under 25 % af mærkebyrden (IEC 61869-3 5.6.301.3). Tilføj byrde eller specificér en VT med område I.',
       hint_metering_add_burden_dk_lv: 'Bet. 2 kræver en samlet byrde på mindst {1} VA ({0} VA mere), men Elmåling (TR 353 \u00a76.2) tillader ikke ekstra byrde i målekredsen ved \u2264 1 kV: vælg en måler med højere Fmin, en CT med lavere FS eller en lavere mærkebyrde Sn (ikke under S).',
       hint_metering_add_burden_dk_hv: 'Bet. 2 kræver en samlet byrde på mindst {1} VA: tilføj {0} VA med længere tilledninger eller et mindre tværsnit (ikke under 1,5 mm\u00b2, Elmåling TR 353 \u00a76.2; ikke med en modstand), eller vælg en måler med højere Fmin.',
@@ -310,7 +317,9 @@ const CTSReport = (() => {
       warning_emf_insufficient: 'E.m.k. utilstrækkelig: {0} = {1} V < Vk,req = {2} V.',
       warning_knee_point_voltage_insufficient: 'Knæpunktsspænding utilstrækkelig: {0} = {1} V < Vk,req = {2} V.',
       warning_auto_reclosure_eal_below_vk: 'Genindkobling: EAL,AR = {0} V overstiger den foreslåede Vk = {1} V.',
-      warning_total_resistance_capped: 'Total modstand {0} \u03a9 begrænset til {1} \u03a9.',
+      warning_vk_required_above_limit: '{0} = {1} V overstiger grænsen for sekundærspænding på {2} V (ca. 3 kV spids): sekundærledninger, klemmer og relæindgange er ikke dimensioneret til det. Sænk den med 1 A sekundær, højere omsætning, kortere eller tykkere ledninger eller lavere relæbyrde.',
+      warning_offered_emf_above_limit: '{0} = {1} V overstiger grænsen for sekundærspænding på {2} V (ca. 3 kV spids): en sådan strømtransformer driver spændinger, sekundærkredsen ikke er dimensioneret til. Kontrollér ALF, Sn og Rct.',
+      warning_rct_implausible: 'Rct = {0} \u03a9 er {1} m\u03a9 pr. sekundærvinding (N = {2}), mere end {5} \u00d7 det typiske maksimum på {3} m\u03a9/vinding for Isr = {4} A (tommelfingerregel, én primærvinding). En højere Rct hæver EALF på papiret: bekræft Rct med mærkeskiltet, prøvningsrapporten eller en måling.',
       warning_alf_insufficient: 'ALF utilstrækkelig: ALF tilbudt = {0} < ALF krævet = {1}.',
       warning_ar_eal_insufficient: 'Genindkobling: C-O-C-O EAL,AR = {1} V overstiger den tilbudte EALF = {0} V \u2014 CT\u2019en kan ikke håndtere cyklussen.',
       warning_ik1_higher_than_ik3: '1-faset kortslutningsstrøm (Ik1 = {ik1}) er højere end 3-faset (Ik3 = {ik3}). Det er normalt for direkte jordede EHV-net; CT\u2019en dimensioneres for Ik1.',
@@ -705,7 +714,8 @@ const CTSReport = (() => {
     const m = /^(ur_kv|isc_int)_(HV|LV|TV)$/.exec(key);
     if (m) return { label: UI(lang, m[1] === 'ur_kv' ? 'lbl_ur_w' : 'lbl_isc_int_w').replace('{w}', m[2]), unit: m[1] === 'ur_kv' ? 'kV' : 'kA', scale: m[1] === 'isc_int' ? 1000 : 1 };
     const map = { sr_mva: ['lbl_sr', 'MVA'], z_percent: ['lbl_z_percent', '%'], inrush_factor: ['lbl_inrush', ''], winding_count: ['lbl_winding_count', ''],
-      r_per_km: ['lbl_r_per_km', '\u03a9/km'], x_per_km: ['lbl_x_per_km', '\u03a9/km'], line_length: ['lbl_line_length', 'km'] };
+      r_per_km: ['lbl_r_per_km', '\u03a9/km'], x_per_km: ['lbl_x_per_km', '\u03a9/km'], line_length: ['lbl_line_length', 'km'],
+      sn_mva: ['lbl_sn_conn', 'MVA'] };
     const [k, unit] = map[key] || [key, ''];
     return { label: UI(lang, k), unit, scale: 1 };
   }
@@ -735,12 +745,13 @@ const CTSReport = (() => {
     return '';
   }
   // The bay's data as report rows: { trafo: [[label, value, unit]…],
-  // windings: [[w, Ur, Isc,max,int kA]…], line: [[label, value, unit]…] },
-  // entered values only (a part is null when the bay does not use / hold it)
+  // windings: [[w, Ur, Isc,max,int kA]…], line: [[label, value, unit]…],
+  // conn: [[label, value, unit]…] (#155) }, entered values only (a part is
+  // null when the bay does not use / hold it)
   function bayRows(lang, f) {
-    if (typeof CTBay === 'undefined' || !f) return { trafo: null, windings: null, line: null, notes: [] };
+    if (typeof CTBay === 'undefined' || !f) return { trafo: null, windings: null, line: null, conn: null, notes: [] };
     const row = (key, src) => { const b = bayField(lang, key); return [b.label, bayShown(lang, key, src[key]), b.unit]; };
-    let trafo = null, windings = null, line = null;
+    let trafo = null, windings = null, line = null, conn = null;
     if (CTBay.showsTransformer(f)) {
       const t = f.transformer || {};
       trafo = ['sr_mva', 'z_percent', 'inrush_factor'].map((k) => row(k, t));
@@ -754,7 +765,8 @@ const CTSReport = (() => {
         .filter((r) => isFilled(r[1]) || isFilled(r[2]));
     }
     if (CTBay.showsLine(f)) line = CTBay.LINE_KEYS.map((k) => row(k, f.line || {})).filter((r) => isFilled(r[1]));
-    return { trafo, windings, line, notes: (f.bay_notes || []).map((n) => bayNoteText(lang, n)) };
+    if (CTBay.showsConnection(f)) conn = CTBay.CONN_KEYS.map((k) => row(k, f.connection || {})).filter((r) => isFilled(r[1]));
+    return { trafo, windings, line, conn, notes: (f.bay_notes || []).map((n) => bayNoteText(lang, n)) };
   }
 
   // ── 87T zone (#135, CTTransformerDiff.zone) ───────────────────────────
@@ -1175,6 +1187,7 @@ const CTSReport = (() => {
       [st('un'), system.voltage, 'kV'],
       [st('fr'), system.freq, 'Hz'],
       [st('ik'), system.isc_sys, 'kA'],
+      [st('ik1'), system.isc_1ph, 'kA'],
       [st('tp'), system.tp, 'ms'],
       [st('tp_confirmed'), system.tp_confirmed ? st('yes') : st('no'), ''],
       [st('cable_method'), method, ''],
@@ -1274,6 +1287,10 @@ const CTSReport = (() => {
     if (bd.line) {
       out += heading(3, UI(lang, 'section_bay_line'));
       if (bd.line.length) out += kvTable(lang, bd.line);
+    }
+    if (bd.conn) {
+      out += heading(3, UI(lang, 'section_bay_conn'));
+      if (bd.conn.length) out += kvTable(lang, bd.conn);
     }
     if (bd.notes.length) {
       out += spacer(120) + para(`{\\b ${esc(UI(lang, 'bay_notes_h'))}}`, '\\keepn\\sb120');

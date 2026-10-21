@@ -24,9 +24,14 @@ const CTOvercurrent = (() => {
     // ct_base.get_alf_or_vk — resolves alf/vk/is_px (conservative default ALF 30)
     const { alf, vk, is_px } = CTBase.getAlfOrVk(core);
 
+    // The project's design current: the larger of Ik3 max and Ik1 max, as
+    // the lead below is the 1-phase one (CTFaultLevel)
+    const ik3Ka = commonData.isc_sys ?? 63;
     const Isc_max = Isc_max_override != null
       ? Isc_max_override
-      : (commonData.isc_sys ?? 63) * 1000;
+      : CTFaultLevel.governingKa(ik3Ka, commonData.isc_1ph) * 1000;
+    const ikStep = Isc_max_override != null ? null
+      : CTFaultLevel.governingStep(ik3Ka, commonData.isc_1ph);
 
     // Lead resistance R_lead = k·R_c — the project's method and temperature,
     // the core's wiring. Overcurrent takes the worst current case, the 1-phase
@@ -62,6 +67,7 @@ const CTOvercurrent = (() => {
 
     const steps = [
       ...cable.steps,
+      ...(ikStep ? [ikStep] : []),
       CTStep.make({
         key:'relay_r', label_en:'Relay resistance', label_da:'Relæmodstand',
         latex:'R_{relay}=\\frac{S_R}{I_{sr}^2}', result:Rr, unit:'Ω',

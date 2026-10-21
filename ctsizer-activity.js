@@ -103,9 +103,9 @@ const CTSActivity = (() => {
       if (of.name !== f.name) log('structure', `Renamed bay "${of.name}" → "${f.name}"`);
       if (of.feeder_type !== f.feeder_type)
         log('input', `${f.name} · bay type`, { key: `${f.id}.type`, from: of.feeder_type, to: f.feeder_type });
-      // the bay's transformer / line data (#133)
-      if (of.transformer !== f.transformer || of.line !== f.line) {
-        const flat = (x) => ({ ...(x.transformer || {}), ...(x.line || {}) });
+      // the bay's transformer / line / connection data (#133, #155)
+      if (of.transformer !== f.transformer || of.line !== f.line || of.connection !== f.connection) {
+        const flat = (x) => ({ ...(x.transformer || {}), ...(x.line || {}), ...(x.connection || {}) });
         diffInputs(`${f.name} · bay data`, `${f.id}.bay`, flat(of), flat(f));
       }
       const pd = byId(of.devices);

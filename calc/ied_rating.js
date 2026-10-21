@@ -104,7 +104,8 @@ const CTIedRating = (() => {
   function faultCurrentFor(calcType, core, commonData = {}) {
     switch (calcType) {
       case 'overcurrent':
-        return core.Isc_max_override != null ? core.Isc_max_override : (commonData.isc_sys ?? 63) * 1000;
+        return core.Isc_max_override != null ? core.Isc_max_override
+          : CTFaultLevel.governingKa(commonData.isc_sys ?? 63, commonData.isc_1ph) * 1000;
       case 'distance':
         return CTDistance.data.extractDistanceInputs(core, commonData).iscc_max;
       case 'line_diff':
@@ -115,7 +116,7 @@ const CTIedRating = (() => {
         return currents.length ? Math.max(...currents) : null;
       }
       default: // busbar, generic
-        return (commonData.isc_sys ?? 40) * 1000;
+        return CTFaultLevel.governingKa(commonData.isc_sys ?? 40, commonData.isc_1ph) * 1000;
     }
   }
 

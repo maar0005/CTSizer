@@ -54,6 +54,7 @@ const CTTests = (() => {
   const CTSIZER_ONLY_WARNINGS = [
     ...((typeof CTMetering !== 'undefined' && CTMetering.EXTRA_WARNINGS) || []),
     'warning_vt_range_ii_below_25', 'warning_vt_range_nonstandard',
+    ...((typeof CTPlausibility !== 'undefined' && CTPlausibility.KEYS) || []),
   ];
   const pyWarnings = (ws) => (Array.isArray(ws)
     ? ws.filter((w) => !(Array.isArray(w) && CTSIZER_ONLY_WARNINGS.includes(w[0]))) : ws);
@@ -3575,6 +3576,110 @@ const CTTests = (() => {
     return results;
   }
 
+  // ── PLAUSIBILITY (calc/plausibility.js, issue #154; hand-derived) ─────
+  function testPlausibility() {
+    const results = [];
+    const P = CTPlausibility;
+    const sys = { voltage: 420, freq: '50', isc_sys: 40, tp: 100, cable_r_method: 'iec60287',
+      cable_temp: 75, cable_rho_mode: 'iec' };
+    const ld = {
+      relay_burden: 0.1, ct_class_family: '5PR', is_px: false, ct_class_alf: 30, alf: 30,
+      Ip: 4000, Is: 5, burden: 30, cable_length: 900, cable_cross: 1.5, cable_mat: 'cu',
+      cable_topology: 'four_wire', rct: 100,
+    };
+    const keysOf = (r) => r.warnings.filter((w) => P.KEYS.includes(w[0])).map((w) => w[0]).join(',');
+    const step = (r) => r.steps.find((st) => st.key === 'secondary_voltage_limit');
+
+    // The issue's core: EALF = 30·5·(100 + 30/25) = 15 180 V, Vk,req 12 516.5 V,
+    // both above 2 kV → NOT_OK although EALF ≥ Vk,req; Rct 100 Ω / 800 turns =
+    // 125 mΩ/turn > 3 × 2.8
+    const r1 = CTCalc.calculate('line_diff', ld, sys);
+    const raw1 = CTLineDiff.calculate(CTCalc.moduleCore('line_diff', ld, sys), sys);
+    results.push(assert('PLAUS #154 line diff above 2 kV fails the core',
+      raw1.is_ok === true && r1.is_ok === false && r1.status === 'NOT_OK' && r1.conclusion === 'ct_insufficient'
+        && step(r1).is_ok === false && step(r1).comparison === '15180.00 V > 2000 V',
+      `${raw1.is_ok} → ${r1.is_ok} / ${step(r1)?.comparison}`, 'true → false / 15180.00 V > 2000 V'));
+    results.push(assert('PLAUS #154 remarks: Rct, Vk,req and EALF',
+      keysOf(r1) === 'warning_rct_implausible,warning_vk_required_above_limit,warning_offered_emf_above_limit',
+      keysOf(r1), 'warning_rct_implausible,warning_vk_required_above_limit,warning_offered_emf_above_limit'));
+    results.push(assert('PLAUS #154 margin is the voltage limit’s',
+      approx(r1.margin, (2000 / 15180 - 1) * 100), r1.margin, (2000 / 15180 - 1) * 100, ' %'));
+    const rw = r1.warnings.find((w) => w[0] === 'warning_rct_implausible');
+    results.push(assert('PLAUS #154 Rct remark values (125 mΩ/turn, N 800, max 2.8, 5 A, × 3)',
+      rw[1] === 100 && approx(rw[2], 125) && rw[3] === '800' && rw[4] === 2.8 && rw[5] === 5 && rw[6] === 3,
+      JSON.stringify(rw), '[…, 100, 125, 800, 2.8, 5, 3]'));
+    // The screenshot: Rct 50 Ω passed the knee point check (7680 ≥ 7516.5 V) only on paper
+    const r50 = CTCalc.calculate('line_diff', { ...ld, rct: 50 }, sys);
+    results.push(assert('PLAUS Rct 50 Ω: EALF 7680 V fails the 2 kV limit',
+      approx(r50.secondary_voltage.offered.value, 7680) && r50.is_ok === false, r50.secondary_voltage.max, 7680, ' V'));
+
+    // A realistic 4000/1 A core: Rct 14 Ω (3.5 mΩ/turn), EALF 30·(14 + 30) = 1320 V
+    const ok = CTCalc.calculate('line_diff', { ...ld, Is: 1, rct: 14, cable_length: 100, cable_cross: 4 }, sys);
+    results.push(assert('PLAUS realistic 1 A core: passes, no remark, step row OK',
+      ok.is_ok === true && keysOf(ok) === '' && step(ok).is_ok === true && approx(ok.secondary_voltage.max, 1320),
+      `${ok.is_ok} ${keysOf(ok)} ${ok.secondary_voltage.max}`, 'true  1320'));
+
+    // The limit is inclusive: EALF = 20·1·(0 + 100) = 2000 V
+    const at = P.checkVoltage('generic', { Is: 1, rct: 0, burden: 100, alf: 20 }, {});
+    const over = P.checkVoltage('generic', { Is: 1, rct: 0, burden: 100, alf: 20.01 }, {});
+    results.push(assert('PLAUS 2000 V passes, 2001 V fails (offered only on generic)',
+      at.ok === true && at.required === null && over.ok === false && over.warnings[0][0] === 'warning_offered_emf_above_limit',
+      `${at.ok}/${over.ok}`, 'true/false'));
+    // A Vk class: its Vk; overcurrent: Esat,req
+    const px = P.checkVoltage('busbar', { Is: 1, rct: 5, burden: 10, ct_class_family: 'PX', is_px: true, vk: 2500 },
+      { vk_required: 900 });
+    results.push(assert('PLAUS Vk class: Vk 2500 V fails, labelled Vk',
+      px.ok === false && px.offered.label === 'Vk' && px.offered.value === 2500 && px.required.value === 900,
+      JSON.stringify(px.offered), '{"label":"Vk","value":2500}'));
+    const oc = P.checkVoltage('overcurrent', { Is: 1, rct: 5, burden: 10, alf: 20 }, { Esat_req: 2400 });
+    results.push(assert('PLAUS overcurrent: Esat,req 2400 V fails',
+      oc.ok === false && oc.warnings.length === 1 && oc.warnings[0][1] === 'Esat,req' && oc.step.latex.includes('E_{sat,req}'),
+      JSON.stringify(oc.warnings), '[["warning_vk_required_above_limit","Esat,req",2400,2000]]'));
+    // Not checked: metering, VT, a transformer core that is not calculated
+    results.push(assert('PLAUS no voltage check on metering / VT / an uncalculated core',
+      P.checkVoltage('metering', ld, {}) === null && P.checkVoltage('vt', ld, {}) === null
+        && P.checkVoltage('transformer_diff', ld, { isc_int_missing: true, Vk_req: 5000 }) === null,
+      'checked', 'null'));
+    // Transformer diff: a failure adds to failed_methods (EALF = 120·1·(3 + 20) = 2760 V)
+    const td = CTCalc.calculate('transformer_diff', { Ip: 100, Is: 1, rct: 3, burden: 20, alf: 120, relay_burden: 0.1,
+      cable_length: 50, cable_cross: 4, cable_mat: 'cu', trafo_voltage_kv: 150, trafo_power_mva: 100,
+      trafo_z_percent: 12, trafo_ik_max: 22000 }, { ...sys, voltage: 150 });
+    results.push(assert('PLAUS transformer diff above 2 kV: secondary_voltage in failed_methods',
+      td.secondary_voltage.ok === false && td.is_ok === false && td.failed_methods.includes('secondary_voltage'),
+      JSON.stringify(td.failed_methods), '[…, secondary_voltage]'));
+
+    // Rct: 3 × the table maximum per turn, one primary turn
+    const rct = (core, kv = 420) => P.checkRct(core.type, core, { voltage: kv });
+    const c1 = { type: 'distance', Ip: 2000, Is: 1, rct: 30 };   // 15.0 mΩ/turn = 3 × 5.0: not above
+    results.push(assert('PLAUS Rct at 3 × max: no remark; above: remark',
+      rct(c1) === null && rct({ ...c1, rct: 30.1 }) !== null && rct({ ...c1, rct: 30.1 }).limitPerTurn === 15,
+      `${JSON.stringify(rct(c1))}`, 'null'));
+    results.push(assert('PLAUS Rct: no remark for an estimated Rct, generic, VT, no voltage or Isr 2 A',
+      rct({ ...c1, rct: 300, rct_estimate: true }) === null && rct({ ...c1, type: 'generic', rct: 300 }) === null
+        && rct({ ...c1, type: 'vt', rct: 300 }) === null && rct({ ...c1, rct: 300 }, null) === null
+        && rct({ ...c1, rct: 300, Is: 2 }) === null,
+      'a remark', 'null'));
+    // Metering: the remark only (no voltage check, the verdict unchanged)
+    const mt = { Ip: 600, Is: 1, rct: 20, burden: 5, fs_factor: 5, min_safety_factor: 10, min_burden_percent: 25,
+      device_burden: 0.5, attached_resistor: 0, cable_length: 80, cable_cross: 2.5, cable_mat: 'cu' };
+    const mr = CTCalc.calculate('metering', mt, sys);
+    const mraw = CTMetering.calculate(CTCalc.moduleCore('metering', mt, sys), sys);
+    results.push(assert('PLAUS metering: Rct remark (33.3 mΩ/turn), verdict and steps unchanged',
+      keysOf(mr) === 'warning_rct_implausible' && mr.is_ok === mraw.is_ok && mr.steps.length === mraw.steps.length
+        && !('secondary_voltage' in mr),
+      keysOf(mr), 'warning_rct_implausible'));
+    // The remarks render in both languages
+    const txt = ['en', 'da'].map((l) => r1.warnings.filter((w) => P.KEYS.includes(w[0]))
+      .map((w) => CTSReport_text(l, w)));
+    results.push(assert('PLAUS remark texts exist (en, da)',
+      txt.every((ts) => ts.length === 3 && ts.every((t) => t && !t.startsWith('warning_'))), JSON.stringify(txt), 'texts'));
+
+    return results;
+  }
+  // ctsizer-report.js is not loaded in the headless runner: a remark's text
+  // when it is (the browser), else a stand-in that passes
+  const CTSReport_text = (lang, w) => (typeof CTSReport !== 'undefined' ? CTSReport.warningText(lang, w) : 'text');
+
   // ── LINE_DIFF EMF_CALCULATION (golden-vector backed) ─────────────────
   function testLineDiffEmfCalculation() {
     const results = [];
@@ -3583,23 +3688,24 @@ const CTTests = (() => {
     const rUnderCap = CTLineDiff.emfCalculation.calculateTotalResistance3ph(4, 1.5, 0.5);
     results.push(assert('LDIFFEMF total resistance under cap', rUnderCap === 6, rUnderCap, 6, ' Ω'));
 
-    // Hand-derived: over-cap resistance clamps to MAX_TOTAL_RESISTANCE (99 Ω).
+    // Hand-derived: no 99 Ω cap (issue #154; the Python clamps to 99 Ω).
     const rOverCap = CTLineDiff.emfCalculation.calculateTotalResistance1ph(50, 40, 20);
-    results.push(assert('LDIFFEMF total resistance capped', rOverCap === 99, rOverCap, 99, ' Ω'));
+    results.push(assert('LDIFFEMF total resistance not capped', rOverCap === 110, rOverCap, 110, ' Ω'));
 
     // Hand-derived: external (through-fault) scenarios carry the ×2 stability factor.
     const eIn = CTLineDiff.emfCalculation.calculateEmf3PhaseInternal(5000, 1, 2000, 5.5);
     const eEx = CTLineDiff.emfCalculation.calculateEmf3PhaseExternal(5000, 1, 2000, 5.5);
     results.push(assert('LDIFFEMF external = 2x internal', approx(eEx, 2 * eIn), eEx, 2 * eIn, ' V'));
 
-    // Hand-derived: calculateAllEmfScenarios surfaces the resistance-cap warning tuple.
+    // Hand-derived: above 99 Ω the E.M.F.s use the real total, with no cap warning (issue #154).
     const capped = CTLineDiff.emfCalculation.calculateAllEmfScenarios(
       { ik_max_3ph: 90000, ik_max_1ph: 90000, it_max_3ph: 90000, it_max_1ph: 90000 },
       5, 50, 50, 40, 20
     );
-    results.push(assert('LDIFFEMF warning on cap', capped.warnings.length === 1, capped.warnings.length, 1));
-    results.push(assert('LDIFFEMF warning key', capped.warnings[0][0] === 'warning_total_resistance_capped',
-      capped.warnings[0][0], 'warning_total_resistance_capped'));
+    results.push(assert('LDIFFEMF no warning above 99 Ω', capped.warnings.length === 0, capped.warnings.length, 0));
+    results.push(assert('LDIFFEMF E above 99 Ω uses the real total',
+      capped.total_resistance_3p === 110 && approx(capped.e_3p_ex, 2 * 90000 * 5 / 50 * 110),
+      capped.e_3p_ex, 2 * 90000 * 5 / 50 * 110, ' V'));
 
     const uncapped = CTLineDiff.emfCalculation.calculateAllEmfScenarios(
       { ik_max_3ph: 63000, ik_max_1ph: 50000, it_max_3ph: 40000, it_max_1ph: 30000 },
@@ -3620,27 +3726,59 @@ const CTTests = (() => {
       `${split.total_resistance_3p} / ${split.total_resistance_1p}`, '6 / 7.5', ' Ω'));
     const cap1 = CTLineDiff.emfCalculation.calculateAllEmfScenarios(
       { ik_max_3ph: 1, ik_max_1ph: 1, it_max_3ph: 1, it_max_1ph: 1 }, 1, 1, 4, 1, 0, 120);
-    results.push(assert('LDIFFEMF cap warning from the 1-phase lead',
-      cap1.warnings.length === 1 && cap1.warnings[0][1] === 124 && cap1.total_resistance_3p === 5,
-      JSON.stringify(cap1.warnings), '[[…, 124, 99]]'));
+    results.push(assert('LDIFFEMF 1-phase lead above 99 Ω not capped',
+      cap1.warnings.length === 0 && cap1.total_resistance_1p === 124 && cap1.total_resistance_3p === 5,
+      `${cap1.total_resistance_3p} / ${cap1.total_resistance_1p}`, '5 / 124', ' Ω'));
+
+    // Issue #154: the reported project (5 A, Rct 100 Ω, 900 m × 1.5 mm² Cu, 40 kA).
+    // The Python's 99 Ω cap gave Vk,req = 2·40 kA·5/4000·99 = 9900 V whatever the
+    // lead; the real 1-phase total is 100 + 25.16 + 0.004 Ω → 12 516.5 V.
+    const core154 = {
+      relay_burden: 0.1, ct_class_family: '5PR', is_px: false, ct_class_alf: 30, alf: 30,
+      Ip: 4000, Is: 5, burden: 30, cable_length: 900, cable_cross: 1.5, cable_mat: 'cu',
+      cable_topology: 'four_wire', rct: 100,
+    };
+    const system154 = { voltage: 420, freq: '50', isc_sys: 40, tp: 100, cable_r_method: 'iec60287',
+      cable_temp: 75, cable_rho_mode: 'iec' };
+    const issue154 = CTCalc.calculate('line_diff', core154, system154);
+    const r154 = 100 + issue154.Rc_1ph + 0.1 / 25;
+    results.push(assert('LDIFFEMF issue #154 Vk,req uses Rct + lead + relay',
+      approx(issue154.total_resistance_1p, r154) && approx(issue154.vk_required, 2 * 40000 * 5 / 4000 * r154)
+        && issue154.vk_required > 12500
+        && !issue154.warnings.some((w) => w[0] === 'warning_total_resistance_capped'),
+      issue154.vk_required, 2 * 40000 * 5 / 4000 * r154, ' V'));
+    const longer154 = CTCalc.calculate('line_diff', { ...core154, cable_length: 1000 }, system154);
+    results.push(assert('LDIFFEMF issue #154 a longer lead raises Vk,req',
+      longer154.vk_required > issue154.vk_required, longer154.vk_required, `> ${issue154.vk_required}`, ' V'));
 
     // ── Golden-vector backed (calc/golden/line_diff_emf_calculation.json <- ct_line_differential/emf_calculation.py) ──
+    // Issue #154: the Python clamps the total resistance at 99 Ω, CTSizer does
+    // not. A golden case the clamp engaged in is checked as CTSizer's value:
+    // the resistance is the real sum (and the Python's value its min with 99),
+    // the E.M.F.s scale by sum / 99, and the cap warning is gone.
+    const PY_CAP = 99;
     const G = (typeof CT_GOLDEN !== 'undefined' && CT_GOLDEN.line_diff_emf_calculation)
       ? CT_GOLDEN.line_diff_emf_calculation : null;
     if (!G) return results;
 
+    const uncappedTotal = (c) => {
+      const sum = c.input.rct + c.input.cable_resistance + c.input.r_relay;
+      return approx(Math.min(sum, PY_CAP), c.expected) ? sum : NaN;
+    };
     (G.calculate_total_resistance_3ph || []).forEach((c, i) => {
       const got = CTLineDiff.emfCalculation.calculateTotalResistance3ph(
         c.input.rct, c.input.cable_resistance, c.input.r_relay
       );
-      results.push(assert(`LDIFFEMF golden #${i} total_resistance_3ph`, approx(got, c.expected), got, c.expected, ' Ω'));
+      const want = uncappedTotal(c);
+      results.push(assert(`LDIFFEMF golden #${i} total_resistance_3ph`, approx(got, want), got, want, ' Ω'));
     });
 
     (G.calculate_total_resistance_1ph || []).forEach((c, i) => {
       const got = CTLineDiff.emfCalculation.calculateTotalResistance1ph(
         c.input.rct, c.input.cable_resistance, c.input.r_relay
       );
-      results.push(assert(`LDIFFEMF golden #${i} total_resistance_1ph`, approx(got, c.expected), got, c.expected, ' Ω'));
+      const want = uncappedTotal(c);
+      results.push(assert(`LDIFFEMF golden #${i} total_resistance_1ph`, approx(got, want), got, want, ' Ω'));
     });
 
     (G.calculate_emf_3phase_internal || []).forEach((c, i) => {
@@ -3676,8 +3814,19 @@ const CTTests = (() => {
         c.input.fault_currents, c.input.secondary_current, c.input.primary_current,
         c.input.rct, c.input.cable_resistance, c.input.r_relay
       );
+      let want = c.expected;
+      if (c.expected.warnings.some((w) => w[0] === 'warning_total_resistance_capped')) {
+        const sum = c.input.rct + c.input.cable_resistance + c.input.r_relay;
+        const k = sum / PY_CAP;
+        want = {
+          e_3p_in: c.expected.e_3p_in * k, e_1p_in: c.expected.e_1p_in * k,
+          e_3p_ex: c.expected.e_3p_ex * k, e_1p_ex: c.expected.e_1p_ex * k,
+          total_resistance_3p: sum, total_resistance_1p: sum,
+          warnings: c.expected.warnings.filter((w) => w[0] !== 'warning_total_resistance_capped'),
+        };
+      }
       results.push(assert(`LDIFFEMF golden #${i} all_emf_scenarios`,
-        matchesExpected(got, c.expected), JSON.stringify(got), JSON.stringify(c.expected)));
+        matchesExpected(got, want), JSON.stringify(got), JSON.stringify(want)));
     });
 
     return results;
@@ -4877,6 +5026,77 @@ const CTTests = (() => {
     return results;
   }
 
+  // ── Fault level: Ik1 max and the Tp helper (CTFaultLevel) ──────────────
+  // Hand-derived. Ik1 max (isc_1ph) above Ik3 max (isc_sys) governs the
+  // single-case modules and the 1-phase line diff cases; a project without
+  // Ik1, or with Ik1 below Ik3, gives the results it gave before.
+  function testFaultLevel() {
+    const results = [];
+    const F = CTFaultLevel;
+    results.push(assert('FL governing: Ik1 above Ik3 → Ik1', F.governingKa(40, 44) === 44, F.governingKa(40, 44), 44));
+    results.push(assert('FL governing: Ik1 below Ik3 → Ik3', F.governingKa(40, 30) === 40, F.governingKa(40, 30), 40));
+    results.push(assert('FL governing: no Ik1 → Ik3', F.governingKa(40, null) === 40 && F.governingKa(40) === 40, '', 40));
+    results.push(assert('FL step only when Ik1 governs', F.governingStep(40, 30) === null
+      && F.governingStep(40, 44).result === 44, '', 'null / 44'));
+
+    // Tp: Z1 = Z2 = 0.6953 + j7.4393 Ω, Z0 = 2.1943 + j6.9040 Ω, 50 Hz
+    // Tp3 = 7.4393 / (100π · 0.6953) = 34.06 ms
+    // Tp1 = 21.7826 / (100π · 3.5849) = 19.34 ms
+    const z = { r1: 0.6953, x1: 7.4393, r2: 0.6953, x2: 7.4393, r0: 2.1943, x0: 6.9040 };
+    const t = F.primaryTimeConstants(z, 50);
+    results.push(assert('FL Tp3 = X1/(ωR1)', approx(t.tp3, 34.057), t.tp3, 34.057, ' ms'));
+    results.push(assert('FL Tp1 = (X1+X2+X0)/(ω(R1+R2+R0))', approx(t.tp1, 19.341), t.tp1, 19.341, ' ms'));
+    // Z2 ≠ Z1: (5 + 4 + 9) / (2π·60 · (0.5 + 0.4 + 1.5)) · 1000 = 19.894 ms
+    const t2 = F.primaryTimeConstants({ r1: 0.5, x1: 5, r2: 0.4, x2: 4, r0: 1.5, x0: 9 }, 60);
+    results.push(assert('FL Tp1 with Z2 ≠ Z1, 60 Hz', approx(t2.tp1, 19.894), t2.tp1, 19.894, ' ms'));
+    const tPart = F.primaryTimeConstants({ r1: 0.6953, x1: 7.4393 }, 50);
+    results.push(assert('FL only Z1: Tp3, no Tp1, Tp1 lists R2 X2 R0 X0',
+      approx(tPart.tp3, 34.057) && tPart.tp1 === null && tPart.missing.tp1.join() === 'r2,x2,r0,x0'
+      && tPart.missing.tp3.length === 0, tPart.missing.tp1.join(), 'r2,x2,r0,x0'));
+    const tZero = F.primaryTimeConstants({ ...z, r1: 0 }, 50);
+    results.push(assert('FL R1 = 0 → no Tp3; no frequency → none', tZero.tp3 === null && tZero.tp1 !== null
+      && F.primaryTimeConstants(z, NaN).tp3 === null, '', 'null'));
+
+    // Line diff: the 1-phase cases take Ik1, the 3-phase ones Ik3
+    const D = CTLineDiff.data;
+    const fc = D.extractFaultCurrents({ isc_sys: 40, isc_1ph: 44 }, { Ip: 2000 });
+    results.push(assert('FL line diff: 3-phase cases Ik3, 1-phase cases Ik1',
+      fc.ik_max_3ph === 40000 && fc.it_max_3ph === 40000 && fc.ik_max_1ph === 44000 && fc.it_max_1ph === 44000,
+      JSON.stringify(fc), '40000 / 44000'));
+    const fc0 = D.extractFaultCurrents({ isc_sys: 40 }, { Ip: 2000 });
+    results.push(assert('FL line diff: no Ik1 → Ik3 for all', fc0.ik_max_1ph === 40000 && fc0.it_max_1ph === 40000,
+      JSON.stringify(fc0), 40000));
+    const fcO = D.extractFaultCurrents({ isc_sys: 40, isc_1ph: 44 }, { Ip: 2000, ik_max_1ph: 30000 });
+    results.push(assert('FL line diff: a core override still wins', fcO.ik_max_1ph === 30000, fcO.ik_max_1ph, 30000));
+
+    // Single-case modules: the result scales with the governing current
+    const base = { voltage: 150, freq: '50', isc_sys: 40, tp: 100, cable_r_method: 'table', cable_temp: 25 };
+    const core = { Ip: 2000, Is: 1, rct: 4, burden: 30, alf: 30, relay_burden: 0.05,
+      cable_length: 100, cable_cross: 4, cable_mat: 'cu', cable_topology: 'six_wire' };
+    const oc3 = CTOvercurrent.calculate(core, base);
+    const oc1 = CTOvercurrent.calculate(core, { ...base, isc_1ph: 44 });
+    const ocLo = CTOvercurrent.calculate(core, { ...base, isc_1ph: 30 });
+    results.push(assert('FL overcurrent: Ik1 44 kA governs, a step shows it',
+      oc1.Isc_max === 44000 && oc1.steps.some((st) => st.key === 'ik_governing'), oc1.Isc_max, 44000));
+    results.push(assert('FL overcurrent: Ik1 below Ik3 → as before, no step',
+      ocLo.Isc_max === oc3.Isc_max && JSON.stringify(ocLo.steps) === JSON.stringify(oc3.steps), ocLo.Isc_max, oc3.Isc_max));
+    const pxCore = { ...core, is_px: true, vk: 200 };
+    const bb3 = CTBusbar.calculate(pxCore, base);
+    const bb1 = CTBusbar.calculate(pxCore, { ...base, isc_1ph: 44 });
+    results.push(assert('FL busbar PX: E_int scales with Ik1/Ik3',
+      approx(bb1.e_internal / bb3.e_internal, 44 / 40) && bb1.steps.some((st) => st.key === 'ik_governing'),
+      bb1.e_internal / bb3.e_internal, 1.1));
+    const dist = (sys) => CTDistance.data.extractDistanceInputs({ ...core }, sys).iscc_max;
+    results.push(assert('FL distance: Iscc,max = max(Ik3, Ik1)', dist({ ...base, isc_1ph: 44 }) === 44000
+      && dist({ ...base, isc_1ph: 30 }) === 40000 && dist(base) === 40000, dist({ ...base, isc_1ph: 44 }), 44000));
+    const T = CTTransformerDiff.data;
+    results.push(assert('FL transformer diff: project internal current = max(Ik3, Ik1)',
+      T.projectInternalFaultCurrent({ isc_sys: 40, isc_1ph: 44 }) === 44000
+      && T.projectInternalFaultCurrent({ isc_sys: 40, isc_1ph: 30 }) === 40000
+      && T.projectInternalFaultCurrent({ isc_sys: 0, isc_1ph: 44 }) === null, '', '44000 / 40000 / null'));
+    return results;
+  }
+
   // ── RUN ALL ────────────────────────────────────────────────────────────
   // ── END TO END (PORTING_PLAN.md §10 B2) ────────────────────────────────
   // Realistic cores in the shape the UI stores them (core.inputs and the
@@ -4963,7 +5183,7 @@ const CTTests = (() => {
     const results = [];
     const LR = CTLocalRules;
     const ID = 'dk_elmaaling_9';
-    const sys = (kV) => ({ station_name: 'Test', station_abbr: 'TST', voltage: kV, freq: '50', isc_sys: 20, tp: 100,
+    const sys = (kV) => ({ station_name: 'Test', station_abbr: 'TST', voltage: kV, freq: '50', isc_sys: 20, isc_1ph: 20, tp: 100,
       cable_r_method: 'iec60287', cable_temp: 20, local_rules: ID });
     const MT = { Ip: 100, Is: 5, rct: 0.1, burden: 5, mt_class: '0.2S', fs_factor: 5, extended_burden_range: true,
       meter_manufacturer: 'Other', device_burden: 0.1, min_safety_factor: 20,
@@ -5112,7 +5332,7 @@ const CTTests = (() => {
     const R = CTRequired;
     results.push(assert('LR REQ local_rules blank → station ok', R.system({ ...sys(10), local_rules: null }).ok, '', 'ok'));
     results.push(assert('LR REQ local_rules unknown → invalid', R.system({ ...sys(10), local_rules: 'xx' }).fields.local_rules === 'invalid', '', 'invalid'));
-    const mcore = (o) => R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...MT, ...o } });
+    const mcore = (o) => R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...MT, ...o } }, { connection: { sn_mva: 1 } });
     results.push(assert('LR REQ meter standard / class blank → ok', mcore({ meter_standard: undefined, meter_class: undefined }).ok, '', 'ok'));
     results.push(assert('LR REQ MID class 0.5S → invalid', mcore({ meter_standard: 'mid', meter_class: '0.5S' }).fields.meter_class === 'invalid', '', 'invalid'));
     results.push(assert('LR REQ meter classes match the rule set', JSON.stringify(R.METER_CLASSES) === JSON.stringify(LR.byId(ID).METER_CLASSES),
@@ -5123,7 +5343,7 @@ const CTTests = (() => {
   function testRequired() {
     const results = [];
     const R = CTRequired;
-    const SYS = { station_name: 'Test', station_abbr: 'TST', voltage: 132, freq: '50', isc_sys: 20, tp: 100,
+    const SYS = { station_name: 'Test', station_abbr: 'TST', voltage: 132, freq: '50', isc_sys: 20, isc_1ph: 20, tp: 100,
       cable_r_method: 'iec60287', cable_temp: 75 };
     const CT = { Ip: 2000, Is: 1, rct: 4, burden: 30 };
     const RELAY = { relay_manufacturer: 'Other', relay_burden: 0.05 };
@@ -5132,8 +5352,13 @@ const CTTests = (() => {
 
     // Station data
     const s0 = R.system({});
-    results.push(assert('REQ empty station: all 8 fields missing', !s0.ok && s0.count === 8
-      && Object.values(s0.fields).every((x) => x === 'missing') && s0.sections.station === 8, s0.count, 8));
+    results.push(assert('REQ empty station: all 9 fields missing', !s0.ok && s0.count === 9
+      && Object.values(s0.fields).every((x) => x === 'missing') && s0.sections.station === 9, s0.count, 9));
+    // Ik1 max (isc_1ph) is required like Ik3 max: blank → missing, ≤ 0 → invalid
+    results.push(assert('REQ Ik1 max: blank → missing, 0 → invalid, 22 kA → ok',
+      R.system({ ...SYS, isc_1ph: null }).fields.isc_1ph === 'missing'
+      && R.system({ ...SYS, isc_1ph: 0 }).fields.isc_1ph === 'invalid'
+      && R.system({ ...SYS, isc_1ph: 22 }).fields.isc_1ph === undefined, '', 'missing / invalid / ok'));
     results.push(assert('REQ station complete → ok', R.system(SYS).ok, keys(R.system(SYS)), ''));
     // ρ20 source (#132): required with the formula method; absent = saved before → note, not a mark
     const sOld = R.system(SYS);
@@ -5198,27 +5423,40 @@ const CTTests = (() => {
     results.push(assert('REQ generic class 5P with a stale is_px_class: the ALF path, as is_px false',
       gRes({ ...gn, is_px_class: true, is_px: true, vk: 150 }) === gRes(gn), 'differs', 'identical'));
     results.push(assert('REQ generic without a class: is_px / is_px_class as before (moduleCore unchanged)',
-      gRes({ ...gn, ct_class_family: undefined, is_px_class: true, vk: 150 }) === JSON.stringify(CTGeneric.calculate({ ...gn, ct_class_family: undefined, is_px_class: true, vk: 150 }, gSys)),
+      gRes({ ...gn, ct_class_family: undefined, is_px_class: true, vk: 150 }) === JSON.stringify(CTPlausibility.apply('generic',
+        { ...gn, ct_class_family: undefined, is_px_class: true, vk: 150 }, gSys,
+        CTGeneric.calculate({ ...gn, ct_class_family: undefined, is_px_class: true, vk: 150 }, gSys))),
       'differs', 'identical'));
     const ocBad = R.core({ kind: 'ct', calc_type: 'overcurrent', inputs: { ...oc, Ip: 0, Is: 2, cable_cross: 3, relay_tal: 600 } });
     results.push(assert('REQ out of range / not an option → invalid (optional t_al too)',
       keys(ocBad) === 'Ip,Is,cable_cross,relay_tal' && Object.values(ocBad.fields).every((x) => x === 'invalid')
       && ocBad.sections.ct === 2 && ocBad.sections.cable === 1 && ocBad.sections.relay === 1, keys(ocBad), 'Ip,Is,cable_cross,relay_tal'));
 
-    // Metering: Smin% only for a custom class without the extended range
+    // Metering: Smin% only for a custom class without the extended range;
+    // the bay's connection power (#155) on every metering core
     const mt = { ...CT, burden: 5, fs_factor: 5, meter_manufacturer: 'CEWE', device_burden: 0.1, min_safety_factor: 20,
       ...CABLE, attached_resistor: 0 };
-    const mtCustom = R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, mt_class: 'custom' } });
+    const CONN = { connection: { sn_mva: 400 } };
+    const mtReq = (inputs, f = CONN) => R.core({ kind: 'ct', calc_type: 'metering', inputs }, f);
+    const mtCustom = mtReq({ ...mt, mt_class: 'custom' });
     results.push(assert('REQ metering custom class needs Smin%', keys(mtCustom) === 'min_burden_percent', keys(mtCustom), 'min_burden_percent'));
     results.push(assert('REQ metering class 0.2S: Smin% from the class → ok',
-      R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, mt_class: '0.2S' } }).ok, '', ''));
+      mtReq({ ...mt, mt_class: '0.2S' }).ok, '', ''));
     results.push(assert('REQ metering extended range: no Smin% → ok',
-      R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, mt_class: 'custom', extended_burden_range: true } }).ok, '', ''));
-    const mtNoClass = R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, min_burden_percent: 25 } });
+      mtReq({ ...mt, mt_class: 'custom', extended_burden_range: true }).ok, '', ''));
+    const mtNoClass = mtReq({ ...mt, min_burden_percent: 25 });
     results.push(assert('REQ metering: the accuracy class must be picked', keys(mtNoClass) === 'mt_class', keys(mtNoClass), 'mt_class'));
-    const mtNoR = R.core({ kind: 'ct', calc_type: 'metering', inputs: { ...mt, mt_class: '0.2', attached_resistor: undefined } });
+    const mtNoR = mtReq({ ...mt, mt_class: '0.2', attached_resistor: undefined });
     results.push(assert('REQ metering: the attached resistor must be entered (0 is a value)',
       keys(mtNoR) === 'attached_resistor', keys(mtNoR), 'attached_resistor'));
+    const mtNoConn = mtReq({ ...mt, mt_class: '0.2S' }, { connection: {} });
+    results.push(assert('REQ metering #155: the connection power (bay) is required',
+      keys(mtNoConn) === 'sn_mva' && mtNoConn.fields.sn_mva === 'missing' && mtNoConn.sections.conn === 1, keys(mtNoConn), 'sn_mva'));
+    results.push(assert('REQ metering #155 without its bay: the connection power counts as missing (fails closed)',
+      keys(mtReq({ ...mt, mt_class: '0.2S' }, null)) === 'sn_mva', keys(mtReq({ ...mt, mt_class: '0.2S' }, null)), 'sn_mva'));
+    const mtBadConn = [0, -5, 6000, '45'].map((x) => mtReq({ ...mt, mt_class: '0.2S' }, { connection: { sn_mva: x } }).fields.sn_mva);
+    results.push(assert('REQ metering #155: 0, negative, above 5000 MVA or text → invalid',
+      mtBadConn.every((x) => x === 'invalid'), mtBadConn.join(), 'invalid ×4'));
 
     // Distance: line data (on the bay, #133) and, with AR, t_al and the AR card
     const dist = { ...CT, ...RELAY, ...CABLE, ct_class_family: '5P', alf: 20, zone1_setting: 0.85 };
@@ -5324,7 +5562,8 @@ const CTTests = (() => {
       vt,
     };
     const fullBay = { distance: dBay, transformer_diff: bayOf('transformer_diff', full.transformer_diff,
-      { transformer: { sr_mva: 160, z_percent: 14, inrush_factor: 8, winding_count: '2', ur_kv_HV: 132, isc_int_HV: 20000, ur_kv_LV: 33, isc_int_LV: 20000 } }) };
+      { transformer: { sr_mva: 160, z_percent: 14, inrush_factor: 8, winding_count: '2', ur_kv_HV: 132, isc_int_HV: 20000, ur_kv_LV: 33, isc_int_LV: 20000 } }),
+      metering: bayOf('metering', full.metering, CONN) };
     for (const [t, inputs] of Object.entries(full)) {
       const c = { kind: t === 'vt' ? 'vt' : 'ct', calc_type: t, inputs };
       const f = fullBay[t] || bayOf(t, inputs);
@@ -5332,7 +5571,89 @@ const CTTests = (() => {
       results.push(assert(`REQ complete ${t} core is ready and calculates`, r != null && typeof r.is_ok === 'boolean',
         r ? r.status : keys(R.core(c, f)), 'a result'));
     }
-    results.push(assert('REQ the complete bays are complete', R.bay(fullBay.distance).ok && R.bay(fullBay.transformer_diff).ok, '', 'ok'));
+    results.push(assert('REQ the complete bays are complete', R.bay(fullBay.distance).ok && R.bay(fullBay.transformer_diff).ok
+      && R.bay(fullBay.metering).ok, '', 'ok'));
+    const mtBayBlank = R.bay(bayOf('metering', full.metering));
+    results.push(assert('REQ #155 a bay with a metering CT core: its card asks for the connection power',
+      keys(mtBayBlank) === 'sn_mva' && mtBayBlank.sections.conn === 1, keys(mtBayBlank), 'sn_mva'));
+    return results;
+  }
+
+  // ── METERING RATIO (#155, calc/metering.js cond. 3): Ipr against the
+  // connection's load current In = Sn,conn / (√3·U) ─────────────────────
+  function testMeteringRatio() {
+    const results = [];
+    const M = CTMetering;
+    const near = (a, b, tol = 1e-9) => Math.abs(a - b) <= tol * Math.max(1, Math.abs(b));
+    const std = [[0.8, 1], [9, 10], [10, 10], [10.01, 12.5], [157.46, 200], [200, 200], [201, 250], [399, 400],
+      [401, 500], [740, 750], [790, 1000], [1250, 1250], [1251, 1500], [6001, 7500], [7501, 10000]];
+    const got = std.map(([i]) => M.standardIpr(i));
+    results.push(assert('MR standard Ipr (IEC 61869-2 5.3.201: 10, 12.5, 15, 20, 25, 30, 40, 50, 60, 75 × 10ⁿ)',
+      got.every((x, k) => x === std[k][1]), got.join(), std.map((x) => x[1]).join()));
+    results.push(assert('MR no standard Ipr for 0 / NaN', M.standardIpr(0) === null && M.standardIpr(NaN) === null, '', 'null'));
+    results.push(assert('MR In = Sn / (√3·U): 45 MVA at 165 kV = 157.46 A',
+      near(M.loadCurrent(45, 165), 45000 / (Math.sqrt(3) * 165)) && Math.abs(M.loadCurrent(45, 165) - 157.46) < 0.01,
+      M.loadCurrent(45, 165), '157.46'));
+
+    const core = { Ip: 2000, Is: 1, rct: 2, burden: 5, mt_class: '0.2S', fs_factor: 5, extended_burden_range: true,
+      device_burden: 0.1, min_safety_factor: 20, attached_resistor: 0,
+      cable_length: 100, cable_cross: 4, cable_mat: 'cu', cable_topology: 'six_wire' };
+    const sys = { voltage: 165, cable_r_method: 'iec60287', cable_temp: 20 };
+    const run = (Ip, mva = 45, s = sys) => M.calculate({ ...core, Ip }, { ...s, remote_end: mva == null ? undefined : { connection_mva: mva } });
+    const keys = (r) => r.warnings.map((w) => w[0]);
+    const base = run(200, null);
+
+    // The issue's case: a 45 MVA connection at 165 kV must not have a 2000/1 CT
+    const r2000 = run(2000);
+    results.push(assert('MR #155 45 MVA at 165 kV, 2000/1: cond. 3 fails, the core is NOT OK',
+      r2000.cond3 === false && !r2000.is_ok && r2000.status === 'NOT_OK' && keys(r2000).includes('warning_ipr_above_standard')
+        && r2000.Ipr_std === 200, `${r2000.cond3}/${r2000.status}/${keys(r2000)}`, 'false/NOT_OK/warning_ipr_above_standard'));
+    const w = r2000.warnings.find((x) => x[0] === 'warning_ipr_above_standard');
+    results.push(assert('MR remark args: Ipr, In, Sn,conn, U, Ipr,std (entered / rated values as text), In / Ipr %',
+      w[1] === '2000' && near(w[2], r2000.I_load) && w[3] === '45' && w[4] === '165' && w[5] === '200' && w[6] === 7.9,
+      JSON.stringify(w), '["2000", In, "45", "165", "200", 7.9]'));
+    const r200 = run(200);
+    results.push(assert('MR 200/1: the nearest standard value over the load → cond. 3 OK, verdict as cond. 1 ∧ cond. 2',
+      r200.cond3 === true && r200.is_ok === (r200.cond1 && r200.cond2) && !keys(r200).some((k) => /ipr/.test(k)), `${r200.cond3}/${r200.is_ok}`, 'true'));
+    const r175 = run(175);
+    results.push(assert('MR 175 A (between In and the standard value) → OK', r175.cond3 === true, r175.cond3, 'true'));
+    const r150 = run(150);
+    results.push(assert('MR 150/1 below the load (157 A) → cond. 3 fails with warning_ipr_below_load',
+      r150.cond3 === false && !r150.is_ok && keys(r150).includes('warning_ipr_below_load') && !keys(r150).includes('warning_ipr_above_standard'),
+      `${r150.cond3}/${keys(r150)}`, 'false/warning_ipr_below_load'));
+    const r250 = run(250);
+    results.push(assert('MR 250/1 above the nearest standard value 200 A → fails', r250.cond3 === false, r250.cond3, 'false'));
+    // In on a standard value: Ipr = In is the nearest
+    const mvaAt400 = 400 * Math.sqrt(3) * 165 / 1000;
+    results.push(assert('MR In exactly 400 A: Ipr 400 OK, 500 fails', run(400, mvaAt400).cond3 === true && run(500, mvaAt400).cond3 === false
+      && run(400, mvaAt400).Ipr_std === 400, `${run(400, mvaAt400).cond3}/${run(500, mvaAt400).cond3}`, 'true/false'));
+
+    // Steps: In, Ipr,std and cond. 3, and the conclusion names cond. 3
+    const sk = r2000.steps.map((x) => x.key);
+    const concl = r2000.steps.find((x) => x.key === 'conclusion');
+    results.push(assert('MR steps i_load, ipr_std, cond3 before the conclusion',
+      ['i_load', 'ipr_std', 'cond3'].every((k) => sk.includes(k)) && sk.indexOf('cond3') < sk.indexOf('conclusion')
+        && /Cond\.3/.test(concl.latex) && /✗$/.test(concl.comparison.trim()), sk.join(), 'i_load,ipr_std,cond3'));
+
+    // Not evaluated without the connection power or the voltage: cond3 null,
+    // no step, no remark — the calculation is the one before #155
+    const noV = run(2000, 45, { ...sys, voltage: undefined });
+    results.push(assert('MR without the connection power / the voltage: cond. 3 not evaluated',
+      base.cond3 === null && noV.cond3 === null && base.I_load === null && !base.steps.some((x) => x.key === 'cond3')
+        && !/Cond\.3/.test(base.steps.find((x) => x.key === 'conclusion').latex), `${base.cond3}/${noV.cond3}`, 'null/null'));
+    const { steps: s1, ...a } = M.calculate({ ...core, Ip: 2000 }, sys);
+    const { steps: s2, ...b } = run(2000, null);
+    results.push(assert('MR no connection: the result is unchanged by the new code path', JSON.stringify(a) === JSON.stringify(b), '', 'identical'));
+
+    // The bay carries it to the calculation (CTBay.remoteEnd → connection_mva)
+    const bay = { id: 'b', name: 'K1', devices: [{ id: 'd', cores: [{ id: 'c', kind: 'ct', calc_type: 'metering', inputs: core }] }],
+      connection: { sn_mva: 45 } };
+    const cd = CTBay.commonData(sys, bay);
+    const viaBay = CTCalc.calculate('metering', core, cd);
+    results.push(assert('MR the bay\'s connection power reaches the calc (CTBay.commonData)',
+      cd.remote_end.connection_mva === 45 && viaBay.cond3 === false && viaBay.Ipr_std === 200, JSON.stringify(cd.remote_end), '{ connection_mva: 45 }'));
+    results.push(assert('MR the remarks are CTSizer-only (EXTRA_WARNINGS)',
+      M.EXTRA_WARNINGS.includes('warning_ipr_below_load') && M.EXTRA_WARNINGS.includes('warning_ipr_above_standard'), '', 'listed'));
     return results;
   }
 
@@ -5491,7 +5812,7 @@ const CTTests = (() => {
   function testZone() {
     const results = [];
     const Z = CTTransformerDiff.zone;
-    const SYS = { station_name: 'REF160', station_abbr: 'REF', voltage: 150, freq: '50', isc_sys: 40, tp: 100, cable_r_method: 'table', cable_temp: 25 };
+    const SYS = { station_name: 'REF160', station_abbr: 'REF', voltage: 150, freq: '50', isc_sys: 40, isc_1ph: 40, tp: 100, cable_r_method: 'table', cable_temp: 25 };
     const ct = { Is: 1, alf: 30, ct_class_family: '5PR', ct_class_alf: 30, relay_manufacturer: 'Siemens', relay_model: 'SIPROTEC 5 7UT86', relay_burden: 0.1,
       cable_length: 150, cable_cross: 4, cable_mat: 'cu', cable_topology: 'six_wire' };
     const CT1 = { ...ct, Ip: 750, rct: 2.402, burden: 30, linked_winding: 'HV' };
@@ -6299,9 +6620,10 @@ const CTTests = (() => {
                  cable_length: 50, cable_cross: 4, cable_mat: 'cu' };
     // 400/5 A (SIPROTEC 5 datasheet, 5 A input): 500 A rms on the 500 A rms
     // measuring range and the 100·In 1 s rating, 1351 A peak > 1250 A dynamic
-    // (ALF 200 so the busbar check itself passes)
-    const plain = CTCalc.calculate('busbar', { ...bb, Ip: 400, alf: 200 }, sys);
-    const fail = CTCalc.calculate('busbar', { ...bb, Ip: 400, alf: 200, relay_model: 'SIPROTEC 5 7SS85' }, sys);
+    // (ALF 180 so the busbar check itself passes; EALF 1980 V stays within
+    // the 2 kV secondary voltage limit, calc/plausibility.js)
+    const plain = CTCalc.calculate('busbar', { ...bb, Ip: 400, alf: 180 }, sys);
+    const fail = CTCalc.calculate('busbar', { ...bb, Ip: 400, alf: 180, relay_model: 'SIPROTEC 5 7SS85' }, sys);
     results.push(assert('IED CTCalc: dynamic capacity exceeded fails the core (measuring range and 1 s at their limit pass)',
       plain.is_ok === true && !('ied_rating' in plain) && fail.is_ok === false && fail.status === 'NOT_OK'
         && fail.conclusion === 'ct_insufficient' && fail.ied_rating.status === 'NOT_OK'
@@ -6480,11 +6802,14 @@ const CTTests = (() => {
       { name: 'RelayDb',        fn: testRelayDb        },
       { name: 'RelayCalcParams', fn: testRelayCalcParams },
       { name: 'IedRating',      fn: testIedRating      },
+      { name: 'Plausibility',   fn: testPlausibility   },
       { name: 'Required',       fn: testRequired       },
       { name: 'Bay',            fn: testBay            },
+      { name: 'MeteringRatio',  fn: testMeteringRatio  },
       { name: 'Zone',           fn: testZone           },
       { name: 'LocalRules',     fn: testLocalRules     },
       { name: 'VtResistorLocation', fn: testVtResistorLocation },
+      { name: 'FaultLevel',     fn: testFaultLevel     },
       { name: 'EndToEnd',       fn: testEndToEnd       },
     ];
 
@@ -6522,5 +6847,5 @@ const CTTests = (() => {
            testGeneric, testDistanceMain, testDistanceData, testAutoReclosure, testAutoReclosurePresets, testAutoReclosureComputation,
            testAutoReclosureWaveform, testTransformerDiffMain, testTransformerDiffPresets, testTransformerDiffData, testTransformerDiffBurden, testLineDiffMain, testLineDiffData,
            testLineDiffEmfCalculation, testLineDiffKneePoint, testVtData, testVtPresets, testVtImpedance,
-           testCtCalculations, testCableResConsistency, testIedRating, testRequired };
+           testCtCalculations, testCableResConsistency, testIedRating, testPlausibility, testRequired };
 })();

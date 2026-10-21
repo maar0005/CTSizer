@@ -9,7 +9,7 @@ const { useState, useEffect, useCallback, useMemo, useRef } = React;
 // settings (PORTING_PLAN.md §9.4) are station data too.
 const DEFAULT_SYSTEM = {
   station_name:'', station_abbr:'', voltage:null, freq:null,
-  isc_sys:null, tp:null, tp_confirmed:false,
+  isc_sys:null, isc_1ph:null, tp:null, tp_confirmed:false,
   cable_r_method:null, cable_temp:null,
   // ρ20 source of the formula method (#132). null = not entered (blocks); a
   // system WITHOUT the key was saved before the choice and keeps the IEC
@@ -474,7 +474,8 @@ function App({ ctl }) {
             <FeederOverview lang={lang} feeder={activeFeeder} results={results} coreChecks={coreChecks}
               sel={sel} setSel={s=>{ setSel(s); setNavActive('ct'); }}
               setFeederType={setFeederType} addDevice={addDevice}
-              updateBay={updateBay} dismissBayNote={dismissBayNote} bayCheck={bayChecks[activeFeeder.id]}/>
+              updateBay={updateBay} dismissBayNote={dismissBayNote} bayCheck={bayChecks[activeFeeder.id]}
+              voltage={system.voltage}/>
           )}
 
           {showDevice && (
@@ -547,7 +548,7 @@ function noResultText(T, check) {
 }
 
 function FeederOverview({ lang, feeder, results, coreChecks = {}, sel, setSel, setFeederType, addDevice,
-                          updateBay, dismissBayNote }) {
+                          updateBay, dismissBayNote, voltage }) {
   const T = k => CTSI18n.t(lang, k);
   const mobile = useMobile();
   const FEEDER_TYPES = FEEDER_PURPOSES.map(p => p.id);
@@ -600,8 +601,8 @@ function FeederOverview({ lang, feeder, results, coreChecks = {}, sel, setSel, s
           </div>}
         </div>
 
-        {/* Transformer / line data of the bay, shared by its cores (#133) */}
-        <BayDataPanel lang={lang} feeder={feeder}
+        {/* Transformer / line / connection data of the bay, shared by its cores (#133, #155) */}
+        <BayDataPanel lang={lang} feeder={feeder} voltage={voltage}
           onChange={(k, x) => updateBay(feeder.id, k, x)} onDismiss={i => dismissBayNote(feeder.id, i)}/>
 
         {feeder.devices.length===0 && (

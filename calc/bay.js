@@ -19,6 +19,10 @@
  *   feeder.line         { r_per_km, x_per_km, line_length }  R′L, X′L (Ω/km
  *                    primary) and lL (km); Klim (zone1_setting) is a relay
  *                    setting and stays on the distance core.
+ *   feeder.connection   { sn_mva }  the nominal power of the connection (the
+ *                    load the bay carries), MVA (#155). The metering CT cores
+ *                    read it: with the station voltage it gives the load
+ *                    current In = Sn / (√3·U) their Ipr is checked against.
  *   feeder.bay_notes    remarks left by the migration (see migrateFeeder)
  *
  * Only entered values are stored (no default). The calculation reads the bay
@@ -27,6 +31,7 @@
  *   transformer_data = { mva, z_percent, inrush_factor,
  *                        windings: { HV: { voltage, isc_int }, … } }
  *   R_L_per_km, X_L_per_km, lL
+ *   connection_mva                       (#155, CTMetering)
  * Ir and Isc,max,ext are derived, never stored (#134, windingCurrents):
  * Ir,w = Sr / (√3·Ur,w), Isc,max,ext,w = Ir,w / (Z%/100), the infinite-source
  * through-fault current (the transformer impedance alone, conservative). The
@@ -41,6 +46,7 @@ const CTBay = (() => {
   const TRAFO_KEYS = ['sr_mva', 'z_percent', 'inrush_factor', 'winding_count',
     ...WINDINGS.flatMap((w) => [`ur_kv_${w}`, `isc_int_${w}`])];
   const LINE_KEYS = ['r_per_km', 'x_per_km', 'line_length'];
+  const CONN_KEYS = ['sn_mva'];
 
   // The core keys a project saved before #133 holds, per bay part
   const LEGACY_TRAFO = ['trafo_power_mva', 'trafo_rated_power', 'trafo_z_percent', 'trafo_uk_percent',
@@ -53,6 +59,7 @@ const CTBay = (() => {
     sr_mva: [0.1, 5000], z_percent: [1, 50], inrush_factor: [1, 20],
     ur_kv: [0.1, 1200], isc_int: [0, 200000, true],   // A (typed in kA)
     r_per_km: [0, 10], x_per_km: [0, 10], line_length: [0.01, 1000],
+    sn_mva: [0, 5000, true],
   };
   const rangeOf = (field) => RANGES[field.replace(/_(HV|LV|TV)$/, '')];
   const inRange = (field, x) => {
@@ -74,11 +81,13 @@ const CTBay = (() => {
   // Which bay data the bay's cores read
   const usesTransformer = (f) => ctCores(f).some(({ core }) => core.calc_type === 'transformer_diff');
   const usesLine = (f) => ctCores(f).some(({ core }) => core.calc_type === 'distance');
+  const usesConnection = (f) => ctCores(f).some(({ core }) => core.calc_type === 'metering');
   const hasData = (obj, keys) => !!obj && keys.some((k) => !isBlank(obj[k]));
   // A card is shown while a core reads it or data is stored (a device type
   // change never drops entered data)
   const showsTransformer = (f) => usesTransformer(f) || hasData(f && f.transformer, TRAFO_KEYS);
   const showsLine = (f) => usesLine(f) || hasData(f && f.line, LINE_KEYS);
+  const showsConnection = (f) => usesConnection(f) || hasData(f && f.connection, CONN_KEYS);
 
   // Windings the card asks for: by winding_count, else HV/LV plus TV when a
   // core is linked to it or TV data is entered
@@ -145,6 +154,10 @@ const CTBay = (() => {
       if (num(l.x_per_km) != null) re.X_L_per_km = l.x_per_km;
       if (num(l.line_length) != null) re.lL = l.line_length;
     }
+    if (showsConnection(f)) {
+      const c = f.connection || {};
+      if (num(c.sn_mva) != null) re.connection_mva = c.sn_mva;
+    }
     return Object.keys(re).length ? re : null;
   }
 
@@ -157,7 +170,7 @@ const CTBay = (() => {
 
   // Bay values as one flat object (marks, activity log, report)
   function flat(f) {
-    return { ...((f && f.transformer) || {}), ...((f && f.line) || {}) };
+    return { ...((f && f.transformer) || {}), ...((f && f.line) || {}), ...((f && f.connection) || {}) };
   }
 
   // ── migrateFeeder(f) — projects saved before #133 ─────────────────────
@@ -283,7 +296,8 @@ const CTBay = (() => {
   // Set (or clear, with null) one bay value; a conflict note of that field
   // goes once the user enters the value.
   function setField(f, key, value) {
-    const part = TRAFO_KEYS.includes(key) ? 'transformer' : LINE_KEYS.includes(key) ? 'line' : null;
+    const part = TRAFO_KEYS.includes(key) ? 'transformer' : LINE_KEYS.includes(key) ? 'line'
+      : CONN_KEYS.includes(key) ? 'connection' : null;
     if (!part) throw new Error(`unknown bay field: ${key}`);
     const obj = { ...(f[part] || {}) };
     if (isBlank(value)) delete obj[key]; else obj[key] = value;
@@ -302,8 +316,9 @@ const CTBay = (() => {
   }
 
   return {
-    WINDINGS, WINDING_COUNTS, TRAFO_KEYS, LINE_KEYS, RANGES, LEGACY_TRAFO, LEGACY_LINE,
-    ctCores, usesTransformer, usesLine, showsTransformer, showsLine, windings, windingOptions,
+    WINDINGS, WINDING_COUNTS, TRAFO_KEYS, LINE_KEYS, CONN_KEYS, RANGES, LEGACY_TRAFO, LEGACY_LINE,
+    ctCores, usesTransformer, usesLine, usesConnection, showsTransformer, showsLine, showsConnection,
+    windings, windingOptions,
     windingCurrents, remoteEnd, commonData, flat,
     migrateFeeder, migrateFeeders, setField, dismissNote,
   };

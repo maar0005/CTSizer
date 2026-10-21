@@ -19,6 +19,17 @@
  *   cannot be met (Fs ≥ Fmin or S_req ≥ Sn), the burden missing for cond. 2
  *   (ΔS = S_req − S, S_req = Fs·(S_in+Sn)/Fmin − S_in), the lead burden above
  *   Sn and the extended burden range as a way out of S < Smin.
+ *
+ * Cond. 3 — the ratio against the load (issue #155, CTSizer only): with the
+ * bay's connection power Sn,conn (commonData.remote_end.connection_mva, MVA)
+ * and the station voltage U (commonData.voltage, kV) the load current is
+ * In = Sn,conn / (√3·U). Ipr must be the nearest standard rated primary
+ * current at or above the load (IEC 61869-2 5.3.201: 10, 12.5, 15, 20, 25,
+ * 30, 40, 50, 60, 75 A and their decimal multiples or fractions):
+ * In ≤ Ipr ≤ Ipr,std(In). A 45 MVA connection at 165 kV (In = 157 A) needs a
+ * 200 A CT, not a 2000 A one. The ratio sets the accuracy at the actual load,
+ * the burden and Fsa checks above do not see it. Not evaluated (cond3 null,
+ * no step) without both values, so the parity cases are unchanged.
  */
 
 const CTMetering = (() => {
@@ -39,10 +50,35 @@ const CTMetering = (() => {
     'warning_fs_not_below_fmin', 'hint_metering_add_burden',
     'hint_lead_burden_above_sn', 'hint_extended_burden_range',
     'warning_extended_range_sn_above_15',
+    'warning_ipr_below_load', 'warning_ipr_above_standard',
   ];
 
   // a ≥ b with a relative tolerance, so a boundary that is equal on paper stays equal
   const ge = (a, b) => a >= b - 1e-9 * Math.max(1, Math.abs(b));
+
+  // IEC 61869-2 5.3.201: standard rated primary currents [A], with their
+  // decimal multiples or fractions
+  const IPR_STANDARD = [10, 12.5, 15, 20, 25, 30, 40, 50, 60, 75];
+
+  // The smallest standard rated primary current ≥ i (A)
+  function standardIpr(i) {
+    if (!(i > 0) || !Number.isFinite(i)) return null;
+    let dec = Math.pow(10, Math.floor(Math.log10(i)) - 1);
+    for (;;) {
+      for (const b of IPR_STANDARD) {
+        const x = +(b * dec).toPrecision(12);
+        if (ge(x, i)) return x;
+      }
+      dec *= 10;
+    }
+  }
+
+  // In = Sn,conn / (√3·U) [A] from MVA and kV; null without both
+  function loadCurrent(sn_mva, u_kv) {
+    const s = Number(sn_mva), u = Number(u_kv);
+    if (!(s > 0) || !(u > 0) || !Number.isFinite(s) || !Number.isFinite(u)) return null;
+    return s * 1000 / (Math.sqrt(3) * u);
+  }
 
   // The Smin% the calculation uses: the class's, else the typed one
   function sminPercent(core) {
@@ -113,7 +149,15 @@ const CTMetering = (() => {
     // Condition 1: Sn ≥ S ≥ Smin   |   Condition 2: Fmin ≥ Fsa  (inclusive, 5.6.201.3)
     const cond1 = ge(burden, S_total) && ge(S_total, S_min);
     const cond2 = ge(min_safety_factor, Fsa);
-    const is_ok = cond1 && cond2;
+
+    // Condition 3 (#155): In ≤ Ipr ≤ Ipr,std(In); null when not evaluated
+    const re = commonData && commonData.remote_end;
+    const conn_mva = re ? re.connection_mva : null;
+    const U_kv = commonData ? commonData.voltage : null;
+    const I_load = loadCurrent(conn_mva, U_kv);
+    const Ipr_std = I_load != null ? standardIpr(I_load) : null;
+    const cond3 = I_load != null ? ge(Ip, I_load) && ge(Ipr_std, Ip) : null;
+    const is_ok = cond1 && cond2 && cond3 !== false;
     const margin = Fsa > 0 ? ((min_safety_factor - Fsa) / min_safety_factor) * 100 : 0;
 
     // warnings — ct_metering.py's result["warnings"] [key, ...args] entries,
@@ -124,6 +168,14 @@ const CTMetering = (() => {
     if (!cond2) {
       if (!cond2_feasible) warnings.push(['warning_fs_not_below_fmin', fs_factor, min_safety_factor, S_req, burden]);
       else warnings.push(['hint_metering_add_burden', delta_S, S_req]);
+    }
+    // [key, Ipr, In, Sn,conn, U, Ipr,std(, In/Ipr %)]; the entered and the
+    // rated values as text, so the remark shows them as typed (200 A, not
+    // 200.0 A)
+    if (cond3 === false) {
+      const args = [String(Ip), I_load, String(conn_mva), String(U_kv), String(Ipr_std)];
+      if (!ge(Ip, I_load)) warnings.push(['warning_ipr_below_load', ...args]);
+      else warnings.push(['warning_ipr_above_standard', ...args, Math.round(I_load / Ip * 1000) / 10]);
     }
     if (S_lead > burden) warnings.push(['hint_lead_burden_above_sn', S_lead, burden]);
     if (extended_requested && !extended) {
@@ -193,10 +245,27 @@ const CTMetering = (() => {
         latex: 'F_{min}\\geq F_{sa}', is_ok: cond2,
         comparison: `${min_safety_factor} ≥ ${Fsa.toFixed(4)}`,
       }),
+      ...(I_load != null ? [
+        CTStep.make({
+          key: 'i_load', label_en: 'Load current of the connection', label_da: 'Forbindelsens belastningsstrøm',
+          latex: 'I_n=\\frac{S_{n,conn}}{\\sqrt{3}\\cdot U}', result: I_load, unit: 'A',
+          variables: { 'Sn,conn': conn_mva, U: U_kv },
+        }),
+        CTStep.make({
+          key: 'ipr_std', label_en: 'Nearest standard Ipr ≥ In (IEC 61869-2)', label_da: 'Nærmeste standard-Ipr ≥ In (IEC 61869-2)',
+          latex: 'I_{pr,std}=\\min\\{I_{pr}\\in\\text{std}\\mid I_{pr}\\geq I_n\\}', result: Ipr_std, unit: 'A',
+          variables: { In: I_load },
+        }),
+        CTStep.conclusion({
+          key: 'cond3', label_en: 'Cond. 3 — Ratio for the load (In ≤ Ipr ≤ Ipr,std)', label_da: 'Bet. 3 — Omsætning til belastningen',
+          latex: 'I_n\\leq I_{pr}\\leq I_{pr,std}', is_ok: cond3,
+          comparison: `${I_load.toFixed(1)} ≤ ${Ip} ≤ ${Ipr_std}`,
+        }),
+      ] : []),
       CTStep.conclusion({
         key: 'conclusion', label_en: 'Final conclusion', label_da: 'Endelig konklusion',
-        latex: '\\text{Cond.1}\\wedge\\text{Cond.2}', is_ok,
-        comparison: `${cond1 ? '✓' : '✗'}  ∧  ${cond2 ? '✓' : '✗'}`,
+        latex: I_load != null ? '\\text{Cond.1}\\wedge\\text{Cond.2}\\wedge\\text{Cond.3}' : '\\text{Cond.1}\\wedge\\text{Cond.2}', is_ok,
+        comparison: `${cond1 ? '✓' : '✗'}  ∧  ${cond2 ? '✓' : '✗'}${I_load != null ? `  ∧  ${cond3 ? '✓' : '✗'}` : ''}`,
       }),
     ];
 
@@ -205,7 +274,8 @@ const CTMetering = (() => {
       min_safety_factor,   // Fmin, the Summary's "Fmin req" card
       min_burden_percent, extended_burden_range: extended,
       S_req, delta_S, cond2_feasible,
-      cond1, cond2, is_ok, margin, warnings, conclusion, steps,
+      connection_mva: I_load != null ? conn_mva : null, I_load, Ipr_std,
+      cond1, cond2, cond3, is_ok, margin, warnings, conclusion, steps,
       status: is_ok ? 'OK' : 'NOT_OK',
       cable_res: {
         method: cable.method, source: cable.source, topology: cable.topology, factor: cable.factor,
@@ -214,5 +284,5 @@ const CTMetering = (() => {
     };
   }
 
-  return { calculate, sminPercent, CLASS_SMIN_PERCENT, SMIN_FLOOR_VA, EXTENDED_MAX_SN_VA, EXTRA_WARNINGS };
+  return { calculate, sminPercent, standardIpr, loadCurrent, IPR_STANDARD, CLASS_SMIN_PERCENT, SMIN_FLOOR_VA, EXTENDED_MAX_SN_VA, EXTRA_WARNINGS };
 })();

@@ -57,13 +57,16 @@ CTLineDiff.data = (() => {
     // voltage calculations.
     const max_reasonable_fault_current = primary_current * 1000;
 
-    // Through fault: use station data if not specified.
+    // Through fault: use station data if not specified. The 1-phase cases
+    // take the project's Ik1 max (isc_1ph), the 3-phase ones its Ik3 max;
+    // a project without Ik1 (the golden tests) uses Ik3 for both.
     const station_sc_ka = (commonData.isc_sys ?? 63) * 1000;
+    const station_sc_1ph = commonData.isc_1ph != null ? commonData.isc_1ph * 1000 : station_sc_ka;
 
     const ik_max_3ph = Math.min(core.ik_max_3ph ?? station_sc_ka, max_reasonable_fault_current);
-    const ik_max_1ph = Math.min(core.ik_max_1ph ?? station_sc_ka, max_reasonable_fault_current);
+    const ik_max_1ph = Math.min(core.ik_max_1ph ?? station_sc_1ph, max_reasonable_fault_current);
     const it_max_3ph = Math.min(core.it_max_3ph ?? station_sc_ka, max_reasonable_fault_current);
-    const it_max_1ph = Math.min(core.it_max_1ph ?? station_sc_ka, max_reasonable_fault_current);
+    const it_max_1ph = Math.min(core.it_max_1ph ?? station_sc_1ph, max_reasonable_fault_current);
 
     return { ik_max_3ph, ik_max_1ph, it_max_3ph, it_max_1ph };
   }

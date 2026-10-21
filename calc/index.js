@@ -173,7 +173,11 @@ const CTCalc = (() => {
       // IED input rating: the secondary current against the picked IED's
       // input ratings (calc/ied_rating.js ← ct_ied_rating.py, which
       // calculate_single_core runs after the module the same way)
-      return CTIedRating.apply(fn(m, commonData), CTIedRating.calculate(type, m, commonData));
+      const r = CTIedRating.apply(fn(m, commonData), CTIedRating.calculate(type, m, commonData));
+      // CTSizer's sanity checks (calc/plausibility.js, issue #154): the
+      // secondary voltage limit (fails the core) and a typed Rct far above
+      // the rule-of-thumb table (a remark)
+      return CTPlausibility.apply(type, m, commonData, r);
     } catch (e) {
       console.error('[CTCalc] Error in', type, e);
       return null;

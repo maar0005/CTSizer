@@ -62,6 +62,9 @@ CTDistance.calculate = function calculate(core, commonData = {}) {
   const cable = params.cable_res;
   const r_lead = cable.r_loop;
   cable.steps.forEach((s) => steps.push(s));
+  // Ik1 max above Ik3 max: params.iscc_max is Ik1 (CTFaultLevel)
+  const ikStep = CTFaultLevel.governingStep(commonData.isc_sys ?? 40, commonData.isc_1ph);
+  if (ikStep) steps.push(ikStep);
 
   // ── Relay parameters ──────────────────────────────────────────────────
   const { ratedCurrent: rated_current, relayResistance: relay_resistance } =

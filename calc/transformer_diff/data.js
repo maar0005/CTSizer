@@ -52,13 +52,14 @@ CTTransformerDiff.data = (() => {
 
   // ── project_internal_fault_current(common_data) ──────────────────────
   // Project Ik max (commonData.isc_sys, kA — Python common_data
-  // ["short_circuit_ka"]) as the default internal (in-zone) fault current, in
-  // A. null when the project has no short-circuit level (missing or ≤ 0):
-  // the calculation then cannot run (issue #85).
+  // ["short_circuit_ka"]; its Ik1 max isc_1ph when that is larger) as the
+  // default internal (in-zone) fault current, in A. null when the project
+  // has no short-circuit level (missing or ≤ 0): the calculation then cannot
+  // run (issue #85).
   function projectInternalFaultCurrent(commonData = {}) {
     const isc_ka = commonData.isc_sys;
     if (isc_ka == null || !(isc_ka > 0)) return null;
-    return isc_ka * 1000;
+    return CTFaultLevel.governingKa(isc_ka, commonData.isc_1ph) * 1000;
   }
 
   // Where the compat path's internal fault current comes from (the panel and

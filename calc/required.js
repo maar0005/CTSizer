@@ -14,11 +14,12 @@
  *                           notes { key: 'legacy' }: non-blocking marks
  * core(core, feeder)      — one core; core.kind 'vt' is a VT core whatever its
  *                           calc_type (CoreInputPanel shows VtInputs then)
- * bay(feeder)             — the bay's transformer / line data (#133)
+ * bay(feeder)             — the bay's transformer / line / connection data
+ *                           (#133, #155)
  * ready(core, system, feeder) — all complete: the core may be calculated;
  *                           core(core, feeder) includes the bay values it reads
  *
- * Sections: station, ct, relay, line, trafo, cable, ar, meter, vt. The ranges
+ * Sections: station, ct, relay, line, trafo, conn, cable, ar, meter, vt. The ranges
  * are the min / max of the panel inputs (ctsizer-panels.jsx); `gt` marks a
  * value that must be above its minimum (a rated current, burden or voltage).
  * Free-text descriptors (relay / meter type and tag) are optional. A value
@@ -100,6 +101,7 @@ const CTRequired = (() => {
     ['voltage', num(0, 1200, { gt: true }), 'station'],
     ['freq', sel(FREQS), 'station'],
     ['isc_sys', num(0, 200, { gt: true }), 'station'],
+    ['isc_1ph', num(0, 200, { gt: true }), 'station'],
     ['tp', num(1, 500), 'station'],
     ['cable_r_method', sel(methods), 'station'],
     ['cable_temp', num(-20, 90), 'station'],
@@ -216,6 +218,11 @@ const CTRequired = (() => {
     ['z_percent', bayNum('z_percent'), 'trafo'],
     ['inrush_factor', bayNum('inrush_factor'), 'trafo'],
   ];
+  // The connection's nominal power (#155): the load the metering CT cores'
+  // ratio is checked against (CTMetering cond. 3)
+  const BAY_CONN = [
+    ['sn_mva', bayNum('sn_mva'), 'conn'],
+  ];
   const winding = (w) => [
     [`ur_kv_${w}`, bayNum('ur_kv'), 'trafo'],
     [`isc_int_${w}`, bayNum('isc_int'), 'trafo'],   // A (entered in kA)
@@ -231,19 +238,22 @@ const CTRequired = (() => {
         ...CTBay.windings(f).flatMap(winding));
     }
     if (CTBay.usesLine(f)) rules.push(...BAY_LINE);
+    if (CTBay.usesConnection(f)) rules.push(...BAY_CONN);
     return check(CTBay.flat(f), rules);
   }
 
   // The bay values one core reads: a transformer_diff core needs Sr, Z%, k and
   // its own winding's Ur and Isc,max,int (not the whole bay, so an old
   // project's core still calculates while another winding is blank); a
-  // distance core needs the line data.
+  // distance core needs the line data; a metering CT core the connection
+  // power.
   function bayRulesFor(type, v, f) {
     if (type === 'transformer_diff') {
       const lw = CTBay.windingOptions(f).includes(v.linked_winding) ? v.linked_winding : null;
       return [...BAY_TRAFO, ...(lw ? winding(lw) : [])];
     }
     if (type === 'distance') return BAY_LINE;
+    if (type === 'metering') return BAY_CONN;
     return [];
   }
   function merge(a, b) {

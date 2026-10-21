@@ -126,6 +126,9 @@ function SystemPanel({ lang, v, onChange }) {
         <FormRow label={Tp(lang,'lbl_isc_sys')} unit="kA" field="isc_sys">
           <NumInput value={v.isc_sys} onChange={x=>set('isc_sys',x)} min={0} max={200} step={0.1}/>
         </FormRow>
+        <FormRow label={Tp(lang,'lbl_isc_1ph')} unit="kA" field="isc_1ph">
+          <NumInput value={v.isc_1ph} onChange={x=>set('isc_1ph',x)} min={0} max={200} step={0.1}/>
+        </FormRow>
         <div style={{display:'flex',alignItems:'flex-end',gap:10}}>
           <div style={{flex:1}}>
             <FormRow label={Tp(lang,'lbl_tp')} unit="ms" field="tp">
@@ -137,6 +140,7 @@ function SystemPanel({ lang, v, onChange }) {
             <span style={{fontSize:11,color:'var(--text-dim)'}}>{Tp(lang,'lbl_tp_confirm')}</span>
           </label>
         </div>
+        <TpHelper lang={lang} v={v} onChange={onChange}/>
         <FormRow label={Tp(lang,'lbl_cable_r_method')} wide field="cable_r_method">
           <SelectInput value={v.cable_r_method} onChange={setMethod}
             options={CTCalc.cableRes.listMethods().map(m=>[m.id, lang==='da'?m.label_da:m.label_en])}/>
@@ -185,7 +189,7 @@ function OvercurrentInputs({ lang, v, set, onChange, systemVals }) {
             <NumInput value={v.burden} onChange={x=>set('burden',x)} min={0} max={200} step={0.1}/>
           </FormRow>
           <AlfVkRow lang={lang} v={v} set={set} onChange={onChange}/>
-          <div style={{fontSize:11,color:'var(--text-muted)',fontFamily:'var(--font-mono)',marginTop:6}}>Isc max: from Station Data (Ik max)</div>
+          <div style={{fontSize:11,color:'var(--text-muted)',fontFamily:'var(--font-mono)',marginTop:6}}>Isc max: from Station Data, the larger of Ik3 max and Ik1 max</div>
         </div>
       </SectionCard>
       <RelaySection lang={lang} v={v} set={set} onChange={onChange} calcType="overcurrent"/>
@@ -234,7 +238,90 @@ function CableRhoInfo({ lang, v }) {
 
 const MT_CLASSES = CTRequired.MT_CLASSES;
 const noteSt = { fontSize:11, color:'var(--text-muted)', fontFamily:'var(--font-mono)', marginTop:6 };
-function MeteringInputs({ lang, v, set, onChange, localRules, systemVals }) {
+
+// ── Tp helper ────────────────────────────────────────────────────────────
+// Tp3 and Tp1 from the substation busbar's sequence impedances
+// (CTFaultLevel.primaryTimeConstants), each in its own formula step. The
+// impedances stay in this component: they are not saved and no calculation
+// reads them, so they have no CTRequired rule. Apply writes the larger Tp,
+// rounded up to whole ms, to the project's Tp and clears "Confirmed": the
+// helper fills nothing on its own and the user still confirms Tp.
+const TP_Z_ROWS = [['z1', 'r1', 'x1'], ['z2', 'r2', 'x2'], ['z0', 'r0', 'x0']];
+function TpHelper({ lang, v, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [z, setZ] = useState({});
+  const freq = parseFloat(v.freq);
+  const r = CTFaultLevel.primaryTimeConstants(z, freq);
+  const tps = [r.tp3, r.tp1].filter(t => t != null);
+  const tpMax = tps.length ? Math.max(...tps) : null;
+  const f = (x) => +x.toFixed(4);
+  const w = `2\\pi\\cdot ${freq}`;
+  const sub3 = r.tp3 != null ? `=\\frac{${f(z.x1)}}{${w}\\cdot ${f(z.r1)}}` : '';
+  const sub1 = r.tp1 != null
+    ? `=\\frac{${f(z.x1)}+${f(z.x2)}+${f(z.x0)}}{${w}\\cdot(${f(z.r1)}+${f(z.r2)}+${f(z.r0)})}` : '';
+  const steps = [
+    ['tp3', CTStep.make({ key:'tp3', label_en:Tp('en','tp_helper_tp3'), label_da:Tp('da','tp_helper_tp3'),
+      latex:`T_{p3}=\\frac{X_1}{\\omega R_1}${sub3}`, result:r.tp3, unit:'ms', precision:1 })],
+    ['tp1', CTStep.make({ key:'tp1', label_en:Tp('en','tp_helper_tp1'), label_da:Tp('da','tp_helper_tp1'),
+      latex:`T_{p1}=\\frac{X_1+X_2+X_0}{\\omega (R_1+R_2+R_0)}${sub1}`, result:r.tp1, unit:'ms', precision:1 })],
+  ];
+  // Why a case has no result: its blank inputs, else a resistance (sum) ≤ 0
+  const why = (k) => r.missing[k].length
+    ? Tp(lang,'tp_helper_needs').replace('{list}', r.missing[k].map(x => x.toUpperCase()).join(', '))
+    : Tp(lang,'tp_helper_r');
+  const btnSt = { background:'none', border:'none', padding:0, cursor:'pointer', color:'var(--accent)',
+                  fontFamily:'var(--font-mono)', fontSize:11 };
+  return (
+    <div data-testid="tp-helper" style={{marginTop:6}}>
+      <button type="button" data-testid="tp-helper-toggle" aria-expanded={open} onClick={()=>setOpen(!open)} style={btnSt}>
+        {open ? '▾' : '▸'} {Tp(lang,'tp_helper_toggle')}
+      </button>
+      {open && (
+        <div style={{marginTop:6,padding:'8px 10px',background:'var(--surface-2)',borderRadius:6,
+                     borderLeft:'3px solid var(--accent)'}}>
+          <div style={{...noteSt, marginTop:0}}>{Tp(lang,'tp_helper_hint')}</div>
+          <div style={{display:'grid',gridTemplateColumns:'auto 1fr 1fr',gap:'6px 8px',alignItems:'center',marginTop:8}}>
+            <span/>
+            <span style={noteSt}>R (Ω)</span>
+            <span style={noteSt}>X (Ω)</span>
+            {TP_Z_ROWS.map(([row, rk, xk]) => (
+              <React.Fragment key={row}>
+                <span style={{fontSize:12,color:'var(--text-dim)'}}>{Tp(lang,`tp_helper_${row}`)}</span>
+                <div data-tp-input={rk}><NumInput value={z[rk]} onChange={x=>setZ({...z,[rk]:x})}/></div>
+                <div data-tp-input={xk}><NumInput value={z[xk]} onChange={x=>setZ({...z,[xk]:x})}/></div>
+              </React.Fragment>
+            ))}
+          </div>
+          {!(freq > 0) && <div style={noteSt}>{Tp(lang,'tp_helper_freq')}</div>}
+          {freq > 0 && (
+            <div style={{display:'grid',gap:6,marginTop:8}}>
+              {steps.map(([k, s]) => (
+                <div key={k} data-testid={`tp-helper-${k}`} data-value={r[k] ?? ''}>
+                  <FormulaStep step={s} lang={lang}/>
+                  {r[k] == null && <div style={noteSt}>{why(k)}</div>}
+                </div>
+              ))}
+              {tpMax != null && (
+                <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                  <span style={{fontFamily:'var(--font-mono)',fontSize:12,color:'var(--text)'}}>
+                    {Tp(lang,'tp_helper_max')} = {tpMax.toFixed(1)} ms
+                  </span>
+                  <button type="button" data-testid="tp-helper-apply"
+                    onClick={()=>onChange({ ...v, tp: Math.ceil(tpMax), tp_confirmed: false })}
+                    style={{marginLeft:'auto',background:'var(--accent)',color:'#fff',border:'none',borderRadius:5,
+                            padding:'5px 10px',fontSize:11,cursor:'pointer'}}>
+                    {Tp(lang,'tp_helper_apply').replace('{n}', Math.ceil(tpMax))}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+function MeteringInputs({ lang, v, set, onChange, localRules, systemVals, bay, onEditBay }) {
   const fromClass = MT_CLASSES.includes(v.mt_class);
   return (
     <>
@@ -268,6 +355,13 @@ function MeteringInputs({ lang, v, set, onChange, localRules, systemVals }) {
             </FormRow>
             {fromClass && <div style={noteSt}>{Tp(lang,'smin_from_class')}</div>}
           </>}
+        </div>
+      </SectionCard>
+      {/* The connection power is the bay's (#155): Ipr is checked against its load current */}
+      <SectionCard title={Tp(lang,'section_bay_conn')} defaultOpen section="conn">
+        <div style={{paddingTop:8}}>
+          <BayValues lang={lang} bay={bay} part="connection" keys={CTBay.CONN_KEYS} onEditBay={onEditBay}/>
+          <ConnLoadNote lang={lang} sn={bay?.connection?.sn_mva} voltage={systemVals?.voltage}/>
         </div>
       </SectionCard>
       <MeterSection lang={lang} v={v} set={set} onChange={onChange} calcType="metering" localRules={localRules}/>
@@ -890,7 +984,7 @@ function BayValues({ lang, bay, part, keys, onEditBay }) {
   return (
     <div data-testid={`bay-values-${part}`}>
       <div style={{...noteSt, marginTop:2, display:'flex', gap:8, alignItems:'baseline', flexWrap:'wrap'}}>
-        <span>{Tl(part === 'line' ? 'bay_from_line' : 'bay_from_trafo').replace('{name}', bay ? bay.name : '')}</span>
+        <span>{Tl({ line: 'bay_from_line', connection: 'bay_from_conn' }[part] || 'bay_from_trafo').replace('{name}', bay ? bay.name : '')}</span>
         {onEditBay && <button type="button" data-testid="edit-on-bay" onClick={onEditBay}
           style={{background:'none',border:'none',padding:0,cursor:'pointer',color:'var(--accent)',fontFamily:'var(--font-mono)',fontSize:11}}>
           {Tl('bay_edit')}</button>}
@@ -904,6 +998,19 @@ function BayValues({ lang, bay, part, keys, onEditBay }) {
           </FormRow>
         );
       })}
+    </div>
+  );
+}
+
+// The connection's load current and the nearest standard Ipr (#155,
+// CTMetering cond. 3), derived and read-only; nothing until a valid Sn and U
+// are entered
+function ConnLoadNote({ lang, sn, voltage }) {
+  const i = sn <= CTBay.RANGES.sn_mva[1] ? CTMetering.loadCurrent(sn, voltage) : null;
+  if (i == null) return null;
+  return (
+    <div data-testid="conn-load" style={{...noteSt, marginTop:3}}>
+      {CTSI18n.t(lang, 'bay_in_conn').replace('{i}', i.toFixed(1)).replace('{u}', voltage).replace('{s}', CTMetering.standardIpr(i))}
     </div>
   );
 }
@@ -965,12 +1072,12 @@ function ZoneCard({ lang, zone }) {
 // for every core below it (CTBay, calc/bay.js; CTRequired.bay). Shown while a
 // core of the bay reads it or data is stored. Isc,max,int is typed in kA and
 // stored in A.
-function BayDataPanel({ lang, feeder, onChange, onDismiss }) {
+function BayDataPanel({ lang, feeder, voltage, onChange, onDismiss }) {
   const Tl = k => CTSI18n.t(lang, k);
   const chk = useMemo(() => ({ ...CTRequired.bay(feeder), lang }), [feeder, lang]);
-  const showT = CTBay.showsTransformer(feeder), showL = CTBay.showsLine(feeder);
-  if (!showT && !showL && !(feeder.bay_notes || []).length) return null;
-  const t = feeder.transformer || {}, l = feeder.line || {};
+  const showT = CTBay.showsTransformer(feeder), showL = CTBay.showsLine(feeder), showC = CTBay.showsConnection(feeder);
+  if (!showT && !showL && !showC && !(feeder.bay_notes || []).length) return null;
+  const t = feeder.transformer || {}, l = feeder.line || {}, c = feeder.connection || {};
   const cur = CTBay.windingCurrents(feeder);   // derived, read-only (#134)
   const numRow = (key, src, lim) => {
     const f = CTSReport.bayField(lang, key);
@@ -1016,6 +1123,15 @@ function BayDataPanel({ lang, feeder, onChange, onDismiss }) {
           <div data-testid="bay-line" style={{paddingTop:8}}>
             {CTBay.LINE_KEYS.map(k => numRow(k, l, { min: LINE_LIMITS[k].min, max: LINE_LIMITS[k].max }))}
             <div style={noteSt}>{Tl('line_bay_note')}</div>
+          </div>
+        </SectionCard>
+      )}
+      {showC && (
+        <SectionCard title={Tl('section_bay_conn')} defaultOpen section="conn">
+          <div data-testid="bay-conn" style={{paddingTop:8}}>
+            {numRow('sn_mva', c, { min:0, max:5000, step:0.1 })}
+            <ConnLoadNote lang={lang} sn={c.sn_mva} voltage={voltage}/>
+            <div style={noteSt}>{Tl('conn_bay_note')}</div>
           </div>
         </SectionCard>
       )}
@@ -1264,7 +1380,7 @@ function CoreInputPanel({ lang, core, systemVals, bay, onEditBay, onChange: stor
 
       {core.kind === 'vt' ? <VtInputs lang={lang} v={v} set={set} onChange={onChange}/> : <>
         {type === 'overcurrent'      && <OvercurrentInputs lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals}/>}
-        {type === 'metering'         && <MeteringInputs    lang={lang} v={v} set={set} onChange={onChange} localRules={systemVals?.local_rules} systemVals={systemVals}/>}
+        {type === 'metering'         && <MeteringInputs    lang={lang} v={v} set={set} onChange={onChange} localRules={systemVals?.local_rules} systemVals={systemVals} bay={bay} onEditBay={onEditBay}/>}
         {type === 'busbar'           && <BusbarInputs      lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals}/>}
         {type === 'distance'         && <DistanceInputs       lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals} bay={bay} onEditBay={onEditBay}/>}
         {type === 'transformer_diff' && <TransformerDiffInputs lang={lang} v={v} set={set} onChange={onChange} systemVals={systemVals} bay={bay} onEditBay={onEditBay}/>}
@@ -1408,7 +1524,7 @@ function chartArDataLineDiff(core, result, systemVals) {
 }
 
 // No result because inputs are missing (CTRequired): what is missing, per card.
-const REQ_SECTIONS = ['station', 'ct', 'relay', 'line', 'trafo', 'meter', 'vt', 'cable', 'ar'];
+const REQ_SECTIONS = ['station', 'ct', 'relay', 'line', 'trafo', 'conn', 'meter', 'vt', 'cable', 'ar'];
 function IncompleteNotice({ lang, core, systemVals, bay, onEditBay }) {
   const Tl = k => CTSI18n.t(lang, k);
   const sys = CTRequired.system(systemVals);
@@ -1428,7 +1544,7 @@ function IncompleteNotice({ lang, core, systemVals, bay, onEditBay }) {
           <li key={k} data-section={k}>{Tl(`req_sec_${k}`)}: {Tl('mark_section').replace('{n}', counts[k])}</li>
         ))}
       </ul>
-      {onEditBay && Object.keys(cc.fields).some(k => CTBay.TRAFO_KEYS.includes(k) || CTBay.LINE_KEYS.includes(k)) ? (
+      {onEditBay && Object.keys(cc.fields).some(k => CTBay.TRAFO_KEYS.includes(k) || CTBay.LINE_KEYS.includes(k) || CTBay.CONN_KEYS.includes(k)) ? (
         <button type="button" data-testid="incomplete-edit-on-bay" onClick={onEditBay}
           style={{...tplBtnSt, alignSelf:'flex-start'}}>{Tl('bay_edit')}</button>
       ) : null}
@@ -1494,6 +1610,7 @@ function ResultsPanel({ lang, result, core, systemVals, bay, onEditBay, theme })
       </div>
 
       {(type === 'metering' || type === 'vt') && <ResultRemarks lang={lang} result={result} core={core} systemVals={systemVals}/>}
+      {type !== 'metering' && type !== 'vt' && <PlausibilityRemarks lang={lang} result={result}/>}
       {local && <LocalRulesCard lang={lang} local={local}/>}
 
       {/* Tab bar */}
@@ -1593,6 +1710,32 @@ function ResultRemarks({ lang, result, core, systemVals }) {
           color:'var(--text-dim)'}}>
       <div style={{fontWeight:700,marginBottom:3}}>{Tp(lang,'res_remarks')}</div>
       {ws.map((w, i) => <div key={i} style={{marginTop:2}}>• {CTSReport.warningText(lang, w)}</div>)}
+    </div>
+  );
+}
+
+// CTSizer's sanity checks on a protection core (CTPlausibility,
+// calc/plausibility.js, issue #154), which the other remarks only list in the
+// RTF: the secondary voltage limit (red, it fails the core) and a typed Rct
+// far above the rule-of-thumb table (amber, a remark only). Metering cores
+// show them with their other remarks (ResultRemarks).
+function PlausibilityRemarks({ lang, result }) {
+  const ws = (result?.warnings || []).filter((w) => Array.isArray(w) && CTPlausibility.KEYS.includes(w[0]));
+  if (!ws.length) return null;
+  return (
+    <div data-testid="plausibility-remarks" style={{display:'flex',flexDirection:'column',gap:4}}>
+      {ws.map((w, i) => {
+        const fail = CTPlausibility.VOLTAGE_KEYS.includes(w[0]);
+        return (
+          <div key={i} data-testid="plausibility-remark" data-key={w[0]}
+            style={{padding:'5px 9px',borderRadius:5,fontSize:11,fontFamily:'var(--font-mono)',
+                    color: fail ? 'var(--red)' : 'var(--text)', fontWeight: fail ? 600 : 400,
+                    background: fail ? 'var(--red-bg)' : 'var(--amber-bg)',
+                    borderLeft:`3px solid ${fail ? 'var(--red)' : 'var(--amber)'}`}}>
+            ⚠ {CTSReport.warningText(lang, w)}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1697,6 +1840,11 @@ function buildMetrics(type, r, lang) {
     { label: 'S min', value: r.S_min?.toFixed(4), unit: 'VA', ok: r.cond1 },
     { label: 'S in',  value: r.S_in?.toFixed(4),  unit: 'VA' },
     { label: Tp(lang,'res_s_req'), value: Number.isFinite(r.S_req) ? r.S_req.toFixed(4) : undefined, unit: 'VA' },
+    // cond. 3 (#155): the load current and the nearest standard Ipr
+    ...(r.I_load != null ? [
+      { label: Tp(lang,'res_i_load'),  value: r.I_load.toFixed(1), unit: 'A' },
+      { label: Tp(lang,'res_ipr_std'), value: String(r.Ipr_std),   unit: 'A', ok: r.cond3 },
+    ] : []),
   ];
   // PX busbar (busbar.js calculatePxClass): E.M.F.s and Vk, no ALF (§10.6 F-SUM)
   if (type === 'busbar' && r.is_px) return [

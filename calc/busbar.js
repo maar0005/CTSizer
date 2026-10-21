@@ -22,7 +22,9 @@ const CTBusbar = (() => {
     } = core;
 
     const { isc_sys = 40, tp = 100 } = commonData;
-    const i_fmax = isc_sys * 1000;
+    // The larger of Ik3 max and Ik1 max: the lead below is the 1-phase one
+    const i_fmax = CTFaultLevel.governingKa(isc_sys, commonData.isc_1ph) * 1000;
+    const ikStep = CTFaultLevel.governingStep(isc_sys, commonData.isc_1ph);
 
     // ct_base.get_alf_or_vk — resolves alf/vk/is_px (conservative default ALF 30)
     const { alf, vk, is_px } = CTBase.getAlfOrVk(core);
@@ -48,7 +50,7 @@ const CTBusbar = (() => {
       : calculatePClass({ core, i_fmax, tp, rct, burden, Is, Ip, alf, relay_burden, Rc, r_relay, relayStep });
 
     result.warnings.push(...cable.warnings);
-    result.steps.unshift(...cable.steps);
+    result.steps.unshift(...cable.steps, ...(ikStep ? [ikStep] : []));
     result.cable_res = {
       method: cable.method, source: cable.source, topology: cable.topology, factor: cable.factor,
       r_conductor: cable.r_conductor, r_loop: cable.r_loop, r20_per_km: cable.r20_per_km,

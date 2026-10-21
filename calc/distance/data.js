@@ -56,7 +56,9 @@ CTDistance.data = (() => {
 
       // Fault current parameters
       tp: core.tp ?? commonData.tp ?? 100,
-      iscc_max: (commonData.isc_sys ?? 40) * 1000,
+      // The larger of Ik3 max and Ik1 max (CTFaultLevel): the lead is the
+      // 1-phase one unless the core's fault type is 3-phase
+      iscc_max: CTFaultLevel.governingKa(commonData.isc_sys ?? 40, commonData.isc_1ph) * 1000,
       fault_type,
       ik_alternative: core.ik_alternative ?? null,
 
