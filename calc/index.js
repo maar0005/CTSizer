@@ -87,6 +87,69 @@ const CTCalc = (() => {
     return RCT_ESTIMATE_TYPES.includes(type) && core?.rct_estimate === true;
   }
 
+  // ── IEDs in series (SLD_PLAN.md T03) ────────────────────────────────
+  // One CT core can run through several IEDs: after the core's own IED
+  // (relay_burden; on a metering core the meter, device_burden) come
+  // core.inputs.series_loads = [{ id, name, burden_va, device? }], at most
+  // SERIES_MAX, in chain order. `device` (optional) is the model device the
+  // load is (the station diagram, T10); the calculation reads only burden_va.
+  // The module gets the own burden + Σ burden_va (all at the core's Isr, so
+  // the VA add up); the stored value stays the IED's own, so CTRelayDB.apply
+  // (which writes a picked IED's SR) is unchanged.
+  // SERIES_KEY: the calc types with a series chain and the burden it adds
+  // to. Generic is not one: ct_generic.py (calc/generic.js) reads no relay
+  // burden (Rext is the lead only) and its panel has no relay card.
+  const SERIES_MAX = 10;
+  const SERIES_KEY = {
+    overcurrent: 'relay_burden', busbar: 'relay_burden', distance: 'relay_burden',
+    line_diff: 'relay_burden', transformer_diff: 'relay_burden', metering: 'device_burden',
+  };
+  const finiteNum = (x) => (x === null || x === undefined || x === '' ? null
+    : (Number.isFinite(Number(x)) ? Number(x) : null));
+  // The entries the calculation adds: a list on a calc type with a chain,
+  // capped at SERIES_MAX; blank or invalid burdens are skipped (the app
+  // does not calculate such a core: CTRequired marks them)
+  function seriesLoads(type, core) {
+    if (!Object.prototype.hasOwnProperty.call(SERIES_KEY, type)) return [];
+    const list = core && Array.isArray(core.series_loads) ? core.series_loads : [];
+    return list.slice(0, SERIES_MAX)
+      .filter((e) => e && typeof e === 'object' && finiteNum(e.burden_va) != null && finiteNum(e.burden_va) >= 0);
+  }
+  // → null (no chain) | { key, own, loads: [{ name, burden_va }], sum, total }.
+  // Needs the own burden as a number: without it the module keeps its own
+  // handling of a blank value, which the app never calculates (CTRequired).
+  function seriesBurden(type, core) {
+    const loads = seriesLoads(type, core);
+    if (!loads.length) return null;
+    const key = SERIES_KEY[type];
+    const own = finiteNum(core[key]);
+    if (own == null) return null;
+    const items = loads.map((e) => ({ name: typeof e.name === 'string' ? e.name : '', burden_va: finiteNum(e.burden_va) }));
+    const sum = items.reduce((a, e) => a + e.burden_va, 0);
+    return { key, own, loads: items, sum, total: own + sum };
+  }
+  // The Formula Step listing the chain: S_R = S_IED + Σ S_i (metering:
+  // S_device = S_meter + Σ S_i), the values in the formula and the entries'
+  // names in `detail_en` / `detail_da` (plain text, shown under the formula
+  // on screen and in the RTF)
+  function seriesStep(sb) {
+    const fmt = (x) => String(Number(x.toFixed(4)));
+    const meter = sb.key === 'device_burden';
+    const lhs = meter ? 'S_{device}' : 'S_R';
+    const own = meter ? 'S_{meter}' : 'S_{IED}';
+    const values = [sb.own, ...sb.loads.map((e) => e.burden_va)].map(fmt).join('+');
+    const vars = { [meter ? 'Smeter' : 'SIED']: sb.own };
+    sb.loads.forEach((e, i) => { vars[`S${i + 1}`] = e.burden_va; });
+    const detail = (ownName) => [`${ownName} ${fmt(sb.own)} VA`,
+      ...sb.loads.map((e, i) => `${e.name.trim() || `#${i + 1}`} ${fmt(e.burden_va)} VA`)].join(' + ');
+    return CTStep.make({
+      key: 'series_burden', label_en: 'Series burden', label_da: 'Seriebyrde',
+      latex: `${lhs}=${own}+\\sum S_i=${values}`,
+      result: sb.total, unit: 'VA', precision: 3, variables: vars,
+      detail_en: detail(meter ? 'Meter' : 'IED'), detail_da: detail(meter ? 'Måler' : 'IED'),
+    });
+  }
+
   // ── The core a module gets ───────────────────────────────────────────
   // A shallow copy of the core: the distance port writes core.ar_tp when AR is
   // enabled (as main.py writes core_data["ar_tp"] into the dict the Python tool's GUI
@@ -161,6 +224,9 @@ const CTCalc = (() => {
       m.ar_t_double_al = tal;
     }
     if (type === 'distance' && CTBase.getAlfOrVk(m).is_px) delete m.alf;
+    // IEDs in series: the module sees the whole chain's burden (seriesBurden)
+    const sb = seriesBurden(type, core);
+    if (sb) m[sb.key] = sb.total;
     return m;
   }
 
@@ -173,7 +239,11 @@ const CTCalc = (() => {
       // IED input rating: the secondary current against the picked IED's
       // input ratings (calc/ied_rating.js ← ct_ied_rating.py, which
       // calculate_single_core runs after the module the same way)
-      const r = CTIedRating.apply(fn(m, commonData), CTIedRating.calculate(type, m, commonData));
+      let r = CTIedRating.apply(fn(m, commonData), CTIedRating.calculate(type, m, commonData));
+      // IEDs in series: the step that sums the chain, first (it gives the
+      // burden the module's own steps use)
+      const sb = seriesBurden(type, core);
+      if (r && sb) r = { ...r, series_burden: sb, steps: [seriesStep(sb), ...(r.steps || [])] };
       // CTSizer's sanity checks (calc/plausibility.js, issue #154): the
       // secondary voltage limit (fails the core) and a typed Rct far above
       // the rule-of-thumb table (a remark)
@@ -287,7 +357,7 @@ const CTCalc = (() => {
   }
 
   return {
-    calculate, moduleCore, CLASS_ROW_TYPES, RCT_ESTIMATE_TYPES, rctEstimated, ctClassFamily, satCurve, waveformData,
+    calculate, moduleCore, SERIES_MAX, SERIES_KEY, seriesLoads, seriesBurden, CLASS_ROW_TYPES, RCT_ESTIMATE_TYPES, rctEstimated, ctClassFamily, satCurve, waveformData,
     // ct_calculations.py CTCalculator
     calculateSingleCore, routeCore, coreMetadata, getAlfOrVk, SECURITY_FACTOR_C,
     // Expose submodules for direct access

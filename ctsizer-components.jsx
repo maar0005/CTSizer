@@ -1045,6 +1045,12 @@ function FormulaStep({ step, lang }) {
           {lang === 'da' ? step.label_da : step.label_en}
         </div>
         <div ref={katexRef} style={{ fontSize: 13, color: 'var(--text-dim)' }}>{step.latex}</div>
+        {/* plain-text detail (e.g. the IEDs of a series chain, CTCalc.seriesBurden) */}
+        {(step.detail_en || step.detail_da) && (
+          <div data-testid="step-detail" style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 3 }}>
+            {lang === 'da' ? step.detail_da || step.detail_en : step.detail_en || step.detail_da}
+          </div>
+        )}
         {isConc && step.comparison && (
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, marginTop: 5,
                          color: step.is_ok ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>

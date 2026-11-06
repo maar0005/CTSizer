@@ -19,6 +19,9 @@
  * ready(core, system, feeder) — all complete: the core may be calculated;
  *                           core(core, feeder) includes the bay values it reads
  *
+ * IEDs in series (core.inputs.series_loads): each entry's burden as
+ * `series_load_<i>` (seriesCheck).
+ *
  * Sections: station, ct, relay, line, trafo, conn, cable, ar, meter, vt. The ranges
  * are the min / max of the panel inputs (ctsizer-panels.jsx); `gt` marks a
  * value that must be above its minimum (a rated current, burden or voltage).
@@ -291,6 +294,30 @@ const CTRequired = (() => {
     return rules;
   }
 
+  // IEDs in series (CTCalc.seriesBurden, SLD_PLAN.md T03): each entry's
+  // burden_va as `series_load_<i>` in the relay card (metering: the meter
+  // card), with the own burden's range; the name is optional. More than
+  // CTCalc.SERIES_MAX entries, or a list that is not one, marks `series_loads`
+  // invalid. Checked on a flat copy, as check() reads one level.
+  function seriesCheck(type, v) {
+    if (!Object.prototype.hasOwnProperty.call(CTCalc.SERIES_KEY, type)) return null;
+    const list = v.series_loads;
+    if (list === undefined || list === null) return null;
+    const metering = type === 'metering';
+    const section = metering ? 'meter' : 'relay';
+    const spec = num(0, metering ? 100 : 10);
+    const flat = {}, rules = [];
+    if (!Array.isArray(list) || list.length > CTCalc.SERIES_MAX) {
+      flat.series_loads = 'x';
+      rules.push(['series_loads', sel([]), section]);
+    }
+    (Array.isArray(list) ? list.slice(0, CTCalc.SERIES_MAX) : []).forEach((e, i) => {
+      flat[`series_load_${i}`] = e && typeof e === 'object' ? e.burden_va : undefined;
+      rules.push([`series_load_${i}`, spec, section]);
+    });
+    return rules.length ? check(flat, rules) : null;
+  }
+
   // calc type → [rules, the values they read]
   function coreRules(type, v, f) {
     switch (type) {
@@ -345,7 +372,9 @@ const CTRequired = (() => {
   function core(c, f) {
     const type = coreType(c);
     const v = (c && c.inputs) || {};
-    const own = check(derived(v), coreRules(type, v, f));
+    let own = check(derived(v), coreRules(type, v, f));
+    const series = seriesCheck(type, v);
+    if (series) own = merge(own, series);
     const bayRules = bayRulesFor(type, v, f);
     return bayRules.length ? merge(own, check(CTBay.flat(f), bayRules)) : own;
   }

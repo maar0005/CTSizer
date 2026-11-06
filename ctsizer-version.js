@@ -8,8 +8,8 @@
 const CTSVersion = (() => {
   const VERSION    = '0.9.0';
   const STAGE      = 'Beta';    // '' once CTSizer leaves beta
-  const BUILD      = 'd73e2a0';
-  const BUILD_DATE = '2026-10-21';
+  const BUILD      = 'fdf05b8';
+  const BUILD_DATE = '2026-11-06';
 
   // "v0.9.0 Beta"
   const short = () => `v${VERSION}${STAGE ? ' ' + STAGE : ''}`;

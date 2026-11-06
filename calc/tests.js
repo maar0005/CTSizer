@@ -5910,6 +5910,119 @@ const CTTests = (() => {
     return results;
   }
 
+  // ── IEDs in series (CTCalc.seriesBurden, SLD_PLAN.md T03) ────────────
+  // A core running through several IEDs is calculated with its own burden
+  // plus Σ burden_va: the same result as one IED with that burden.
+  function testSeriesLoads() {
+    const results = [];
+    const sys = { voltage: 132, freq: '50', isc_sys: 20, isc_1ph: 20, tp: 100, cable_r_method: 'iec60287',
+      cable_temp: 75, cable_rho_mode: 'iec' };
+    const cable = { cable_length: 65, cable_cross: 4, cable_mat: 'cu', cable_topology: 'six_wire' };
+    const oc = { Ip: 2000, Is: 1, rct: 4, burden: 30, ct_class_family: '5P', alf: 20, relay_burden: 0.1,
+      relay_manufacturer: 'Other', ...cable };
+    const dist = { ...oc, zone1_setting: 0.85 };
+    const distCd = { ...sys, remote_end: { R_L_per_km: 0.0423, X_L_per_km: 0.203, lL: 6.4 } };
+    const mt = { Ip: 600, Is: 1, rct: 2, burden: 5, mt_class: '0.5', fs_factor: 5, min_safety_factor: 5,
+      device_burden: 0.5, meter_manufacturer: 'Other', attached_resistor: 0, ...cable, cable_length: 20 };
+    const chain = [{ id: 's1', name: 'P2 87B', burden_va: 0.3 }, { id: 's2', name: '', burden_va: 0.2 }];
+    // the result without the series step (its only difference by design)
+    const strip = (r) => JSON.stringify({ ...r, series_burden: undefined,
+      steps: r.steps.filter((x) => x.key !== 'series_burden') });
+
+    // Absent or empty: identical to before (golden parity), no step
+    for (const [t, core, cd] of [['overcurrent', oc, sys], ['distance', dist, distCd], ['metering', mt, sys]]) {
+      const base = CTCalc.calculate(t, core, cd);
+      const empty = CTCalc.calculate(t, { ...core, series_loads: [] }, cd);
+      results.push(assert(`SERIES ${t}: empty series_loads → identical result, no step`,
+        JSON.stringify(base) === JSON.stringify(empty) && !base.steps.some((x) => x.key === 'series_burden')
+          && !('series_burden' in base),
+        'differs', 'identical'));
+      const { series_loads: _sl, ...mEmpty } = CTCalc.moduleCore(t, { ...core, series_loads: [] }, cd);
+      results.push(assert(`SERIES ${t}: moduleCore unchanged without a chain`,
+        JSON.stringify(CTCalc.moduleCore(t, core, cd)) === JSON.stringify(mEmpty), '', 'unchanged'));
+    }
+
+    // 0.3 + 0.2 VA in series = the own burden + 0.5
+    for (const [t, core, cd, key] of [['overcurrent', oc, sys, 'relay_burden'], ['distance', dist, distCd, 'relay_burden'],
+      ['metering', mt, sys, 'device_burden']]) {
+      const withChain = CTCalc.calculate(t, { ...core, series_loads: chain }, cd);
+      const plain = CTCalc.calculate(t, { ...core, [key]: core[key] + 0.5 }, cd);
+      results.push(assert(`SERIES ${t}: 0.3 + 0.2 VA in series = ${key} + 0.5`,
+        strip(withChain) === strip(plain) && withChain.series_burden.total === core[key] + 0.5
+          && strip(withChain) !== strip(CTCalc.calculate(t, core, cd)),
+        withChain.series_burden && withChain.series_burden.total, core[key] + 0.5, ' VA'));
+      const st = withChain.steps[0];
+      results.push(assert(`SERIES ${t}: the Formula Step comes first and lists the chain`,
+        st.key === 'series_burden' && approx(st.result, core[key] + 0.5) && st.unit === 'VA'
+          && st.latex.includes('\\sum S_i') && st.latex.endsWith(`=${core[key]}+0.3+0.2`)
+          && st.detail_en.includes('P2 87B 0.3 VA') && st.detail_en.includes('#2 0.2 VA')
+          && st.detail_en.startsWith(key === 'device_burden' ? 'Meter ' : 'IED ')
+          && st.detail_da.startsWith(key === 'device_burden' ? 'Måler ' : 'IED '),
+        `${st.key} ${st.latex} | ${st.detail_en} | ${st.detail_da}`, 'series_burden …=own+0.3+0.2'));
+      // The stored value stays the IED's own
+      const stored = { ...core, series_loads: chain };
+      CTCalc.calculate(t, stored, cd);
+      results.push(assert(`SERIES ${t}: the stored ${key} stays the own burden`, stored[key] === core[key], stored[key], core[key]));
+    }
+    results.push(assert('SERIES metering step names S_device / S_meter',
+      CTCalc.calculate('metering', { ...mt, series_loads: chain }, sys).steps[0].latex.startsWith('S_{device}=S_{meter}+'),
+      '', 'S_{device}=S_{meter}+…'));
+    // The other relay types: busbar, line diff, transformer diff read relay_burden too
+    const bb = { Ip: 2000, Is: 1, rct: 4, burden: 30, alf: 20, relay_burden: 0.02, ...cable };
+    const ld = { ...oc, ct_class_family: '5PR', alf: 30, relay_burden: 0.1 };
+    const td = { Ip: 750, Is: 1, rct: 2.402, burden: 30, ct_class_family: '5P', alf: 30, relay_burden: 0.1, linked_winding: 'HV', ...cable };
+    const tdCd = { ...sys, transformer: { sr_mva: 100, z_percent: 12, inrush_factor: 8, winding_count: '2', ur_kv_HV: 132, ur_kv_LV: 20,
+      isc_int_HV: 8000, isc_int_LV: 20000 } };
+    for (const [t, core, cd] of [['busbar', bb, sys], ['line_diff', ld, sys], ['transformer_diff', td, tdCd]]) {
+      const a = CTCalc.calculate(t, { ...core, series_loads: chain }, cd);
+      const b = CTCalc.calculate(t, { ...core, relay_burden: core.relay_burden + 0.5 }, cd);
+      results.push(assert(`SERIES ${t}: chain = relay_burden + 0.5`, !!a && strip(a) === strip(b)
+        && strip(a) !== strip(CTCalc.calculate(t, core, cd)), '', 'identical, and not the plain core'));
+    }
+    // Generic reads no relay burden (calc/generic.js): no chain, unchanged
+    const gen = { Is: 1, rct: 3, burden: 10, ct_class_family: '5P', alf: 10, ...cable };
+    results.push(assert('SERIES generic and VT have no chain',
+      CTCalc.seriesBurden('generic', { ...gen, relay_burden: 0.1, series_loads: chain }) === null
+        && CTCalc.seriesBurden('vt', { device_burden: 1, series_loads: chain }) === null
+        && JSON.stringify(CTCalc.calculate('generic', { ...gen, series_loads: chain }, sys)) === JSON.stringify(CTCalc.calculate('generic', gen, sys)),
+      '', 'null / unchanged'));
+    // Blank or invalid entries are skipped, the list is capped at SERIES_MAX
+    const sb = CTCalc.seriesBurden('overcurrent', { ...oc, series_loads: [{ burden_va: null }, { burden_va: 'x' }, { burden_va: -1 }, null, { burden_va: '0.25' }] });
+    results.push(assert('SERIES blank / invalid entries skipped, a numeric string read', sb.loads.length === 1 && sb.sum === 0.25,
+      sb.sum, 0.25, ' VA'));
+    const many = Array.from({ length: 12 }, (_, i) => ({ id: `s${i}`, burden_va: 0.1 }));
+    results.push(assert('SERIES capped at SERIES_MAX entries', CTCalc.SERIES_MAX === 10
+      && CTCalc.seriesBurden('overcurrent', { ...oc, series_loads: many }).loads.length === 10, '', '10'));
+    results.push(assert('SERIES no own burden → no chain (blank stays blank)',
+      CTCalc.seriesBurden('overcurrent', { ...oc, relay_burden: null, series_loads: chain }) === null, '', 'null'));
+
+    // Required inputs: each entry's burden in the relay card (metering: meter)
+    const R = CTRequired;
+    const SYS = { station_name: 'Test', station_abbr: 'TST', ...sys };
+    const req = (t, inputs) => R.core({ kind: 'ct', calc_type: t, inputs });
+    results.push(assert('SERIES REQ overcurrent with a complete chain → ok', req('overcurrent', { ...oc, series_loads: chain }).ok,
+      Object.keys(req('overcurrent', { ...oc, series_loads: chain }).fields).join(','), ''));
+    const blank = req('overcurrent', { ...oc, series_loads: [chain[0], { id: 'n', name: '', burden_va: null }] });
+    results.push(assert('SERIES REQ a blank entry is marked missing in the relay card',
+      !blank.ok && blank.count === 1 && blank.fields.series_load_1 === 'missing' && blank.sections.relay === 1
+        && !R.ready({ kind: 'ct', calc_type: 'overcurrent', inputs: { ...oc, series_loads: [{ burden_va: null }] } }, SYS),
+      JSON.stringify(blank.fields), '{"series_load_1":"missing"}'));
+    const bad = req('distance', { ...dist, series_loads: [{ burden_va: 11 }] }, null);
+    results.push(assert('SERIES REQ 11 VA on a relay core → invalid (0–10)', bad.fields.series_load_0 === 'invalid' && bad.invalidSections.relay,
+      bad.fields.series_load_0, 'invalid'));
+    const mOk = req('metering', { ...mt, series_loads: [{ burden_va: 11 }] });
+    const mBlank = req('metering', { ...mt, series_loads: [{ name: 'X' }] });
+    results.push(assert('SERIES REQ metering: 0–100 VA in the meter card',
+      mOk.fields.series_load_0 === undefined && mBlank.fields.series_load_0 === 'missing' && mBlank.sections.meter === 1,
+      JSON.stringify(mBlank.fields), '{"series_load_0":"missing"}'));
+    const tooMany = req('overcurrent', { ...oc, series_loads: many });
+    results.push(assert('SERIES REQ more than 10 entries → series_loads invalid',
+      tooMany.fields.series_loads === 'invalid' && !('series_load_10' in tooMany.fields), JSON.stringify(tooMany.fields), 'series_loads invalid'));
+    results.push(assert('SERIES REQ no list / generic → no rule', req('overcurrent', oc).ok
+      && req('generic', { ...gen, series_loads: [{ burden_va: null }] }).ok, '', 'ok'));
+    return results;
+  }
+
   function testEndToEnd() {
     const results = [];
     const G = (typeof CT_GOLDEN !== 'undefined' && CT_GOLDEN.e2e) ? CT_GOLDEN.e2e : null;
@@ -6810,6 +6923,7 @@ const CTTests = (() => {
       { name: 'LocalRules',     fn: testLocalRules     },
       { name: 'VtResistorLocation', fn: testVtResistorLocation },
       { name: 'FaultLevel',     fn: testFaultLevel     },
+      { name: 'SeriesLoads',    fn: testSeriesLoads    },
       { name: 'EndToEnd',       fn: testEndToEnd       },
     ];
 

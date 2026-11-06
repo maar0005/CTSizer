@@ -386,7 +386,7 @@ const CTSReport = (() => {
     approx: '\u2248', equiv: '\u2261', propto: '\u221d',
     wedge: '\u2227', land: '\u2227', vee: '\u2228', lor: '\u2228', neg: '\u00ac',
     parallel: '\u2225', rightarrow: '\u2192', to: '\u2192', Rightarrow: '\u21d2', leftarrow: '\u2190',
-    infty: '\u221e', degree: '\u00b0', circ: '\u00b0', ldots: '\u2026', cdots: '\u22ef', dots: '\u2026',
+    sum: '\u2211', infty: '\u221e', degree: '\u00b0', circ: '\u00b0', ldots: '\u2026', cdots: '\u22ef', dots: '\u2026',
     alpha: '\u03b1', beta: '\u03b2', gamma: '\u03b3', delta: '\u03b4', epsilon: '\u03b5', varepsilon: '\u03b5',
     zeta: '\u03b6', eta: '\u03b7', theta: '\u03b8', kappa: '\u03ba', lambda: '\u03bb', mu: '\u03bc',
     nu: '\u03bd', xi: '\u03be', pi: '\u03c0', rho: '\u03c1', sigma: '\u03c3', tau: '\u03c4',
@@ -850,6 +850,18 @@ const CTSReport = (() => {
     const rows = [];
     const add = (label, value, unit = '') => { if (isFilled(value)) rows.push([label, String(value), unit]); };
     const ui = (k) => UI(lang, k);
+    // IEDs in series (CTCalc.seriesBurden): one row per entry (name and
+    // burden) and the total the core is calculated with
+    const seriesRows = (vals) => {
+      const list = Array.isArray(vals.series_loads) ? vals.series_loads : [];
+      if (!list.length || typeof CTCalc === 'undefined' || !Object.prototype.hasOwnProperty.call(CTCalc.SERIES_KEY, t)) return;
+      list.slice(0, CTCalc.SERIES_MAX).forEach((e, i) => {
+        const name = e && typeof e.name === 'string' && e.name.trim() ? `: ${e.name.trim()}` : '';
+        add(`${ui('lbl_series_load').replace('{n}', i + 1)}${name}`, e && e.burden_va, 'VA');
+      });
+      const sb = CTCalc.seriesBurden(t, vals);
+      if (sb) add(ui(t === 'metering' ? 'lbl_series_total_meter' : 'lbl_series_total_relay'), +sb.total.toFixed(4), 'VA');
+    };
 
     // The Meter / Relay / IED card of a metering or VT core (ctsizer-panels.jsx
     // MeterSection, issue #125) under its own sub-heading
@@ -862,6 +874,7 @@ const CTSReport = (() => {
       if (t === 'vt') add(ui('lbl_vt_supply'), ui(vals.vt_supply_mode === 'self' ? 'vt_supply_self' : 'vt_supply_aux'));
       add(ui('lbl_meter_burden'), vals.device_burden, 'VA/ph');
       if (t === 'metering') add(ui('lbl_meter_fmin'), vals.min_safety_factor);
+      if (t === 'metering') seriesRows(vals);
       // the meter's standard and class (local metering rules), when entered
       if (t === 'metering' && isFilled(vals.meter_standard)) add(ui('lbl_meter_standard'), ui(`meter_std_${vals.meter_standard}`));
       if (t === 'metering') add(ui('lbl_meter_class'), vals.meter_class);
@@ -932,6 +945,7 @@ const CTSReport = (() => {
         add(L(lang, 'relay_type'), v.relay_type);
         add(L(lang, 'relay_tag'), v.relay_tag);
         add(ui('lbl_relay_burden'), v.relay_burden, 'VA');
+        seriesRows(v);
         add(L(lang, 'relay_tal'), v.relay_tal, 'ms');
         // The operate-time choices of an IED with operate times (calc/relays.js)
         const times = (CTRelayDB.lookup(v.relay_model, v.Is, t, null, v) || {}).times;
@@ -1351,7 +1365,11 @@ const CTSReport = (() => {
           const txt = [s.comparison, L(lang, s.is_ok ? 'ok' : 'not_ok')].filter(Boolean).join('  ');
           res = { rtf: esc(txt), align: 'r', bold: true, color: s.is_ok ? C.green : C.red };
         } else res = { rtf: esc(stepResult(s, lang)), align: 'r' };
-        const extra = s.substitution ? `\\line {\\fs15\\cf${C.muted} ${esc(s.substitution)}}` : '';
+        // substitution (the distance / VT steps) and detail (plain text, e.g.
+        // the IEDs of a series chain, CTCalc.seriesBurden) under the formula
+        const detail = lang === 'da' ? s.detail_da || s.detail_en : s.detail_en || s.detail_da;
+        const extra = [s.substitution, detail].filter(Boolean)
+          .map((x) => `\\line {\\fs15\\cf${C.muted} ${esc(x)}}`).join('');
         rows.push({ fill: s.is_conclusion ? (s.is_ok ? C.greenFill : C.redFill) : null, cells: [
           { rtf: String(k + 1), align: 'c' }, esc(stepLabel(lang, s)), formula + extra, res,
         ] });

@@ -1,8 +1,8 @@
 # CTSizer tests
 
-This release passed **6,289 checks in 62 test groups**
+This release passed **6,318 checks in 63 test groups**
 before it was published. 5,285 of them are golden checks against the
-42 fixture files in `calc/golden/`; the other 1,004 are
+42 fixture files in `calc/golden/`; the other 1,033 are
 hand-derived checks.
 
 All the test code is in [`calc/tests.js`](calc/tests.js). Each test group
@@ -73,9 +73,9 @@ hand-derived.
 | [Busbar](calc/tests.js#L1343) | Complete busbar protection core calculation (P class: operating ALF; PX class: E.M.F. and knee-point voltage for high-impedance schemes) against the reference, for each cable-resistance method and wiring topology. | 133 | 110 | [busbar.json](calc/golden/busbar.json) |
 | [Generic](calc/tests.js#L1480) | The generic protection core, for a relay type without its own module (ALF or Vk against the connected burden), against the reference, for each cable-resistance method and wiring topology. | 102 | 78 | [generic.json](calc/golden/generic.json) |
 | [CtCalculations](calc/tests.js#L4811) | The dispatcher the app uses (`CTCalc`): which module each core type is routed to, the single-core calculation and the security factor constant. | 122 | 112 | [ct_calculations.json](calc/golden/ct_calculations.json) |
-| [IedRating](calc/tests.js#L6533) | IED input rating: peak factor, thermal withstand current, the requirements, the 1 s thermal check (REF160 7UT86), and that a failed IED check fails the core. | 58 | 58 | [ied_rating.json](calc/golden/ied_rating.json) |
+| [IedRating](calc/tests.js#L6646) | IED input rating: peak factor, thermal withstand current, the requirements, the 1 s thermal check (REF160 7UT86), and that a failed IED check fails the core. | 58 | 58 | [ied_rating.json](calc/golden/ied_rating.json) |
 | [RctEstimate](calc/tests.js#L2429) | The rule-of-thumb Rct estimate (Rct ≈ N · r_turn, N = Np · Ipr / Isr): the r_turn table per Isr and voltage band with its ranges and basis, the calibration against two nameplates (±25 %), the "very uncertain" flag for PX / TPx classes, the notes, and how the core calculation and the required inputs use it. | 22 | 0 | — |
-| [RelayDb](calc/tests.js#L6293) | The relay database (23 relays): manufacturers, IEDs per application, burden and t_al per rated current, filling in SR and t_al, and t_al reaching the C-O-C-O check. | 22 | 0 | — |
+| [RelayDb](calc/tests.js#L6406) | The relay database (23 relays): manufacturers, IEDs per application, burden and t_al per rated current, filling in SR and t_al, and t_al reaching the C-O-C-O check. | 22 | 0 | — |
 
 ### Distance protection (465 checks)
 
@@ -151,15 +151,16 @@ hand-derived.
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
 | [Zone](calc/tests.js#L5812) | The transformer differential zone (#135): sides complete, Fadap per side with the common Sref, the Fadap ratio as information (no limit in the relay database yet), the same Isr, the zone verdict; and the REF160 regression against the reference calculation (ALFo, Req. 1–2, Fadap, Isc,max,ext, manual ρ20). | 24 | 0 | — |
-| [EndToEnd](calc/tests.js#L5913) | 19 realistic cores of every type, stored as the app stores them, through `CTCalc.calculate` exactly as the app calls it: status, the numbers in the Summary panel and every formula-step row compared with the reference. Nothing is hand-written. | 319 | 319 | [e2e.json](calc/golden/e2e.json) |
+| [EndToEnd](calc/tests.js#L6026) | 19 realistic cores of every type, stored as the app stores them, through `CTCalc.calculate` exactly as the app calls it: status, the numbers in the Summary panel and every formula-step row compared with the reference. Nothing is hand-written. | 319 | 319 | [e2e.json](calc/golden/e2e.json) |
 
-### Other (140 checks)
+### Other (169 checks)
 
 | Test group | What it checks | Checks | Golden | Fixture |
 |---|---|---:|---:|---|
-| [RelayCalcParams](calc/tests.js#L6434) | — | 14 | 0 | — |
+| [RelayCalcParams](calc/tests.js#L6547) | — | 14 | 0 | — |
 | [Plausibility](calc/tests.js#L3580) | — | 15 | 0 | — |
 | [MeteringRatio](calc/tests.js#L5584) | — | 15 | 0 | — |
 | [LocalRules](calc/tests.js#L5182) | — | 64 | 0 | — |
 | [VtResistorLocation](calc/tests.js#L5116) | — | 15 | 0 | — |
 | [FaultLevel](calc/tests.js#L5033) | — | 17 | 0 | — |
+| [SeriesLoads](calc/tests.js#L5916) | — | 29 | 0 | — |

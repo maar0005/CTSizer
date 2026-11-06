@@ -435,6 +435,7 @@ function MeterSection({ lang, v, set, onChange, calcType, localRules }) {
           </FormRow>
           <div style={noteSt}>{Tl('meter_fmin_note')}</div>
         </>}
+        {!isVt && <SeriesLoads lang={lang} v={v} onChange={onChange} calcType={calcType}/>}
         {!isVt && CTLocalRules.byId(localRules) && <MeterClassRows lang={lang} v={v} set={set} onChange={onChange}/>}
         {isVt && <div style={noteSt}>{Tl('vt_supply_note')}</div>}
         {preset && (
@@ -547,6 +548,66 @@ function CTClassRow({ lang, v, onChange }) {
 // No default values: the manufacturer and SR start blank (calc/required.js);
 // with auto-reclosure on, t_al (and the choices it needs) is required too.
 const RELAY_MANUFACTURERS = ['Siemens','ABB','GE','SEL','Sprecher','Schweitzer','Areva','Other'];
+// ── IEDs in series (CTCalc.seriesBurden, SLD_PLAN.md T03) ───────────────
+// The relay card (metering: the meter card) lists the IEDs the core runs
+// through after its own IED or meter: a name (optional) and the burden in VA
+// at the core's Isr, add / remove, at most CTCalc.SERIES_MAX, and the total
+// the core is calculated with. No default values: a new entry has a blank
+// burden, which CTRequired marks (field series_load_<i>). The last entry
+// removed drops the list, so the core is as before.
+function SeriesLoads({ lang, v, onChange, calcType }) {
+  const Tl = k => CTSI18n.t(lang, k);
+  const fmt = (k, o) => Object.keys(o).reduce((t, x) => t.replace(`{${x}}`, o[x]), Tl(k));
+  const meter = calcType === 'metering';
+  const list = Array.isArray(v.series_loads) ? v.series_loads : [];
+  const max = meter ? 100 : 10;
+  const write = l => { const n = { ...v }; if (l.length) n.series_loads = l; else delete n.series_loads; onChange(n); };
+  const edit = (i, k, x) => write(list.map((e, j) => j === i ? { ...e, [k]: x } : e));
+  const add = () => write([...list, { id: `sl${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name: '', burden_va: null }]);
+  const remove = i => write(list.filter((_, j) => j !== i));
+  const sb = CTCalc.seriesBurden(calcType, v);
+  const chk = React.useContext(InputCheck);
+  const btn = { background: 'none', border: '1px solid var(--border-2)', borderRadius: 5, cursor: 'pointer',
+    color: 'var(--text-dim)', fontSize: 11, fontFamily: 'var(--font-body)', padding: '3px 8px' };
+  const note = { fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 6 };
+  return (
+    <div data-testid="series-loads" style={{ marginTop: 12, paddingTop: 8, borderTop: '1px dashed var(--border)' }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-head)' }}>{Tl('series_title')}</div>
+      {chk && chk.fields.series_loads && (
+        <div data-field="series_loads" data-missing={chk.fields.series_loads} style={note}>
+          <MissingMark reason={chk.fields.series_loads} lang={chk.lang}/> {fmt('series_too_many', { max: CTCalc.SERIES_MAX })}
+        </div>
+      )}
+      {list.slice(0, CTCalc.SERIES_MAX).map((e, i) => (
+        <FormRow key={e && e.id || i} field={`series_load_${i}`} label={
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', minWidth: 18 }}>{fmt('series_n', { n: i + 1 })}</span>
+            <span data-testid={`series-name-${i}`} style={{ flex: 1 }}>
+              <TextInput value={(e && e.name) || ''} onChange={x => edit(i, 'name', x)} placeholder={Tl('series_name_ph')}/>
+            </span>
+          </span>
+        }>
+          <span data-testid={`series-burden-${i}`} style={{ flex: 1 }}>
+            <NumInput value={e && e.burden_va} onChange={x => edit(i, 'burden_va', x)} min={0} max={max} step={0.01}/>
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>VA</span>
+          <button type="button" data-testid={`series-remove-${i}`} onClick={() => remove(i)}
+            aria-label={Tl('series_remove')} title={Tl('series_remove')} style={{ ...btn, padding: '3px 6px' }}>✕</button>
+        </FormRow>
+      ))}
+      {list.length < CTCalc.SERIES_MAX && (
+        <button type="button" data-testid="series-add" onClick={add} style={{ ...btn, marginTop: 9 }}>{Tl('series_add')}</button>
+      )}
+      {sb && (
+        <div data-testid="series-total" style={note}>
+          {fmt(meter ? 'series_total_meter' : 'series_total_relay', { own: +sb.own.toFixed(4), sum: +sb.sum.toFixed(4), total: +sb.total.toFixed(4) })}
+        </div>
+      )}
+      <div style={note}>{Tl(meter ? 'series_note_meter' : 'series_note_relay')}</div>
+    </div>
+  );
+}
+
 const RELAY_TAL_TEXT = {
   distance:  ['relay_tal_ph_distance', 'relay_tal_note_distance'],
   line_diff: ['relay_tal_ph_ar',       'relay_tal_note_line_diff'],
@@ -637,6 +698,7 @@ function RelaySection({ lang, v, set, onChange, calcType }) {
           </div>
         )}
         <div style={note}>{Tl(talNote)}</div>
+        <SeriesLoads lang={lang} v={v} onChange={onChange} calcType={calcType}/>
       </div>
     </SectionCard>
   );
